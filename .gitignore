@@ -1,0 +1,27 @@
+# Visual Studio 공통
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+
+# 빌드 산출물
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+
+# 기타 시스템/IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
