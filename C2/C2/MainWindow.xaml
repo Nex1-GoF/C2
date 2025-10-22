@@ -4,9 +4,36 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:C2"
+        xmlns:views="clr-namespace:C2.Views"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <!-- 행: 위 3/4, 아래 1/4 -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5*"/>
+            <RowDefinition Height="2*"/>
+        </Grid.RowDefinitions>
 
+        <!-- 열: 왼쪽 3/4, 오른쪽 1/4 -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- MapPanel: 왼쪽 위 (3/4, 3/4) -->
+        <views:MapPanel Grid.Row="0" Grid.Column="0" 
+                        Margin="5" Background="LightBlue"/>
+
+        <!-- TargetPanel: 왼쪽 아래 (3/4, 1/4) -->
+        <views:TargetPanel Grid.Row="1" Grid.Column="0" 
+                           Margin="5" Background="LightGreen"/>
+
+        <!-- MissilePanel: 오른쪽 위 (1/4, 3/4) -->
+        <views:MissilePanel Grid.Row="0" Grid.Column="1" 
+                            Margin="5" Background="LightCoral"/>
+
+        <!-- LogPanel: 오른쪽 아래 (1/4, 1/4) -->
+        <views:LogPanel Grid.Row="1" Grid.Column="1" 
+                        Margin="5" Background="LightGray"/>
     </Grid>
 </Window>

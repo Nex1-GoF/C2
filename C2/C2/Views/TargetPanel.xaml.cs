@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace C2.Views
 {
     /// <summary>
-    /// MessagePanel.xaml에 대한 상호 작용 논리
+    /// TargetPanel.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class MessagePanel : UserControl
+    public partial class TargetPanel : UserControl
     {
-        public MessagePanel()
+        public TargetPanel()
         {
             InitializeComponent();
         }
