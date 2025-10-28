@@ -1,58 +1,120 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Security.Policy;
 
 namespace C2.Models
 {
+    /// <summary>
+    /// 유도탄 실시간 데이터 모델 (DataLink / Telemetry 기반)
+    /// </summary>
     public class Missile
     {
-        public string Id { get; set; }
-        public string? TargetId { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public double Speed { get; set; }
+        /// <summary> 위도 (실제값 × 1e7) </summary>
+        public int LatitudeRaw { get; set; }
+
+        /// <summary> 경도 (실제값 × 1e7) </summary>
+        public int LongitudeRaw { get; set; }
+
+        /// <summary> 고도 (단위: m) </summary>
+        public short Altitude { get; set; }
+
+        /// <summary> 요 (단위: 0.01°) </summary>
+        public short YawRaw { get; set; }
+
+        /// <summary> 피치 (단위: 0.01°) </summary>
+        public short PitchRaw { get; set; }
+
+        /// <summary> 비행 시간 (단위: ms, 발사 기준) </summary>
+        public uint FlightTime { get; set; }
+
+        /// <summary> 비행 상태 (1~5) </summary>
         public MissileState State { get; set; }
 
-        public Missile(
-            string Id,
-            double Latitude,
-            double Longitude
-            ) { 
-            this.Id = Id;
-            this.Latitude = Latitude;
-            this.Longitude = Longitude;
-            this.Speed = 0.0;
-            this.State = MissileState.Standby;
-            
-        }
+        /// <summary> 텔레메트리 상태 (1~3) </summary>
+        public TelemetryState Telemetry { get; set; }
 
-        //테스트용
+        /// <summary> 유도탄 식별자 (문자열 ID) </summary>
+        public string Id { get; set; }
+
+        /// <summary> 표적 ID (optional) </summary>
+        public string? TargetId { get; set; }
+
+        // ✅ 실제 단위로 변환된 편의 속성 (degree 단위)
+        public double Latitude => LatitudeRaw / 1e7;
+        public double Longitude => LongitudeRaw / 1e7;
+        public double Yaw => YawRaw / 100.0;
+        public double Pitch => PitchRaw / 100.0;
+
         public Missile(
-            string Id,
-            double Latitude,
-            double Longitude,
-            double Speed,
-            MissileState State,
-            string? targetId
-            )
+            string id,
+            int latitudeRaw,
+            int longitudeRaw,
+            short altitude,
+            short yawRaw,
+            short pitchRaw,
+            uint flightTime,
+            MissileState state,
+            TelemetryState telemetry,
+            string? targetId = null)
         {
-            this.Id = Id;
-            this.Latitude = Latitude;
-            this.Longitude = Longitude;
-            this.Speed = Speed;
-            this.State = State;
-            this.TargetId = targetId;
-
+            Id = id;
+            LatitudeRaw = latitudeRaw;
+            LongitudeRaw = longitudeRaw;
+            Altitude = altitude;
+            YawRaw = yawRaw;
+            PitchRaw = pitchRaw;
+            FlightTime = flightTime;
+            State = state;
+            Telemetry = telemetry;
+            TargetId = targetId;
         }
+
+        public Missile() { } // 기본 생성자 (직렬화용)
+
+        
+        //테스트용 생성자
+        // Todo: 삭제
+        public Missile(
+            string id,
+            int latitudeRaw,
+            int longitudeRaw,
+            short altitude,
+            MissileState state,
+            string? targetId = null)
+        {
+            Id = id;
+            LatitudeRaw = latitudeRaw;
+            LongitudeRaw = longitudeRaw;
+            Altitude = altitude;
+            YawRaw = 0;
+            PitchRaw = 0;
+            FlightTime = 0;
+            State = state;
+            Telemetry = TelemetryState.None;
+            TargetId = targetId;
+        }
+
     }
 
-    public enum MissileState
+    /// <summary>
+    /// 비행 상태 enum
+    /// </summary>
+    public enum MissileState : byte
     {
-        Standby, // 대기
-        InitialGuidance,    // 초기유도
-        MidGuidance,        // 중기유도
-        TerminalGuidance,    // 종말유도
+        LaunchReady = 1,   // 발사 준비
+        InitialGuidance,   // 초기 유도
+        MidGuidance,       // 중기 유도
+        TerminalGuidance,  // 종말 유도
+        Abort              // 중단
+    }
+
+    /// <summary>
+    /// 텔레메트리 상태 enum
+    /// </summary>
+    public enum TelemetryState : byte
+    {
+        None,
+        SeekerOn,  // 탐색기 가동
+        TdlOn,         // TDL 연결
+        DlOn           // DataLink 가동
     }
 }

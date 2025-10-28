@@ -13,7 +13,7 @@ namespace C2.Converters
             {
                 return state switch
                 {
-                    MissileState.Standby => "대기중",
+                    MissileState.LaunchReady => "대기중",
                     MissileState.InitialGuidance => "초기유도",
                     MissileState.MidGuidance => "중기유도",
                     MissileState.TerminalGuidance => "종말유도",

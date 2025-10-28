@@ -18,7 +18,7 @@ namespace C2.Services
 
         public MissileService()
         {
-    
+
             //missiles = new List<Missile>
             //{
             //    new Missile("MSL-01", 37.5665, 126.9780),
@@ -30,10 +30,10 @@ namespace C2.Services
             // 테스트용
             missiles = new List<Missile>
             {
-                new Missile("MSL-01", 37.5665, 126.9780, 0.0, MissileState.Standby, null),
-                new Missile("MSL-02", 36.3504, 127.3845, 250.0, MissileState.InitialGuidance, "TGT-01"),
-                new Missile("MSL-03", 35.1796, 129.0756, 480.0, MissileState.MidGuidance, "TGT-02"),
-                new Missile("MSL-04", 35.9078, 127.7669, 720.0, MissileState.TerminalGuidance, "TGT-03"),
+                new Missile("MSL-01", (int)(37.5665 * 1e7), (int)(126.9780 * 1e7), (short)0, MissileState.LaunchReady),
+                new Missile("MSL-02", (int)(36.3504 * 1e7), (int)(127.3845 * 1e7), (short)250, MissileState.InitialGuidance, "TGT-01"),
+                new Missile("MSL-03", (int)(35.1796 * 1e7), (int)(129.0756 * 1e7), (short)480, MissileState.MidGuidance, "TGT-02"),
+                new Missile("MSL-04", (int)(35.9078 * 1e7), (int)(127.7669 * 1e7), (short)720, MissileState.TerminalGuidance, "TGT-03"),
             };
         }
 
