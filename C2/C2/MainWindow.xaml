@@ -24,16 +24,16 @@
         <views:MapPanel Grid.Row="0" Grid.Column="0" 
                         Margin="5" Background="LightBlue"/>
 
-        <!-- TargetPanel: 왼쪽 아래 (3/4, 1/4) -->
-        <views:TargetPanel Grid.Row="1" Grid.Column="0" 
-                           Margin="5" Background="LightGreen"/>
+        <!-- MissilePanel: 왼쪽 아래 (3/4, 1/4) -->
+        <views:MissilePanel Grid.Row="1" Grid.Column="0" 
+                           Margin="5" Background="LightGray"/>
 
-        <!-- MissilePanel: 오른쪽 위 (1/4, 3/4) -->
-        <views:MissilePanel Grid.Row="0" Grid.Column="1" 
-                            Margin="5" Background="LightCoral"/>
+        <!-- TargetPanel: 오른쪽 위 (1/4, 3/4) -->
+        <views:TargetPanel Grid.Row="0" Grid.Column="1" 
+                            Margin="5" Background="LightGray"/>
 
         <!-- LogPanel: 오른쪽 아래 (1/4, 1/4) -->
         <views:LogPanel Grid.Row="1" Grid.Column="1" 
-                        Margin="5" Background="LightGray"/>
+                        Margin="5" Background="LightCoral"/>
     </Grid>
 </Window>
