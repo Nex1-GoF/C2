@@ -1,8 +1,9 @@
 ﻿using C2.Models;
+using C2.Services;
+using C2.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using C2.Models;
 
 namespace C2.ViewModels
 {
@@ -10,15 +11,17 @@ namespace C2.ViewModels
     {
         public ObservableCollection<MissileCardViewModel> Missiles { get; }
 
-        public MissilePanelViewModel()
+        private readonly MissileService _missileService;
+        public MissilePanelViewModel(MissileService missileService)
         {
-            // 뷰에 표현할 데이터 생성 (테스트데이터)
-            Missiles = new ObservableCollection<MissileCardViewModel>
-            {
-                new(new Missile("MSL-001", 37.56, 126.97, 250, MissileState.Standby, null)),
-                new(new Missile("MSL-002", 35.17, 129.07, 300, MissileState.MidGuidance, "TGT-01")),
-                new(new Missile("MSL-003", 36.33, 127.43, 280, MissileState.TerminalGuidance, null))
-            };
+            _missileService = missileService;
+
+            // MissileService의 Missile 목록을 ViewModel로 감쌈
+            Missiles = new ObservableCollection<MissileCardViewModel>(
+                missileService
+                    .GetAllMissiles()
+                    .Select(m => new MissileCardViewModel(m))
+            );
         }
     }
 }

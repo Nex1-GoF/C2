@@ -113,13 +113,15 @@
                     Foreground="White"
                     FontWeight="Bold"
                     Margin="0,10,0,0"
-                    Height="28">
+                    Height="28"
+                    Command="{Binding EmergencyCommand}">
                 <Button.Visibility>
                     <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="emergency">
                         <Binding Path="State"/>
                         <Binding Path="TargetId"/>
                     </MultiBinding>
                 </Button.Visibility>
+                
             </Button>
             <!-- Command="{Binding EmergencyCommand}"-->
         </Grid>

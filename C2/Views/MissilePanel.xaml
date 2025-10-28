@@ -4,10 +4,6 @@
              xmlns:vm="clr-namespace:C2.ViewModels"
              xmlns:view="clr-namespace:C2.Views">
 
-    <UserControl.DataContext>
-        <vm:MissilePanelViewModel/>
-    </UserControl.DataContext>
-
     <Grid Margin="10">
         <ItemsControl ItemsSource="{Binding Missiles}">
             <ItemsControl.ItemsPanel>
@@ -16,7 +12,6 @@
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
-            <!-- ✅ 카드 자체를 별도 UserControl로 사용 -->
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:MissileCardViewModel}">
                     <view:MissileCard/>

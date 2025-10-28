@@ -1,4 +1,6 @@
-﻿using System;
+﻿using C2.ViewModels;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +25,7 @@ namespace C2.Views
         public MissilePanel()
         {
             InitializeComponent();
+            DataContext = Ioc.Default.GetService<MissilePanelViewModel>();
         }
     }
 }

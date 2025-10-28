@@ -39,11 +39,11 @@ namespace C2.Models
             )
         {
             this.Id = Id;
-            this.TargetId = TargetId;
             this.Latitude = Latitude;
             this.Longitude = Longitude;
             this.Speed = Speed;
             this.State = State;
+            this.TargetId = targetId;
 
         }
     }
