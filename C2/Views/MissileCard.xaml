@@ -14,7 +14,7 @@
         <converters:MissileStateToStringConverter x:Key="MissileStateToStringConverter"/>
         <converters:MissileStateToVisibilityConverter x:Key="MissileStateToVisibilityConverter"/>
 
-        <!-- ✅ DropShadowEffect 리소스 등록 -->
+        <!-- ✅ DropShadowEffect -->
         <DropShadowEffect x:Key="DropShadowEffect"
                           Color="Black"
                           BlurRadius="10"
@@ -28,10 +28,11 @@
             Margin="6"
             BorderBrush="#1E2A3A"
             BorderThickness="1"
-            Width="250"
-            Height="175"
+            Width="260"
+            Height="190"
             SnapsToDevicePixels="True"
             Effect="{StaticResource DropShadowEffect}">
+
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -54,57 +55,104 @@
                            Margin="8,0,0,0"/>
             </StackPanel>
 
-            <!-- 중간: 주요 정보 -->
-            <StackPanel Grid.Row="1" Margin="0,6,0,0">
+            <!-- 중앙: 주요 정보 (왼쪽/오른쪽 2열 구조) -->
+            <Grid Grid.Row="1" Margin="0,6,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                <!-- 표적 표시 -->
-                <TextBlock Text="{Binding TargetId, StringFormat=표적: {0}}"
-                           Foreground="LightGray"
-                           FontSize="12">
-                    <TextBlock.Visibility>
-                        <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="target">
-                            <Binding Path="State"/>
-                            <Binding Path="TargetId"/>
-                        </MultiBinding>
-                    </TextBlock.Visibility>
-                </TextBlock>
+                <!-- 🟦 왼쪽 정보 -->
+                <StackPanel Grid.Column="0" Margin="0,0,8,0">
 
-                <!-- 위도 -->
-                <TextBlock Text="{Binding Latitude, StringFormat=위도: {0:F3}}"
-                           Foreground="LightGray"
-                           FontSize="12">
-                    <TextBlock.Visibility>
-                        <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
-                            <Binding Path="State"/>
-                            <Binding Path="TargetId"/>
-                        </MultiBinding>
-                    </TextBlock.Visibility>
-                </TextBlock>
+                    <!-- 표적 -->
+                    <TextBlock Text="{Binding TargetId, StringFormat=표적: {0}}"
+                               Foreground="LightGray"
+                               FontSize="12">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="target">
+                                <Binding Path="State"/>
+                                <Binding Path="TargetId"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
 
-                <!-- 경도 -->
-                <TextBlock Text="{Binding Longitude, StringFormat=경도: {0:F3}}"
-                           Foreground="LightGray"
-                           FontSize="12">
-                    <TextBlock.Visibility>
-                        <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
-                            <Binding Path="State"/>
-                            <Binding Path="TargetId"/>
-                        </MultiBinding>
-                    </TextBlock.Visibility>
-                </TextBlock>
+                    <!-- 위도 -->
+                    <TextBlock Text="{Binding Latitude, StringFormat=위도: {0:F3}°}"
+                               Foreground="LightGray"
+                               FontSize="12">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
+                                <Binding Path="State"/>
+                                <Binding Path="TargetId"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
 
-                <!-- 속도 -->
-                <TextBlock Text="{Binding Speed, StringFormat=속도: {0} m/s}"
-                           Foreground="LightGray"
-                           FontSize="12">
-                    <TextBlock.Visibility>
-                        <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
-                            <Binding Path="State"/>
-                            <Binding Path="TargetId"/>
-                        </MultiBinding>
-                    </TextBlock.Visibility>
-                </TextBlock>
-            </StackPanel>
+                    <!-- 경도 -->
+                    <TextBlock Text="{Binding Longitude, StringFormat=경도: {0:F3}°}"
+                               Foreground="LightGray"
+                               FontSize="12">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
+                                <Binding Path="State"/>
+                                <Binding Path="TargetId"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <!-- 고도 -->
+                    <TextBlock Text="{Binding Altitude, StringFormat=고도: {0} m}"
+                               Foreground="LightGray"
+                               FontSize="12">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
+                                <Binding Path="State"/>
+                                <Binding Path="TargetId"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+                </StackPanel>
+
+                <!-- 🟩 오른쪽 정보 -->
+                <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                    <!-- 요 -->
+                    <TextBlock Text="{Binding Yaw, StringFormat=요: {0:F1}°}"
+                               Foreground="LightGray"
+                               FontSize="12">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
+                                <Binding Path="State"/>
+                                <Binding Path="TargetId"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <!-- 피치 -->
+                    <TextBlock Text="{Binding Pitch, StringFormat=피치: {0:F1}°}"
+                               Foreground="LightGray"
+                               FontSize="12">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
+                                <Binding Path="State"/>
+                                <Binding Path="TargetId"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <!-- 비행시간 -->
+                    <TextBlock Text="{Binding FlightTime, StringFormat=비행시간: {0} ms}"
+                               Foreground="LightGray"
+                               FontSize="12">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="midterm">
+                                <Binding Path="State"/>
+                                <Binding Path="TargetId"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
 
             <!-- 하단: 비상 폭파 버튼 -->
             <Button Grid.Row="2"
@@ -113,7 +161,8 @@
                     Foreground="White"
                     FontWeight="Bold"
                     Margin="0,10,0,0"
-                    Height="28">
+                    Height="28"
+                    Command="{Binding EmergencyCommand}">
                 <Button.Visibility>
                     <MultiBinding Converter="{StaticResource MissileStateToVisibilityConverter}" ConverterParameter="emergency">
                         <Binding Path="State"/>
@@ -121,7 +170,6 @@
                     </MultiBinding>
                 </Button.Visibility>
             </Button>
-            <!-- Command="{Binding EmergencyCommand}"-->
         </Grid>
     </Border>
 </UserControl>

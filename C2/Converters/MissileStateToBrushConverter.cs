@@ -14,7 +14,7 @@ namespace C2.Converters
             {
                 return state switch
                 {
-                    MissileState.Standby => Brushes.LimeGreen,
+                    MissileState.LaunchReady => Brushes.LimeGreen,
                     MissileState.InitialGuidance => Brushes.Yellow,
                     MissileState.MidGuidance => Brushes.Orange,
                     MissileState.TerminalGuidance => Brushes.Red,
