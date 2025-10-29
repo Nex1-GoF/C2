@@ -8,9 +8,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <gmap:GMapControl x:Name="PART_Map"
-              Zoom="7"
-              CanDragMap="True"
-              MouseWheelZoomType="MousePositionAndCenter" />
+        <gmap:GMapControl x:Name="PART_Map"/>
     </Grid>
 </UserControl>

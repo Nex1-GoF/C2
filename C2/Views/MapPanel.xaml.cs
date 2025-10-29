@@ -1,48 +1,69 @@
-﻿using C2.ViewModels;
-using GMap.NET;
+﻿using GMap.NET;
 using GMap.NET.MapProviders;
 using GMap.NET.WindowsPresentation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace C2.Views
 {
     public partial class MapPanel : UserControl
     {
-
         public MapPanel()
         {
             InitializeComponent();
-
-            //PART_Map = new GMapControl(); // GMapControl 객체 초기화
-
-            Loaded += (s, e) =>
-            {
-                OnLoaded(s, e);
-            };
+            Loaded += (s, e) => OnLoaded(s, e);
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            GMaps.Instance.Mode = AccessMode.ServerOnly; //(ServerAndCache->코드 실행->CacheOnly로 바꾸기)
-            //PART_Map.CacheLocation = @"C:\MapCache"; // C:\MapCache에 지도데이터를 넣어야겠지?
+            GMaps.Instance.Mode = AccessMode.ServerAndCache;
             PART_Map.MapProvider = OpenStreetMapProvider.Instance;
             PART_Map.MinZoom = 2;
             PART_Map.MaxZoom = 18;
-            PART_Map.Zoom = 6;
-            PART_Map.Position = new PointLatLng(37.5665, 126.9780);
+            PART_Map.Zoom = 8;
+
+            // 서울 좌표
+            var center = new PointLatLng(37.5665, 126.9780);
+            PART_Map.Position = center;
+
+            // 반경 350km 탐지 원
+            // 350km은 지도에 안보여서 임시적으로 250km으로 수정
+            var circlePoints = CreateCircle(center, 250_000, 72);
+            var circle = new GMapPolygon(circlePoints)
+            {
+                Shape = new System.Windows.Shapes.Path
+                {
+                    Stroke = Brushes.LimeGreen,             // 초록색 윤곽선
+                    StrokeThickness = 2,                    // 선 두께
+                    Fill = Brushes.Transparent,             // 내부 비움
+                    
+                }
+            };
+            
+            PART_Map.Markers.Add(circle);
         }
+
+        private static List<PointLatLng> CreateCircle(PointLatLng center, double radiusMeters, int segments)
+        {
+            var points = new List<PointLatLng>();
+            const double EarthRadius = 6378137.0;
+
+            double lat = ToRadians(center.Lat);
+            double lon = ToRadians(center.Lng);
+            double d = radiusMeters / EarthRadius;
+
+            for (int i = 0; i <= segments; i++)
+            {
+                double angle = 2 * Math.PI * i / segments;
+                double latPoint = Math.Asin(Math.Sin(lat) * Math.Cos(d) + Math.Cos(lat) * Math.Sin(d) * Math.Cos(angle));
+                double lonPoint = lon + Math.Atan2(Math.Sin(angle) * Math.Sin(d) * Math.Cos(lat), Math.Cos(d) - Math.Sin(lat) * Math.Sin(latPoint));
+                points.Add(new PointLatLng(ToDegrees(latPoint), ToDegrees(lonPoint)));
+            }
+            return points;
+        }
+
+        private static double ToRadians(double deg) => deg * Math.PI / 180.0;
+        private static double ToDegrees(double rad) => rad * 180.0 / Math.PI;
     }
 }

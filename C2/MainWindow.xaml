@@ -22,18 +22,18 @@
 
         <!-- MapPanel: 왼쪽 위 (3/4, 3/4) -->
         <views:MapPanel Grid.Row="0" Grid.Column="0" 
-                        Margin="5" Background="LightBlue"/>
+                        Background="LightBlue"/>
 
         <!-- MissilePanel: 왼쪽 아래 (3/4, 1/4) -->
         <views:MissilePanel Grid.Row="1" Grid.Column="0" 
-                           Margin="5" Background="LightGray"/>
+                           Background="LightGray"/>
 
         <!-- TargetPanel: 오른쪽 위 (1/4, 3/4) -->
         <views:TargetPanel Grid.Row="0" Grid.Column="1" 
-                            Margin="5" Background="LightGray"/>
+                            Background="LightGray"/>
 
         <!-- LogPanel: 오른쪽 아래 (1/4, 1/4) -->
         <views:LogPanel Grid.Row="1" Grid.Column="1" 
-                        Margin="5" Background="LightCoral"/>
+                        Background="LightCoral"/>
     </Grid>
 </Window>
