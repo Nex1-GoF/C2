@@ -1,8 +1,7 @@
-﻿using C2.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using C2.Messages;
+using C2.Models;
+using CommunityToolkit.Mvvm.Messaging;
+using GMap.NET;
 using System.Threading.Tasks;
 
 namespace C2.Services
@@ -10,37 +9,58 @@ namespace C2.Services
     public class MissileController
     {
         private readonly Missile missile;
+        private PIP? PIP;
 
         public MissileController(Missile missile)
         {
             this.missile = missile;
         }
 
-        public void Launch()
+        public void SetPIP(double Lat, double Lng)
         {
-            missile.State = MissileState.InitialGuidance;
-            missile.FlightTime = 0;
-            Console.WriteLine($"{missile.Id} 발사됨");
+            if (PIP == null)
+            {
+                PIP = new PIP(missile.Id, Lat, Lng);
+                return;
+            }
+            PIP.Latitude = Lat;
+            PIP.Longitude = Lng;
         }
 
-        public void EmergencyExplode()
+        public void SetPIP(PIP PIP)
         {
-            missile.State = MissileState.Abort;
-            Console.WriteLine($"{missile.Id} 비상 폭파!");
+            this.PIP = PIP;
         }
 
-        public void AssignTarget(string targetId)
+        public async Task SimulateFlightAsync(int interval)
         {
-            missile.TargetId = targetId;
-            Console.WriteLine($"{missile.Id} → {targetId} 교전 할당됨");
-        }
+            if (PIP == null) return;
+            missile.State = MissileState.MidGuidance;
 
-        public void Reset()
-        {
-            missile.State = MissileState.LaunchReady;
-            missile.TargetId = null;
-            missile.FlightTime = 0;
+            double lat = missile.LatitudeRaw / 1e7;
+            double lon = missile.LongitudeRaw / 1e7;
+
+            for (int i = 0; i < 300; i++)
+            {
+                await Task.Delay(interval);
+
+                
+                double targetLat = PIP.Latitude;
+                double targetLon = PIP.Longitude;
+
+                lat += (targetLat - lat) * 0.01;
+                lon += (targetLon - lon) * 0.01;
+
+                missile.LatitudeRaw = (int)(lat * 1e7);
+                missile.LongitudeRaw = (int)(lon * 1e7);
+
+                // UI 갱신용 메시지
+                WeakReferenceMessenger.Default.Send(
+                    new MissileUpdateMessage(new MissileUpdateData(missile.Id, lat, lon))
+                );
+            }
+
+            missile.State = MissileState.TerminalGuidance;
         }
     }
-
 }

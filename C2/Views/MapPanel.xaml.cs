@@ -24,12 +24,13 @@ namespace C2.Views
             PART_Map.Zoom = 8;
 
             // 서울 좌표
-            var center = new PointLatLng(37.5665, 126.9780);
+            var center = new PointLatLng(38.5665, 126.9780);
+            var Seoul = new PointLatLng(37.5665, 126.9780);
             PART_Map.Position = center;
 
             // 반경 350km 탐지 원
             // 350km은 지도에 안보여서 임시적으로 250km으로 수정
-            var circlePoints = CreateCircle(center, 250_000, 72);
+            var circlePoints = CreateCircle(Seoul, 250_000, 72);
             var circle = new GMapPolygon(circlePoints)
             {
                 Shape = new System.Windows.Shapes.Path
