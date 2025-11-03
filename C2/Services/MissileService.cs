@@ -35,7 +35,7 @@ namespace C2.Services
                 var pip = new PIP(missile.Id, pipLat, pipLon);
 
                 var controller = new MissileController(missile);
-                controller.SetPIP(pip);
+                controller.PIP = pip;
 
                 missileControllers.Add(controller);
 

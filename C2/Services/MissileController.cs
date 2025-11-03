@@ -8,28 +8,13 @@ namespace C2.Services
     public class MissileController
     {
         public  Missile Missile {  get; }
-        public PIP? PIP { get; private set; }
+        public PIP? PIP { get; set; }
 
         public MissileController(Missile missile)
         {
             this.Missile = missile;
         }
 
-        public void SetPIP(double Lat, double Lng)
-        {
-            if (PIP == null)
-            {
-                PIP = new PIP(Missile.Id, Lat, Lng);
-                return;
-            }
-            PIP.Latitude = Lat;
-            PIP.Longitude = Lng;
-        }
-
-        public void SetPIP(PIP PIP)
-        {
-            this.PIP = PIP;
-        }
 
         public async Task SimulateFlightAsync(int interval)
         {
