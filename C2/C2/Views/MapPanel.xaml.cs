@@ -1,4 +1,5 @@
-﻿using System;
+﻿using C2.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +21,12 @@ namespace C2.Views
     /// </summary>
     public partial class MapPanel : UserControl
     {
+        private readonly MapViewModel _vm;
         public MapPanel()
         {
             InitializeComponent();
+            _vm = new MapViewModel(PART_Map);
+            DataContext = _vm;
         }
     }
 }
