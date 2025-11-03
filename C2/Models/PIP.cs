@@ -3,19 +3,19 @@ using GMap.NET;
 
 namespace C2.Models
 {
-    public partial class PIP : ObservableObject
+    public partial class PIP
     {
-        [ObservableProperty] private string _missileId;
-        [ObservableProperty] private double _latitude;
-        [ObservableProperty] private double _longitude;
+        public string MissileId { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
 
         public PointLatLng Position => new PointLatLng(Latitude, Longitude);
 
         public PIP(string missileId, double latitude, double longitude)
         {
-            _missileId = missileId;
-            _latitude = latitude;
-            _longitude = longitude;
+            MissileId = missileId;
+            Latitude = latitude;
+            Longitude = longitude;
         }
 
         public void UpdatePosition(double newLat, double newLon)
