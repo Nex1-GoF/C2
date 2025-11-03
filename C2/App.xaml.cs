@@ -14,16 +14,9 @@ namespace C2
     {
         public App()
         {
-            // DI 컨테이너로 전역 싱글톤 객체들을 관리함
-            // 원래는 직접 구현하려고 했지만, 기본적으로 제공하는 기능이었음
+            MissileService _missileService = MissileService.Instance;
 
-            // 유도탄 서비스를 싱글톤으로 구현
-            Ioc.Default.ConfigureServices(
-                new ServiceCollection() 
-                    .AddSingleton<MissileService>() // 서비스 등록
-                    .AddTransient<MissilePanelViewModel>() // 뷰모델 등록
-                    .BuildServiceProvider()
-            );
+
         }
     }
 

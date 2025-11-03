@@ -1,6 +1,4 @@
-﻿using C2.ViewModels;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,20 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace C2.Views
+namespace C2.Views.Markers
 {
     /// <summary>
-    /// MissilePanel.xaml에 대한 상호 작용 논리
+    /// TargetMarker.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class MissilePanel : UserControl
+    public partial class TargetMarker : UserControl
     {
-        private readonly MissilePanelViewModel _vm;
-
-        public MissilePanel()
+        public TargetMarker()
         {
             InitializeComponent();
-            _vm = new MissilePanelViewModel();  // 뷰모델 생성
-            DataContext = _vm;
         }
     }
 }

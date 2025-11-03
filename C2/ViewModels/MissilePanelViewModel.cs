@@ -1,46 +1,42 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using C2.Messages;
-using C2.Models;
-using C2.Services;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using C2.Services;
 
 namespace C2.ViewModels
 {
-    public partial class MissilePanelViewModel : ObservableRecipient, IRecipient<MissileUpdateMessage>
+    public partial class MissilePanelViewModel : ObservableObject
     {
-        public ObservableCollection<MissileCardViewModel> Missiles { get; }
-
         private readonly MissileService _missileService;
+        private readonly DispatcherTimer _updateTimer;
 
-        public MissilePanelViewModel(MissileService missileService)
+        public ObservableCollection<MissileCardViewModel> Missiles { get; } = new();
+
+        public MissilePanelViewModel()
         {
-            _missileService = missileService;
+            _missileService = MissileService.Instance;
 
-            // 수신 활성화
-            IsActive = true;
+            // 초기 데이터
+            foreach (var ctrl in _missileService.missileControllers)
+                Missiles.Add(new MissileCardViewModel(ctrl.Missile));
 
-            // MissileService로부터 미사일 목록 초기화
-            Missiles = new ObservableCollection<MissileCardViewModel>(
-                missileService
-                    .GetAllMissiles()
-                    .Select(m => new MissileCardViewModel(m))
-            );
+            // 주기적 갱신
+            _updateTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+            _updateTimer.Tick += (s, e) => RefreshMissiles();
+            _updateTimer.Start();
         }
 
-        // 메시지 수신 콜백
-        public void Receive(MissileUpdateMessage message)
+        private void RefreshMissiles()
         {
-            var update = message.Value;
-
-            // 동일한 ID의 MissileCardViewModel을 찾아서 업데이트
-            var vm = Missiles.FirstOrDefault(x => x.Id == update.Id);
-            if (vm != null)
+            for (int i = 0; i < Missiles.Count; i++)
             {
-                // 위치 변경 반영
-                vm.Latitude = update.Latitude;
-                vm.Longitude = update.Longitude;
+                var vm = Missiles[i];
+                var m = _missileService.missileControllers[i].Missile;
+
+                vm.Latitude = m.Latitude;
+                vm.Longitude = m.Longitude;
+                vm.State = m.State;
             }
         }
     }

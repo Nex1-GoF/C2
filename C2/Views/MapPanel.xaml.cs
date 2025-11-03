@@ -1,6 +1,8 @@
-﻿using GMap.NET;
+﻿using C2.ViewModels;
+using GMap.NET;
 using GMap.NET.MapProviders;
 using GMap.NET.WindowsPresentation;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,9 +11,12 @@ namespace C2.Views
 {
     public partial class MapPanel : UserControl
     {
+        private readonly MapPanelViewModel _vm;
         public MapPanel()
         {
             InitializeComponent();
+            _vm = new MapPanelViewModel(PART_Map);
+            DataContext = _vm;
             Loaded += (s, e) => OnLoaded(s, e);
         }
 
