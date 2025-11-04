@@ -33,6 +33,8 @@ namespace C2.ViewModels
         private MissileMarkerViewModel? _focusedMissile;
         private TargetMarkerViewModel? _focusedTarget;
         private PIPMarkerViewModel? _focusedPip;
+        private GMapRoute? _lineMissileToPip;
+        private GMapRoute? _lineTargetToPip;
 
         public MapViewModel(GMapControl mapControl)
         {
@@ -74,13 +76,13 @@ namespace C2.ViewModels
 
         public void FocusMissileMarker(MissileMarkerViewModel missileVM)
         {
+            ClearFocus();
+            
+            
             if (_focusedMissile == missileVM)
             {
-                ClearFocus();
                 return;
             }
-
-            ClearFocus();
 
             _focusedMissile = missileVM;
             _focusedTarget = _targetMarkers
@@ -93,6 +95,7 @@ namespace C2.ViewModels
             missileVM.UpdateFocus(true);
             _focusedTarget?.UpdateFocus(true);
             _focusedPip?.UpdateVisible(true);
+            UpdateFocusLines();
         }
 
 
@@ -130,6 +133,50 @@ namespace C2.ViewModels
             }
         }
 
+        private void UpdateFocusLines()
+        {
+            if (_lineMissileToPip != null) _map.Markers.Remove(_lineMissileToPip);
+            if (_lineTargetToPip != null) _map.Markers.Remove(_lineTargetToPip);
+
+            // 포커스된 요소가 없으면 종료
+            if (_focusedMissile == null || _focusedPip == null || _focusedTarget == null)
+                return;
+
+            // Missile ↔ PIP
+            var missileToPipPoints = new List<PointLatLng>
+            {
+                new PointLatLng(_focusedMissile.Latitude, _focusedMissile.Longitude),
+                new PointLatLng(_focusedPip.Latitude, _focusedPip.Longitude)
+            };
+
+            _lineMissileToPip = CreateDashedRoute(missileToPipPoints, Colors.LightSkyBlue);
+            _map.Markers.Add(_lineMissileToPip);
+
+            // Target ↔ PIP
+            var targetToPipPoints = new List<PointLatLng>
+            {
+                new PointLatLng(_focusedTarget.Latitude, _focusedTarget.Longitude),
+                new PointLatLng(_focusedPip.Latitude, _focusedPip.Longitude)
+            };
+            _lineTargetToPip = CreateDashedRoute(targetToPipPoints, Colors.OrangeRed);
+            _map.Markers.Add(_lineTargetToPip);
+        }
+
+        private GMapRoute CreateDashedRoute(List<PointLatLng> points, Color color)
+        {
+            var route = new GMapRoute(points)
+            {
+                Shape = new Path
+                {
+                    Stroke = new SolidColorBrush(Colors.Black),
+                    StrokeThickness = 2,
+                    StrokeDashArray = new DoubleCollection { 3, 3 }, // 점선 패턴
+                    Opacity = 0.8
+                }
+            };
+            return route;
+        }
+
         private void ClearFocus ()
         {
             if (_focusedMissile != null) _focusedMissile.UpdateFocus(false);
@@ -148,6 +195,7 @@ namespace C2.ViewModels
             UpdateMissileMarker();
             UpdatePIPMarker();
             UpdateTargetMarker();
+            UpdateFocusLines();
         }
 
         // 마커마다 디스패쳐와 연결해서 업데이트하는 방식 -> 뷰모델을 디스패쳐와 연결해서 전체 마커를 업데이트하는방식
@@ -176,7 +224,7 @@ namespace C2.ViewModels
                 var marker = new GMapMarker(new PointLatLng(missile.Latitude, missile.Longitude))
                 {
                     Shape = new MissileMarker { DataContext = vm },
-                    Offset = new Point(-75, -30)
+                    Offset = new Point(-25, -25) // UserControl 중심 보정
                 };
                 _map.Markers.Add(marker);
             }
@@ -204,7 +252,7 @@ namespace C2.ViewModels
                 var marker = new GMapMarker(new PointLatLng(pip.Latitude, pip.Longitude))
                 {
                     Shape = new PIPMarker { DataContext = vm },
-                    Offset = new Point(-75, -30)
+                    Offset = new Point(0,0) // UserControl 중심 보정
                 };
                 _map.Markers.Add(marker);
             }
@@ -229,7 +277,7 @@ namespace C2.ViewModels
                 var marker = new GMapMarker(new PointLatLng(target.CurLoc.Lat, target.CurLoc.Lon))
                 {
                     Shape = new TargetMarker { DataContext = vm },
-                    Offset = new Point(-75, -30)
+                    Offset = new Point(-25, -25) // UserControl 중심 보정
                 };
                 _map.Markers.Add(marker);
             }
