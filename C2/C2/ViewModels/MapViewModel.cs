@@ -125,13 +125,15 @@ namespace C2.ViewModels
         }
         public void FocusMissileMarker(MissileMarkerViewModel missileVM)
         {
-            ClearFocus();
+            
             
             
             if (_focusedMissile == missileVM)
             {
+                ClearFocus();
                 return;
             }
+            ClearFocus();
 
             _focusedMissile = missileVM;
             _focusedTarget = _targetMarkers
@@ -168,9 +170,7 @@ namespace C2.ViewModels
             // 🔹 Target과 연결된 Missile 찾기 (TargetId 매칭)
             _focusedMissile = _missileMarkers
                 .FirstOrDefault(vm => vm.TargetId == targetVM.DefaultID);
-
-            if (_focusedPip == null || _focusedTarget == null || _focusedMissile == null) return;
-
+            
             if (_focusedMissile != null)
             {
                 _focusedMissile.UpdateFocus(true);
@@ -181,6 +181,8 @@ namespace C2.ViewModels
 
                 _focusedPip?.UpdateVisible(true);
             }
+
+            if (_focusedPip == null || _focusedTarget == null || _focusedMissile == null) return;
             UpdateFocusLines();
             UpdateFocusPaths();
         }
