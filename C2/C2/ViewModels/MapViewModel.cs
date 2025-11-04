@@ -1,4 +1,5 @@
 ﻿using C2.Services;
+using C2.Views.Markers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using GMap.NET;
 using GMap.NET.MapProviders;
@@ -16,20 +17,27 @@ namespace C2.ViewModels
 
     public partial class MapViewModel : ObservableObject
     {
-        //private readonly MissileService _missileService;
+        private readonly MockMissileService _missileService;
+        private readonly MockTargetService _targetService;
         //private readonly TargetService _targetService;
         private readonly MapService _mapService;
 
         private readonly GMapControl _map;
+        private GMapPolygon _circle;
+
+        private MissileMarkerViewModel? _focusedMissile;
+        private TargetMarkerViewModel? _focusedTarget;
+        private PIPMarkerViewModel? _focusedPip;
 
         public MapViewModel(GMapControl mapControl)
         {
             _map = mapControl;
             _mapService = MapService.Instance;
-            //_missileService = MissileService.Instance;
-            //_targetService = TargetService.Instance;
+            _missileService = MockMissileService.Instance;
+            _targetService = MockTargetService.Instance;
 
             InitializeMap();
+            UpdateDispatcher.Instance.Register(UpdateMarkers);
         }
 
         private void InitializeMap()
@@ -46,8 +54,86 @@ namespace C2.ViewModels
             _map.MouseWheelZoomEnabled = true;    // 마우스 휠로 줌 가능
 
             _map.Markers.Clear();
+            _circle = DrawDetectionCircle();
+            _map.Markers.Add(_circle);
+        }
 
-            _map.Markers.Add(DrawDetectionCircle());
+        public void FocusMissileMarker(MissileMarkerViewModel missileVM)
+        {
+
+        }
+
+        public void FocusTargetMarker(TargetMarkerViewModel targetVM)
+        {
+
+        }
+
+        private void UpdateMarkers()
+        {
+            // 🔄 매 주기마다 지도 전체 마커 갱신
+            _map.Markers.Clear();
+            _map.Markers.Add(_circle);
+            UpdateMissileMarker();
+            UpdatePIPMarker();
+            UpdateTargetMarker();
+        }
+
+        // 마커마다 디스패쳐와 연결해서 업데이트하는 방식 -> 뷰모델을 디스패쳐와 연결해서 전체 마커를 업데이트하는방식
+        // 이유: 맵을 업데이트한다는것 -> 모든 마커들을 지우고 새로 그리는것
+        // 각각의 마커 뷰모델에서 map에 등록된 마커 instance를 하나씩 추적해서 삭제하고 새로운 것을 추가하는것은 비효율적이기때문에
+        // 맵 같은 경우는 뷰모델에서 전체 마커를 변경하는식으로 구현함
+
+        private void UpdateMissileMarker()
+        {
+            foreach (var ctrl in _missileService.missileControllers)
+            {
+                var missile = ctrl.Missile;
+
+                var vm = new MissileMarkerViewModel(missile);
+
+                var marker = new GMapMarker(new PointLatLng(missile.Latitude, missile.Longitude))
+                {
+                    Shape = new MissileMarker { DataContext = vm },
+                    Offset = new Point(-75, -30)
+                };
+
+                _map.Markers.Add(marker);
+            }
+        }
+        private void UpdatePIPMarker()
+        {
+            foreach (var ctrl in _missileService.missileControllers)
+            {
+                var PIP = ctrl.PIP;
+                if (PIP == null) continue;
+
+                var vm = new PIPMarkerViewModel(PIP);
+
+                var marker = new GMapMarker(new PointLatLng(PIP.Latitude, PIP.Longitude))
+                {
+                    Shape = new PIPMarker { DataContext = vm },
+                    Offset = new Point(-75, -30)
+                };
+
+                _map.Markers.Add(marker);
+            }
+        }
+        private void UpdateTargetMarker()
+        {
+            foreach (var ctrl in _targetService.TargetControllers)
+            {
+                var target = ctrl.Target;
+
+                var vm = new TargetMarkerViewModel(target);
+
+                var marker = new GMapMarker(new PointLatLng(target.CurLoc.Lat, target.CurLoc.Lon))
+                {
+                    Shape = new TargetMarker { DataContext = vm },
+                    Offset = new Point(-75, -30)
+                };
+
+                _map.Markers.Add(marker);
+            }
         }
 
         private GMapPolygon DrawDetectionCircle()
@@ -69,7 +155,6 @@ namespace C2.ViewModels
             };
             return CirclePolygon;
         }
-
 
 
         private static List<PointLatLng> CreateCircle(PointLatLng center, double radiusMeters, int segments)
@@ -94,5 +179,11 @@ namespace C2.ViewModels
 
         private static double ToRadians(double deg) => deg * Math.PI / 180.0;
         private static double ToDegrees(double rad) => rad * 180.0 / Math.PI;
+
+        ~MapViewModel()
+        {
+            UpdateDispatcher.Instance.Unregister(UpdateMarkers);
+        }
+
     }
 }

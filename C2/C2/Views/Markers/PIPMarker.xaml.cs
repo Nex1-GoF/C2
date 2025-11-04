@@ -1,5 +1,8 @@
-﻿using C2.Services;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -10,17 +13,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace C2
+namespace C2.Views.Markers
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// PIPMarker.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class PIPMarker : UserControl
     {
-        public MainWindow()
+        public PIPMarker()
         {
             InitializeComponent();
-            LogService _logService = LogService.Instance;
         }
     }
 }

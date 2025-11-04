@@ -6,7 +6,21 @@
              xmlns:local="clr-namespace:C2.Views"
              xmlns:gmap="clr-namespace:GMap.NET.WindowsPresentation;assembly=GMap.NET.WindowsPresentation"
              mc:Ignorable="d" 
+             xmlns:markers="clr-namespace:C2.Views.Markers"
+             xmlns:vm="clr-namespace:C2.ViewModels"
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type vm:MissileMarkerViewModel}">
+            <markers:MissileMarker />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PIPMarkerViewModel}">
+            <markers:PIPMarker />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TargetMarkerViewModel}">
+            <markers:TargetMarker />
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Grid>
         <gmap:GMapControl x:Name="PART_Map"/>
     </Grid>
