@@ -1,4 +1,7 @@
-﻿using C2.ViewModels;
+﻿using C2.Models;
+using C2.Services;
+using C2.ViewModels;
+using GMap.NET.WindowsPresentation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +30,56 @@ namespace C2.Views
             InitializeComponent();
             _vm = new MapViewModel(PART_Map);
             DataContext = _vm;
+            PART_Map.MouseLeftButtonUp += OnMapClick;
         }
+
+        // 지도 클릭 시 로그 띄우기 (테스트코드)
+        private void OnMapClick(object sender, MouseButtonEventArgs e)
+        {
+            // 클릭 위치 (픽셀 기준)
+            var point = e.GetPosition(PART_Map);
+            string mapClickText = $"지도 클릭: {point.X},{point.Y}";
+            
+            // 테스트코드 => 지울 예정 => 바로 모델 호출
+            LogService logService = LogService.Instance;
+            logService.AddLog(MessageType.System, mapClickText);
+
+            //------ 포커스 모드 ---------//
+            GMapMarker? clickedMarker = null;
+            double minDist = double.MaxValue;
+
+            foreach (var marker in PART_Map.Markers)
+            {
+                if (marker.Shape is not FrameworkElement shape) continue;
+
+                var pos = PART_Map.FromLatLngToLocal(marker.Position);
+                double dx = point.X - pos.X;
+                double dy = point.Y - pos.Y;
+                double dist = Math.Sqrt(dx * dx + dy * dy);
+
+                if (dist < 20 && dist < minDist)
+                {
+                    clickedMarker = marker;
+                    minDist = dist;
+                }
+            }
+
+            if (clickedMarker == null) return;
+
+            // 2️ 클릭된 객체의 ViewModel 추출
+
+            if (clickedMarker.Shape is FrameworkElement frameworkElement && frameworkElement.DataContext is MissileMarkerViewModel missileVm)
+            {
+                _vm.FocusMissileMarker(missileVm);
+            }
+            else if (clickedMarker.Shape is FrameworkElement frameworkElementTarget && frameworkElementTarget.DataContext is TargetMarkerViewModel targetVm)
+            {
+                _vm.FocusTargetMarker(targetVm);
+            }
+
+
+        }
+
+
     }
 }
