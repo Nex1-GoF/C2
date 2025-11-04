@@ -35,6 +35,8 @@ namespace C2.ViewModels
         private PIPMarkerViewModel? _focusedPip;
         private GMapRoute? _lineMissileToPip;
         private GMapRoute? _lineTargetToPip;
+        private GMapRoute? _routeMissilePath;
+        private GMapRoute? _routeTargetPath;
 
         public MapViewModel(GMapControl mapControl)
         {
@@ -73,7 +75,54 @@ namespace C2.ViewModels
             _map.Markers.Clear();
             _map.Markers.Add(_circle);
         }
+        private void UpdateFocusPaths()
+        {
+            // 기존 경로 제거
+            if (_routeMissilePath != null) _map.Markers.Remove(_routeMissilePath);
+            if (_routeTargetPath != null) _map.Markers.Remove(_routeTargetPath);
 
+            // 포커스가 없으면 종료
+            if (_focusedMissile == null && _focusedTarget == null) return;
+
+            // 1️⃣ 미사일 경로
+            var missileCtrl = _missileService.missileControllers
+                .FirstOrDefault(c => c.Missile.Id == _focusedMissile?.Id);
+            if (missileCtrl?.PathHistory.Count > 1)
+            {
+                var missilePoints = missileCtrl.PathHistory
+                    .Select(p => new PointLatLng(p.Lat, p.Lon))
+                    .ToList();
+
+                _routeMissilePath = CreatePathRoute(missilePoints, Colors.LightSkyBlue);
+                _map.Markers.Add(_routeMissilePath);
+            }
+
+            // 2️⃣ 표적 경로
+            var targetCtrl = _targetService.TargetControllers
+                .FirstOrDefault(c => c.Target.Id.ToString() == _focusedTarget?.DefaultID);
+            if (targetCtrl?.PathHistory.Count > 1)
+            {
+                var targetPoints = targetCtrl.PathHistory
+                    .Select(p => new PointLatLng(p.Lat, p.Lon))
+                    .ToList();
+
+                _routeTargetPath = CreatePathRoute(targetPoints, Colors.OrangeRed);
+                _map.Markers.Add(_routeTargetPath);
+            }
+        }
+
+        private GMapRoute CreatePathRoute(List<PointLatLng> points, Color color)
+        {
+            return new GMapRoute(points)
+            {
+                Shape = new Path
+                {
+                    Stroke = new SolidColorBrush(Colors.Red),
+                    StrokeThickness = 1.8,
+                    Opacity = 0.8
+                }
+            };
+        }
         public void FocusMissileMarker(MissileMarkerViewModel missileVM)
         {
             ClearFocus();
@@ -96,6 +145,7 @@ namespace C2.ViewModels
             _focusedTarget?.UpdateFocus(true);
             _focusedPip?.UpdateVisible(true);
             UpdateFocusLines();
+            UpdateFocusPaths();
         }
 
 
@@ -131,6 +181,8 @@ namespace C2.ViewModels
 
                 _focusedPip?.UpdateVisible(true);
             }
+            UpdateFocusLines();
+            UpdateFocusPaths();
         }
 
         private void UpdateFocusLines()
@@ -177,15 +229,20 @@ namespace C2.ViewModels
             return route;
         }
 
-        private void ClearFocus ()
+        private void ClearFocus()
         {
-            if (_focusedMissile != null) _focusedMissile.UpdateFocus(false);
-            if (_focusedPip != null) _focusedPip.UpdateVisible(false);
-            if (_focusedTarget != null) _focusedTarget.UpdateFocus(false);
+            _focusedMissile?.UpdateFocus(false);
+            _focusedTarget?.UpdateFocus(false);
+            _focusedPip?.UpdateVisible(false);
 
             _focusedMissile = null;
             _focusedTarget = null;
             _focusedPip = null;
+
+            if (_lineMissileToPip != null) _map.Markers.Remove(_lineMissileToPip);
+            if (_lineTargetToPip != null) _map.Markers.Remove(_lineTargetToPip);
+            if (_routeMissilePath != null) _map.Markers.Remove(_routeMissilePath); // ✅ 경로 제거
+            if (_routeTargetPath != null) _map.Markers.Remove(_routeTargetPath);
         }
         private void UpdateMarkers()
         {
@@ -196,6 +253,7 @@ namespace C2.ViewModels
             UpdatePIPMarker();
             UpdateTargetMarker();
             UpdateFocusLines();
+            UpdateFocusPaths();
         }
 
         // 마커마다 디스패쳐와 연결해서 업데이트하는 방식 -> 뷰모델을 디스패쳐와 연결해서 전체 마커를 업데이트하는방식
