@@ -94,7 +94,6 @@ namespace C2.Services
         /// </summary>
         public void UpdateStep(double elapsed)
         {
-            if (!Target.IsMoving) return;
 
             double targetLat = Target.EndLoc.Lat;
             double targetLon = Target.EndLoc.Lon;
