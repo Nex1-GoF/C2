@@ -80,6 +80,7 @@ namespace C2.Services
         public Target Target { get; }
         private double lat;
         private double lon;
+        public List<(double Lat, double Lon)> PathHistory { get; } = new();
 
         public TargetController(Target target)
         {
@@ -121,6 +122,7 @@ namespace C2.Services
 
             lat = newLat;
             lon = newLon;
+            PathHistory.Add((lat, lon));
         }
 
         private static double HaversineDistance(double lat1, double lon1, double lat2, double lon2)

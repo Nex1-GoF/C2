@@ -12,6 +12,7 @@ namespace C2.Services
         public static MockMissileService Instance => _instance ??= new MockMissileService();
 
         public List<MissileController> missileControllers { get; set; } = new();
+
         public List<PIP> PIPs { get; set; } = new();
 
         private readonly Random rand = new();
@@ -77,6 +78,7 @@ namespace C2.Services
     public class MissileController
     {
         public Missile Missile { get; }
+        public List<(double Lat, double Lon)> PathHistory { get; } = new();
         public PIP? PIP { get; set; }
 
         private double lat;
@@ -118,10 +120,12 @@ namespace C2.Services
             // 위경도 보간 이동
             lat += (targetLat - lat) * ratio;
             lon += (targetLon - lon) * ratio;
+            PathHistory.Add((lat, lon));
 
             // 실제 위치 갱신
             Missile.LatitudeRaw = (int)(lat * 1e7);
             Missile.LongitudeRaw = (int)(lon * 1e7);
+
 
             // 🔹 진행 방향 (Yaw) 계산
             // 🔹 진행 방향 (Yaw) 계산
