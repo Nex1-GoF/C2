@@ -12,6 +12,7 @@ namespace C2.ViewModels
     {
         private readonly Missile _missile;
         public string Id { get; private set; }
+        public string? TargetId { get; private set; }
         public double Yaw { get; private set; }
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }
@@ -20,16 +21,17 @@ namespace C2.ViewModels
         public Brush StrokeBrush { get; private set; }
         public bool IsFocused { get; private set; } = false;
 
-        private readonly Brush _unFocusedBrush = new SolidColorBrush(Colors.LightGreen);
-        private readonly Brush _unFocusedFill = new SolidColorBrush(Colors.LimeGreen);
-        private readonly Brush _focusedBrush = new SolidColorBrush(Colors.LightSkyBlue);
-        private readonly Brush _focusedFill = new SolidColorBrush(Colors.SkyBlue);
+        private readonly Brush _unFocusedBrush = new SolidColorBrush(Colors.LimeGreen);
+        private readonly Brush _unFocusedFill = new SolidColorBrush(Colors.LightGreen);
+        private readonly Brush _focusedBrush = new SolidColorBrush(Colors.SkyBlue);
+        private readonly Brush _focusedFill = new SolidColorBrush(Colors.LightSkyBlue);
 
 
         public MissileMarkerViewModel(Missile missile)
         {
             _missile = missile;
             Id = _missile.Id;
+            TargetId = _missile.TargetId;
             Yaw = _missile.Yaw;
             Longitude = _missile.Longitude;
             Latitude = _missile.Latitude;
@@ -69,13 +71,14 @@ namespace C2.ViewModels
     {
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }
-
-        public bool IsVisible { get; private set; } = true;
+        public string MissileId { get; private set; }
+        public bool IsVisible { get; private set; } = false;
 
 
 
         public PIPMarkerViewModel(PIP pip)
         {
+            MissileId = pip.MissileId;
             Latitude = pip.Latitude;
             Longitude = pip.Longitude;
         }
@@ -98,6 +101,7 @@ namespace C2.ViewModels
         private readonly Target _target;
 
         public string Id { get; private set; }
+        public string DefaultID { get; private set; }
         public double Yaw { get; private set; }
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }
@@ -116,13 +120,14 @@ namespace C2.ViewModels
             _target = target;
 
             Id = $"TARGET-{(_target.Id):D3}";
+            DefaultID = _target.Id.ToString();
             Yaw = _target.Yaw;
             Latitude = _target.CurLoc.Lat;
             Longitude = _target.CurLoc.Lon;
             Altitude = _target.Altitude;
 
-            StrokeBrush = _focusedBrush;
-            FillBrush = _focusedFill;
+            StrokeBrush = _unFocusedBrush;
+            FillBrush = _unFocusedFill;
         }
 
         public void UpdateFocus(bool isFocused)
@@ -143,7 +148,8 @@ namespace C2.ViewModels
 
         public void UpdateTargetInfo(Target target)
         {
-            Id = $"TARGET{_target.Id:D3}";
+            Id = $"TARGET-{_target.Id:D3}";
+            DefaultID = _target.Id.ToString();
             Yaw = _target.Yaw;
             Latitude = _target.CurLoc.Lat;
             Longitude = _target.CurLoc.Lon;

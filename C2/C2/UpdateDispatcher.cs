@@ -16,7 +16,7 @@ namespace C2
         {
             _timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(10)// 최소 10ms
+                Interval = TimeSpan.FromMilliseconds(100)// 최소 10ms
             };
             _timer.Tick += (s, e) =>
             {
