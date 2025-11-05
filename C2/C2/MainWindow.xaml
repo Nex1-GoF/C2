@@ -21,6 +21,7 @@
             </Grid.RowDefinitions>
 
             <views:MapPanel x:Name="MapPanelRef" Grid.Row="0" Background="LightBlue"/>
+
             <StackPanel Orientation="Vertical"
                     Grid.Row="0" Grid.Column="0"
                     HorizontalAlignment="Right"
