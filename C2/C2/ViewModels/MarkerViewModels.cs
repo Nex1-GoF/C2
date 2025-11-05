@@ -13,7 +13,7 @@ namespace C2.ViewModels
         private readonly Missile _missile;
         public string Id { get; private set; }
         public string? TargetId { get; private set; }
-        public double Yaw { get; private set; }
+        public double Yaw { get; private set; } 
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }
         public short Altitude { get; private set; }
@@ -76,9 +76,9 @@ namespace C2.ViewModels
 
 
 
-        public PIPMarkerViewModel(PIP pip)
+        public PIPMarkerViewModel(PIP pip, string missileId)
         {
-            MissileId = pip.MissileId;
+            MissileId = missileId;
             Latitude = pip.Latitude;
             Longitude = pip.Longitude;
         }
