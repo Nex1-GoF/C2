@@ -20,10 +20,15 @@ namespace C2
         private const double MapExpandRatio = 0.85;
         private const double MapDefaultRatio = 0.7;
 
+        private readonly MainViewModel _vm;
+
         public MainWindow()
         {
             InitializeComponent();
             MissilePanelRef.CollapseToggled += OnMissileCollapseChanged;
+            _vm = new MainViewModel();
+            DataContext = _vm;
+            
         }
 
         private void OnMissileCollapseChanged(bool isCollapsed)
@@ -59,6 +64,8 @@ namespace C2
 
             mapRow.BeginAnimation(RowDefinition.HeightProperty, animMap);
             missileRow.BeginAnimation(RowDefinition.HeightProperty, animMissile);
+            DataContext = new MainViewModel(); // ✅ ViewModel 연결
+
         }
     }
 
