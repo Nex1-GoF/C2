@@ -1,39 +1,56 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Security.Policy;
 
 namespace C2.Models
 {
-    /// <summary>
-    /// 유도탄 실시간 데이터 모델 (DataLink / Telemetry 기반)
-    /// </summary>
-    /// 
-    /// <summary>
-    /// 비행 상태 enum
-    /// </summary>
     public enum MissileState : byte
     {
-        LaunchReady = 1,   // 발사 준비
-        InitialGuidance,   // 초기 유도
-        MidGuidance,       // 중기 유도
-        TerminalGuidance,  // 종말 유도
-        Abort              // 중단
+        LaunchReady = 1,
+        InitialGuidance,
+        MidGuidance,
+        TerminalGuidance,
+        Abort
     }
 
-    public class Missile
+    public class Missile : INotifyPropertyChanged
     {
-        /// <summary> 위도 (실제값 × 1e7) </summary>
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
         public int LatitudeRaw { get; set; }
         public int LongitudeRaw { get; set; }
-        public int Speed = 200;
-        public short Altitude { get; set; }
+        public int Maxspeed = 200;
+        private int _speed = 0;
+        public int Speed
+        {
+            get => _speed;
+            set { _speed = value; OnPropertyChanged(); }
+        }
+
+        private short _altitude;
+        public short Altitude
+        {
+            get => _altitude;
+            set { _altitude = value; OnPropertyChanged(); }
+        }
+
+        private MissileState _state;
+        public MissileState State
+        {
+            get => _state;
+            set { _state = value; OnPropertyChanged(); }
+        }
+
         public short YawRaw { get; set; }
         public short PitchRaw { get; set; }
         public uint FlightTime { get; set; }
-        public MissileState State { get; set; }
+
         public string Id { get; set; }
         public string? TargetId { get; set; }
 
-        // ✅ 실제 단위로 변환된 편의 속성 (degree 단위)
         public double Latitude => LatitudeRaw / 1e7;
         public double Longitude => LongitudeRaw / 1e7;
         public double Yaw => YawRaw / 100.0;
@@ -59,51 +76,31 @@ namespace C2.Models
             FlightTime = flightTime;
             State = state;
             TargetId = targetId;
+            Speed = 0;
         }
 
-        public Missile() { } // 기본 생성자 (직렬화용)
+        public Missile() { }
 
-
-        //테스트용 생성자
-        // Todo: 삭제
-        public Missile(
-            string id,
-            int latitudeRaw,
-            int longitudeRaw,
-            short altitude,
-            MissileState state,
-            string? targetId = null)
+        public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, MissileState state, string? targetId = null)
         {
             Id = id;
             LatitudeRaw = latitudeRaw;
             LongitudeRaw = longitudeRaw;
             Altitude = altitude;
-            YawRaw = 0;
-            PitchRaw = 0;
-            FlightTime = 0;
+            Speed = 0;
+            
             State = state;
             TargetId = targetId;
         }
 
-        //초기생성자
-        public Missile(
-           string id,
-           int latitudeRaw,
-           int longitudeRaw,
-           short altitude)
+        public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude)
         {
             Id = id;
             LatitudeRaw = latitudeRaw;
             LongitudeRaw = longitudeRaw;
             Altitude = altitude;
-            YawRaw = 0;
-            PitchRaw = 0;
-            FlightTime = 0;
+            Speed = 0;
             State = MissileState.LaunchReady;
-            TargetId = null;
         }
-
-
     }
-
 }
