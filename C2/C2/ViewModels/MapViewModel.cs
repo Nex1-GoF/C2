@@ -61,17 +61,7 @@ namespace C2.ViewModels
 
         private void InitializeMap()
         {
-            GMaps.Instance.Mode = AccessMode.ServerAndCache;
-            _map.MapProvider = GMap.NET.MapProviders.OpenStreetMapProvider.Instance;
-            _map.MinZoom = 2;
-            _map.MaxZoom = 18;
-            _map.Zoom = 7;
-            _map.Position = new PointLatLng(36.5, 127.5);
-            _map.CanDragMap = true;
-            _map.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
-            _map.IgnoreMarkerOnMouseWheel = true; // 마커 위에서도 휠 줌 동작
-            _map.MouseWheelZoomEnabled = true;    // 마우스 휠로 줌 가능
-
+            _mapService.Initialize(_map);
             _map.Markers.Clear();
             _map.Markers.Add(_circle);
         }
@@ -125,13 +115,12 @@ namespace C2.ViewModels
         }
         public void FocusMissileMarker(MissileMarkerViewModel missileVM)
         {
-            ClearFocus();
-            
-            
             if (_focusedMissile == missileVM)
             {
+                ClearFocus();
                 return;
             }
+            ClearFocus();
 
             _focusedMissile = missileVM;
             _focusedTarget = _targetMarkers
@@ -157,7 +146,6 @@ namespace C2.ViewModels
                 ClearFocus();
                 return;
             }
-
             // 🔹 기존 포커스 해제
             ClearFocus();
 
@@ -168,9 +156,7 @@ namespace C2.ViewModels
             // 🔹 Target과 연결된 Missile 찾기 (TargetId 매칭)
             _focusedMissile = _missileMarkers
                 .FirstOrDefault(vm => vm.TargetId == targetVM.DefaultID);
-
-            if (_focusedPip == null || _focusedTarget == null || _focusedMissile == null) return;
-
+            
             if (_focusedMissile != null)
             {
                 _focusedMissile.UpdateFocus(true);
@@ -181,6 +167,7 @@ namespace C2.ViewModels
 
                 _focusedPip?.UpdateVisible(true);
             }
+
             UpdateFocusLines();
             UpdateFocusPaths();
         }
