@@ -22,7 +22,7 @@ namespace C2.Services
 
         private MapService()
         {
-            // 10ms 주기로 포커스 유효성 검사
+
         }
 
         public void Initialize(GMapControl mapControl)
