@@ -7,12 +7,13 @@ namespace C2.Services
 {
     public class MissileService
     {
+        private static MissileService _instance;
+        public static MissileService Instance => _instance ??= new MissileService();
+
         // 📍 발사대 위치 (서울 시청 인근)
         private readonly (int latitude, int longitude, short altitude) C2Points =
             ((int)(37.5665 * 1e7), (int)(126.9780 * 1e7), (short)(38));
-
-        private static MissileService _instance;
-        public static MissileService Instance => _instance ??= new MissileService();
+        private readonly LogService _logService;
 
         // ✅ Dictionary로 변경 (Key: Missile ID)
         private readonly Dictionary<string, Missile> _missiles = new();
@@ -22,6 +23,7 @@ namespace C2.Services
 
         private MissileService()
         {
+            _logService = LogService.Instance;
             // 초기 미사일 4기 등록
             for (int i = 1; i <= 4; i++)
             {
@@ -37,7 +39,7 @@ namespace C2.Services
         }
 
         // ✅ 전체 미사일 반환 (읽기 전용 Dictionary)
-        public IReadOnlyDictionary<string, Missile> GetAllMissiles() => _missiles;
+        public List<Missile> GetAllMissiles() => _missiles.Values.ToList();
 
         // ✅ 특정 미사일 직접 가져오기
         public Missile? GetMissile(string id)
@@ -47,11 +49,49 @@ namespace C2.Services
         }
 
         // ✅ 교전할당 시 사용
-        //public bool TryAssignMissile()
-        //{
+        public string AssignTarget(string targetId)
+        {
+            foreach (var missile in GetAllMissiles()) {
 
+                if (missile.State != MissileState.LaunchReady) continue;
+                if (missile.TargetId != null) continue;
+
+
+                _missiles[missile.Id].TargetId = targetId;
+                return missile.Id;
             
-        //}
+            }
+            return "";
+
+        }
+
+        public string? StartLaunchMissile()
+        {
+            var missile = GetAllMissiles().FirstOrDefault(m=>m.State == MissileState.LaunchReady && m.TargetId != null);
+
+            if(missile == null) return null;
+
+            missile.State = MissileState.InitialGuidance;
+            return missile.Id;
+
+        }
+        public bool LaunchMissile()
+        {
+            var missile = GetAllMissiles().FirstOrDefault(m=>m.State == MissileState.InitialGuidance && m.TargetId != null);
+
+            if(missile == null) return false;
+
+            missile.State = MissileState.MidGuidance;
+            return true;
+
+        }
+
+        public bool AnyRemaining()
+        {
+            var missile = GetAllMissiles().FirstOrDefault(m => m.State == MissileState.InitialGuidance && m.TargetId != null);
+            if (missile == null) return false;
+            return true;
+        }
 
         // ✅ 미사일 선택
         public bool SelectMissile(string id)

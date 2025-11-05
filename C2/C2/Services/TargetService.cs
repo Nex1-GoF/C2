@@ -24,7 +24,11 @@ namespace C2.Services
             lock (_lock)
                 return new List<Target>(_targets.Values);
         }
-
+        public Target? GetTarget(char id)
+        {
+            _targets.TryGetValue(id, out var missile);
+            return missile;
+        }
         // 외부 통신 모듈이 호출 (표적 데이터 수신)
         public void ReceiveTargetData(Target newTarget)
         {
@@ -58,7 +62,5 @@ namespace C2.Services
         {
             SelectedTarget = null;
         }
-
-
     }
 }

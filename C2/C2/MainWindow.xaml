@@ -20,20 +20,22 @@
                 <RowDefinition Height="2*"/>
             </Grid.RowDefinitions>
 
+            <!-- 지도 -->
             <views:MapPanel x:Name="MapPanelRef" Grid.Row="0" Background="LightBlue"/>
 
+            <!-- ✅ 오른쪽 아래: 발사 UI -->
             <StackPanel Orientation="Vertical"
-                    Grid.Row="0" Grid.Column="0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    Margin="10">
+                        Grid.Row="0" Grid.Column="0"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Margin="10">
 
                 <!-- ✅ 발사 진행 바 -->
                 <ProgressBar Height="8"
-                         Width="170"
-                         Margin="0,0,0,5"
-                         Value="{Binding LaunchProgress}"
-                         Maximum="100">
+                             Width="170"
+                             Margin="0,0,0,5"
+                             Value="{Binding LaunchProgress}"
+                             Maximum="100">
                     <ProgressBar.Style>
                         <Style TargetType="ProgressBar">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -49,19 +51,22 @@
                 <!-- ✅ 버튼 그룹 -->
                 <StackPanel Orientation="Horizontal">
                     <Button Content="발사"
-                        Width="80"
-                        Margin="0,0,5,0"
-                        Command="{Binding LaunchCommand}"
-                        IsEnabled="{Binding CanLaunch}"/>
+                            Width="80"
+                            Margin="0,0,5,0"
+                            Command="{Binding LaunchCommand}"
+                            IsEnabled="{Binding CanLaunch}"/>
 
                     <Button Content="교전할당"
-                        Width="80"
-                        Margin="5,0,0,0"
-                        Command="{Binding AssignTargetCommand}"
-                        IsEnabled="{Binding CanAssign}"/>
+                            Width="80"
+                            Margin="5,0,0,0"
+                            Command="{Binding AssignTargetCommand}"
+                            IsEnabled="{Binding CanAssign}"/>
                 </StackPanel>
             </StackPanel>
-            <views:MissilePanel x:Name="MissilePanelRef" Grid.Row="1" Background="LightGreen"/>
+
+            <!-- 유도탄 패널 -->
+            <views:MissilePanel Grid.Row="1" Grid.Column="0"
+                                Background="LightGreen" x:Name="MissilePanelRef"/>
         </Grid>
 
         <!-- 오른쪽: 표적 + 로그 -->
@@ -71,7 +76,10 @@
                 <RowDefinition Height="2*"/>
             </Grid.RowDefinitions>
 
-            <views:TargetPanel Grid.Row="0" Background="#0A1B2A" Loaded="TargetPanel_Loaded"/>
+            <!-- 표적 패널 -->
+            <views:TargetPanel Grid.Row="0" Background="LightCoral"/>
+
+            <!-- 로그 패널 -->
             <views:LogPanel Grid.Row="1" Background="LightGray"/>
         </Grid>
     </Grid>
