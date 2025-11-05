@@ -18,6 +18,7 @@ namespace C2.Models
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public short Altitude { get; set; }
+
     }
         public class Missile : INotifyPropertyChanged
     {
@@ -60,7 +61,7 @@ namespace C2.Models
         public double Longitude => LongitudeRaw / 1e7;
         public double Yaw => YawRaw / 100.0;
         public double Pitch => PitchRaw / 100.0;
-
+        public List<(double Lat, double Lon)> PathHistory { get; } = new();
         public PIP? PIP { get; set; }
         public Missile(
             string id,
