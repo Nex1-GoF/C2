@@ -13,8 +13,13 @@ namespace C2.Models
         TerminalGuidance,
         Abort
     }
-
-    public class Missile : INotifyPropertyChanged
+    public class PIP
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public short Altitude { get; set; }
+    }
+        public class Missile : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -56,6 +61,7 @@ namespace C2.Models
         public double Yaw => YawRaw / 100.0;
         public double Pitch => PitchRaw / 100.0;
 
+        public PIP? PIP { get; set; }
         public Missile(
             string id,
             int latitudeRaw,

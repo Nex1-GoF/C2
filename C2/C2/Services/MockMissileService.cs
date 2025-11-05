@@ -170,6 +170,7 @@ namespace C2.Services
         public string MissileId { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public short Altitude { get; set; }
 
         public PointLatLng Position => new PointLatLng(Latitude, Longitude);
 
@@ -178,6 +179,7 @@ namespace C2.Services
             MissileId = missileId;
             Latitude = latitude;
             Longitude = longitude;
+            Altitude = 0;
         }
     }
 }
