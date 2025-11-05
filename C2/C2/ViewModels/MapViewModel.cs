@@ -52,8 +52,8 @@ namespace C2.ViewModels
             foreach (var ctrl in _targetService.TargetControllers)
                 _targetMarkers.Add(new TargetMarkerViewModel(ctrl.Target));
 
-            foreach (var pip in _missileService.PIPs)
-                _pipMarkers.Add(new PIPMarkerViewModel(pip));
+            //foreach (var pip in _missileService.PIPs)
+            //    _pipMarkers.Add(new PIPMarkerViewModel(pip));
 
             InitializeMap();
             UpdateDispatcher.Instance.Register(UpdateMarkers);
@@ -286,12 +286,12 @@ namespace C2.ViewModels
 
                 if (vm == null)
                 {
-                    vm = new PIPMarkerViewModel(pip);
-                    _pipMarkers.Add(vm);
+                    //vm = new PIPMarkerViewModel(pip);
+                    //_pipMarkers.Add(vm);
                 }
                 else
                 {
-                    vm.UpdatePIP(pip);
+                    //vm.UpdatePIP(pip);
                 }
 
                 var marker = new GMapMarker(new PointLatLng(pip.Latitude, pip.Longitude))
