@@ -28,14 +28,15 @@ namespace C2.Services
                 int speed = 2500;      // m/s
 
                 var target = new Target
-                {
-                    Id = (char)('A' + i - 1),
-                    DetectedType = 'A',
-                    Speed = speed,
-                    Altitude = altitude,
-                    DetectTime = DateTime.Now,
-                    EndLoc = (endLat, endLon)
-                };
+                (
+                    (char)('A' + i - 1),
+                    speed,
+                    altitude,
+                    0,
+                    (startLat, startLon),
+                    DateTime.Now,
+                    (endLat, endLon)
+                );
 
                 SetPrivateProperty(target, "CurLoc", (startLat, startLon));
                 SetPrivateProperty(target, "IsMoving", true);

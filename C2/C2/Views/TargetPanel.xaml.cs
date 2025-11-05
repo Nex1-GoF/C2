@@ -1,5 +1,7 @@
-﻿using System;
+﻿using C2.Models;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,5 +26,25 @@ namespace C2.Views
         {
             InitializeComponent();
         }
+    }
+    public class TargetStateToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is TargetState state)
+            {
+                return state switch
+                {
+                    TargetState.Unknown => Brushes.Gray,
+                    TargetState.Guidance => Brushes.Yellow,
+                    TargetState.Terminate => Brushes.Red,
+                    _ => Brushes.Gray
+                };
+            }
+            return Brushes.Gray;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
     }
 }
