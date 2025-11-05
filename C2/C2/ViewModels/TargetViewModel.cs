@@ -14,9 +14,11 @@ namespace C2.ViewModels
     {
         public ObservableCollection<Target> Targets { get; } = new();
         private readonly TargetService _service;
+        private readonly UpdateDispatcher _updateDispatcher;
         public TargetViewModel()
         {
             _service = TargetService.Instance;
+            _updateDispatcher = UpdateDispatcher.Instance;
             for (int i = 1; i <= 4; i++)
             {
                 var target = new Target
@@ -29,10 +31,12 @@ namespace C2.ViewModels
                         DateTime.Now,
                         (38, 100)
                     );
-                Targets.Add (target);
+                _service.ReceiveTargetData(target);
             }
+            _updateDispatcher.Register(UpdateTargets);
+
         }
-        private void UpdateTargets(object? sender, EventArgs e)
+        private void UpdateTargets()
         {
             var latest = _service.GetAllTargets();
 
@@ -52,6 +56,12 @@ namespace C2.ViewModels
                 if (!latest.Any(t => t.Id == Targets[i].Id))
                     Targets.RemoveAt(i);
             }
+        }
+
+        ~TargetViewModel()
+        {
+            _updateDispatcher.Unregister(UpdateTargets);
+
         }
     }
 }

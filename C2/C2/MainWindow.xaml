@@ -71,7 +71,7 @@
                 <RowDefinition Height="2*"/>
             </Grid.RowDefinitions>
 
-            <views:TargetPanel Grid.Row="0" Background="LightCoral"/>
+            <views:TargetPanel Grid.Row="0" Background="#0A1B2A" Loaded="TargetPanel_Loaded"/>
             <views:LogPanel Grid.Row="1" Background="LightGray"/>
         </Grid>
     </Grid>

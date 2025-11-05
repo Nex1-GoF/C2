@@ -67,6 +67,11 @@ namespace C2
             DataContext = new MainViewModel(); // ✅ ViewModel 연결
 
         }
+
+        private void TargetPanel_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
     public class GridLengthAnimation : AnimationTimeline

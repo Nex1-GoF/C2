@@ -13,6 +13,9 @@ namespace C2.Services
         public static TargetService Instance => _instance ??= new TargetService();
 
         private readonly Dictionary<char, Target> _targets = new();
+
+        public Target? SelectedTarget {get; private set;}  
+
         private readonly object _lock = new();
 
         // 0.1초마다 UI 갱신 시 이 리스트를 가져감
@@ -46,5 +49,16 @@ namespace C2.Services
                 _targets.Remove(id);
             }
         }
+
+        public void SelectTarget(char id)
+        {
+            SelectedTarget = _targets[id];
+        }
+        public void ClearTarget()
+        {
+            SelectedTarget = null;
+        }
+
+
     }
 }
