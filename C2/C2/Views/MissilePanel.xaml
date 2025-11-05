@@ -20,17 +20,23 @@
         <DataTemplate x:Key="ExpandedCardTemplate">
             <Border Background="#1E2A3A" Margin="6" Padding="10" CornerRadius="10" Width="180">
                 <StackPanel>
-                    <TextBlock Text="{Binding Id}" Foreground="White" FontWeight="Bold" FontSize="16"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="18" Height="18"
+ Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
+ Stroke="Black" StrokeThickness="1"
+ HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Id }"  Foreground="White" FontWeight="Bold" FontSize="16"/>
+                    </StackPanel>
                     <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
-                               Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"/>
+           Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"/>
                     <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}" Foreground="LightGray"/>
                     <TextBlock Text="{Binding Speed, StringFormat='속도: {0} m/s'}" Foreground="LightGray"/>
                     <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="LightBlue"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
-                        <Button Content="발사" Width="60" Height="24" Margin="4,0"
-                                Background="#556B2F" Foreground="White" FontWeight="Bold"/>
-                        <Button Content="자폭" Width="60" Height="24" Margin="4,0"
-                                Background="#8B0000" Foreground="White" FontWeight="Bold"/>
+
+                        <Button Content="비상폭파" 
+                                Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" 
+                                Width="60" Height="24" Margin="4,0" Background="#8B0000" Foreground="White" FontWeight="Bold" />
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -42,56 +48,58 @@
             Padding="8"
             CornerRadius="8"
             Width="180"
-            Height="140"
+            Height="120"
             BorderBrush="#2E3C4F"
             BorderThickness="1">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
                     <!-- 상태 아이콘 -->
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0,2,0,6">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,1">
                         <Ellipse Width="18" Height="18"
                          Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
                          Stroke="Black" StrokeThickness="1"
                          HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
-                           Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                           FontWeight="Bold"
-                           FontSize="13"
-                           HorizontalAlignment="Center"
-                           Margin="0,2,0,0"/>
+                        <TextBlock Text="{Binding Id}"
+   Foreground="White"
+   FontWeight="Bold"
+   FontSize="14"
+   HorizontalAlignment="Center"
+   Margin="0,4"/>
+                        
                     </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,1">
+                        
+                        
+                        <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
+Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
+FontWeight="Bold"
+FontSize="13"
+HorizontalAlignment="Center"
+Margin="0,2,0,0"/>
+                        <!-- 표적 -->
+                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}"
+   Foreground="LightGray"
+   FontSize="12"
+   HorizontalAlignment="Center"
+   Margin="0,2"/>
 
+                    </StackPanel>
                     <!-- 미사일 ID -->
-                    <TextBlock Text="{Binding Id}"
-                       Foreground="White"
-                       FontWeight="Bold"
-                       FontSize="14"
-                       HorizontalAlignment="Center"
-                       Margin="0,4"/>
+                    
 
-                    <!-- 표적 -->
-                    <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}"
-                       Foreground="LightGray"
-                       FontSize="12"
-                       HorizontalAlignment="Center"
-                       Margin="0,2"/>
-
+                    
                     <!-- 버튼 영역 -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
-                        <Button Content="발사"
-                        Width="60" Height="24" Margin="4,0"
-                        Background="#444"
-                        Foreground="White"
-                        FontWeight="Bold"
-                        BorderThickness="0"
-                        Cursor="Hand"/>
-                        <Button Content="자폭"
+                       
+                        <Button Content="비상폭파"
+                                 Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" CommandParameter="{Binding}" 
                         Width="60" Height="24" Margin="4,0"
                         Background="#552222"
                         Foreground="Pink"
                         FontWeight="Bold"
                         BorderThickness="0"
-                        Cursor="Hand"/>
+                        Cursor="Hand"
+                               />
                     </StackPanel>
                 </StackPanel>
             </Border>
