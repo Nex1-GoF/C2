@@ -7,24 +7,89 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
 namespace C2.Models
 {
-    public class Target 
+    public enum TargetState : byte
     {
+        Unknown = 0,
+        Guidance,
+        Terminate
+    }
+
+    public class Target : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+        private void OnPropertyChanged([CallerMemberName] string? name = null)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
         public char Id { get; set; }
-        public char DetectedType { get; set; }
-        public int Speed { get; set; }     // m/s
-        public int Altitude { get; set; }  // mprivate int _yaw;
-        public int Yaw{ get; private set; }
 
-        public void setYaw() => Yaw = 0;
+        private int _speed;
+        public int Speed { get => _speed; set { _speed = value; OnPropertyChanged(); } }
 
-        public (double Lat, double Lon) EndLoc { get; set; }
-        public DateTime? DetectTime { get; set; }
-        public (double Lat, double Lon) CurLoc { get; private set; }
-        public string CurYawDisplay => $"{Yaw:F5}";
+        private int _altitude;
+        public int Altitude { get => _altitude; set { _altitude = value; OnPropertyChanged(); } }
+
+        private int _yaw;
+        public int Yaw { get => _yaw; set { _yaw = value; OnPropertyChanged(); OnPropertyChanged(nameof(CurYawDisplay)); } }
+
+        private TargetState _state;
+        public TargetState State { get => _state; set { _state = value; OnPropertyChanged(); } }
+
+        private (double Lat, double Lon) _curLoc;
+        public (double Lat, double Lon) CurLoc
+        {
+            get => _curLoc;
+            set { _curLoc = value; OnPropertyChanged(); OnPropertyChanged(nameof(CurLocDisplay)); }
+        }
+
+        private (double Lat, double Lon) _endLoc;
+        public (double Lat, double Lon) EndLoc
+        {
+            get => _endLoc;
+            set { _endLoc = value; OnPropertyChanged(); OnPropertyChanged(nameof(EndLocDisplay)); }
+        }
+
+        public DateTime DetectTime { get; set; }
+
+        public string CurYawDisplay => $"{Yaw:F0}°";
         public string CurLocDisplay => $"{CurLoc.Lat:F5}, {CurLoc.Lon:F5}";
         public string EndLocDisplay => $"{EndLoc.Lat:F5}, {EndLoc.Lon:F5}";
+
         public List<(double Lat, double Lon)> PathHistory { get; } = new();
+
+        private Missile? _guidanceMSL;
+        public Missile? GuidanceMSL
+        {
+            get => _guidanceMSL;
+            set { _guidanceMSL = value; OnPropertyChanged(); }
+        }
+
+        public Target(char id, int speed, int altitude, int yaw, (double Lat, double Lon) endLoc, DateTime detectTime, (double Lat, double Lon) curLoc)
+        {
+            Id = id;
+            Speed = speed;
+            Altitude = altitude;
+            Yaw = yaw;
+            State = TargetState.Unknown;
+            EndLoc = endLoc;
+            DetectTime = detectTime;
+            CurLoc = curLoc;
+        }
+
+        public void Update(Target updated)
+        {
+            Speed = updated.Speed;
+            Altitude = updated.Altitude;
+            Yaw = updated.Yaw;
+            CurLoc = updated.CurLoc;
+            EndLoc = updated.EndLoc;
+            DetectTime = updated.DetectTime;
+        }
     }
 }

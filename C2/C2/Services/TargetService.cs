@@ -1,0 +1,50 @@
+﻿using C2.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace C2.Services
+{
+    public class TargetService
+    {
+        private static TargetService? _instance;
+        public static TargetService Instance => _instance ??= new TargetService();
+
+        private readonly Dictionary<char, Target> _targets = new();
+        private readonly object _lock = new();
+
+        // 0.1초마다 UI 갱신 시 이 리스트를 가져감
+        public List<Target> GetAllTargets()
+        {
+            lock (_lock)
+                return new List<Target>(_targets.Values);
+        }
+
+        // 외부 통신 모듈이 호출 (표적 데이터 수신)
+        public void ReceiveTargetData(Target newTarget)
+        {
+            lock (_lock)
+            {
+                if (_targets.TryGetValue(newTarget.Id, out var existing))
+                {
+                    existing.Update(newTarget);
+                }
+                else
+                {
+                    _targets[newTarget.Id] = newTarget;
+                }
+            }
+        }
+
+        // (선택) 특정 표적 제거
+        public void RemoveTarget(char id)
+        {
+            lock (_lock)
+            {
+                _targets.Remove(id);
+            }
+        }
+    }
+}
