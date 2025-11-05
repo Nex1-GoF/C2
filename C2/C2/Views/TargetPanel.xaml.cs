@@ -1,4 +1,5 @@
 ﻿using C2.Models;
+using C2.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -25,7 +26,16 @@ namespace C2.Views
         public TargetPanel()
         {
             InitializeComponent();
+
         }
+        private void TargetCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is TargetViewModel vm && sender is Border border && border.DataContext is Target target)
+            {
+                vm.SelectTarget(target);
+            }
+        }
+
     }
     public class TargetStateToBrushConverter : IValueConverter
     {
