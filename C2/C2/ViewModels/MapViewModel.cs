@@ -1,454 +1,188 @@
 ﻿using C2.Models;
 using C2.Services;
 using C2.Views.Markers;
-using CommunityToolkit.Mvvm.ComponentModel;
 using GMap.NET;
-using GMap.NET.MapProviders;
 using GMap.NET.WindowsPresentation;
-using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace C2.ViewModels
 {
-
-    public partial class MapViewModel : ObservableObject
+    public partial class MapViewModel
     {
-        private readonly List<MissileMarkerViewModel> _missileMarkers = new();
-        private readonly List<TargetMarkerViewModel> _targetMarkers = new();
-        private readonly List<PIPMarkerViewModel> _pipMarkers = new();
-
-        private readonly TargetViewModel _targetViewModel; // 업데이트
-        private readonly MissilePanelViewModel _missileViewModel; // 업데이트
-
-        //private readonly MockMissileService _missileService;
-        //private readonly MockTargetService _targetService;
-        private readonly MissileService _missileService;
-        private readonly TargetService _targetService;
-
-        private readonly MapService _mapService;
-
+        private readonly MapService _mapService = MapService.Instance;
         private readonly GMapControl _map;
-        private GMapPolygon _circle;
 
-        private MissileMarkerViewModel? _selectedMissileMarkerVM;
-        private TargetMarkerViewModel? _selectedTargetMarkerVM;
-        private PIPMarkerViewModel? _selectedPIPMarkerVM;
-        private GMapRoute? _lineMissileToPip;
-        private GMapRoute? _lineTargetToPip;
-        private GMapRoute? _routeMissilePath;
-        private GMapRoute? _routeTargetPath;
+        private GMapPolygon? _circle;
+
+        // MarkerVM 캐시 (뷰모델에서만 관리)
+        private readonly Dictionary<string, MissileMarkerViewModel> _missileVMs = new();
+        private readonly Dictionary<char, TargetMarkerViewModel> _targetVMs = new();
+        private readonly Dictionary<string, PIPMarkerViewModel> _pipVMs = new();
 
         public MapViewModel(GMapControl mapControl)
         {
             _map = mapControl;
-            _mapService = MapService.Instance;
-            _missileService = MissileService.Instance;
-            _targetService = TargetService.Instance;
-            _circle = DrawDetectionCircle();
 
-            foreach (var msl in _missileService.GetAllMissiles())
-            {
-                _missileMarkers.Add(new MissileMarkerViewModel(msl));
-                if (msl.PIP == null) continue;
+            // 지도 초기화 (뷰모델 책임)
+            GMaps.Instance.Mode = AccessMode.ServerAndCache;
+            _map.MapProvider = GMap.NET.MapProviders.OpenStreetMapProvider.Instance;
+            _map.MinZoom = 2;
+            _map.MaxZoom = 18;
+            _map.Zoom = 7;
+            _map.Position = new PointLatLng(36.5, 127.5);
+            _map.CanDragMap = true;
+            _map.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
+            _map.IgnoreMarkerOnMouseWheel = true;
+            _map.MouseWheelZoomEnabled = true;
 
-                _pipMarkers.Add(new PIPMarkerViewModel(msl.PIP, msl.Id));
-            }
-
-            foreach (var tgt in _targetService.GetAllTargets())
-                _targetMarkers.Add(new TargetMarkerViewModel(tgt));
-
-           _targetViewModel = TargetViewModel.Instance;
-            _missileViewModel = MissilePanelViewModel.Instance;
-                
-
-            InitializeMap();
-            UpdateDispatcher.Instance.Register(UpdateMarkers);
-        }
-
-        private void InitializeMap()
-        {
-            _mapService.Initialize(_map);
-            _map.Markers.Clear();
+            // 탐지 원
+            _circle = DrawDetectionCircle(_mapService.Center, _mapService.Distance);
             _map.Markers.Add(_circle);
-        }
-        private void UpdateFocusPaths()
-        {
-            // 기존 경로 제거
-            if (_routeMissilePath != null) _map.Markers.Remove(_routeMissilePath);
-            if (_routeTargetPath != null) _map.Markers.Remove(_routeTargetPath);
 
-            // 포커스가 없으면 종료
-            if (_missileService.SelectedMissile == null && _targetService.SelectedTarget == null) return;
+            // 이벤트 구독 (서비스가 스냅샷 갱신을 알려줌)
+            _mapService.SnapshotUpdated += RedrawAll;
 
-            // 1️ 미사일 경로
-            var missile = _missileService.GetAllMissiles()
-                .FirstOrDefault(c => c.Id == _missileService.SelectedMissile?.Id);
-            if (missile?.PathHistory.Count > 1)
-            {
-                var missilePoints = missile.PathHistory
-                    .Select(p => new PointLatLng(p.Lat, p.Lon))
-                    .ToList();
-
-                _routeMissilePath = CreatePathRoute(missilePoints, Colors.LightSkyBlue);
-                _map.Markers.Add(_routeMissilePath);
-            }
-
-            // 2️⃣ 표적 경로
-            var target = _targetService.GetAllTargets()
-                .FirstOrDefault(c => c.Id == _targetService.SelectedTarget?.Id);
-            if (target?.PathHistory.Count > 1)
-            {
-                var targetPoints = target.PathHistory
-                    .Select(p => new PointLatLng(p.Lat, p.Lon))
-                    .ToList();
-
-                _routeTargetPath = CreatePathRoute(targetPoints, Colors.OrangeRed);
-                _map.Markers.Add(_routeTargetPath);
-            }
+            // 주기 갱신 등록
+            UpdateDispatcher.Instance.Register(_mapService.Tick);
         }
 
-        private GMapRoute CreatePathRoute(List<PointLatLng> points, Color color)
+        // 뷰에서 클릭 시 호출
+        public void OnMissileClicked(string missileId) => _mapService.OnMissileClicked(missileId);
+        public void OnTargetClicked(char targetId) => _mapService.OnTargetClicked(targetId);
+
+        ~MapViewModel()
         {
-            return new GMapRoute(points)
-            {
-                Shape = new Path
-                {
-                    Stroke = new SolidColorBrush(Colors.Red),
-                    StrokeThickness = 1.8,
-                    Opacity = 0.8
-                }
-            };
-        }
-        public void FocusMissileMarker(MissileMarkerViewModel missileVM)
-        {
-            if (_selectedMissileMarkerVM == missileVM)
-            {
-                ClearFocus();
-                return;
-            }
-            ClearFocus();
-
-            var id = missileVM.Id;
-            var missile = _missileService.GetMissile(id);
-
-            if (missile == null) return; // 만약 미사일이 없어시면 종료
-
-            _missileService.SelectMissile(id);
-
-            if (missile.TargetId != null)
-            {
-                _targetService.SelectTarget(missile.TargetId[0]);
-            }
+            _mapService.SnapshotUpdated -= RedrawAll;
+            UpdateDispatcher.Instance.Unregister(_mapService.Tick);
         }
 
-
-        public void FocusTargetMarker(TargetMarkerViewModel targetVM)
+        // ======================
+        // Draw (스펙을 그리기만)
+        // ======================
+        private void RedrawAll()
         {
-            // 🔹 같은 Target 다시 클릭 시 포커스 해제
-            if (_selectedTargetMarkerVM == targetVM)
-            {
-                ClearFocus();
-                return;
-            }
-            // 🔹 기존 포커스 해제
-            ClearFocus();
-
-            // 🔹 새 포커스 지정
-            string targetId = targetVM.DefaultID;
-            var target= targetVM.Target;
-
-            _targetViewModel.SelectTarget(target);
-            //_targetService.SelectTarget(target); // Todo: 서비스로 동작하고 메세지로 받도록
-
-            var missile = _missileService.GetAllMissiles()
-                .FirstOrDefault(m=>m.TargetId != null && m.TargetId == targetId);
-
-            if (missile != null) {
-                //_missileService.SelectMissile(missile.Id);
-                _missileViewModel.SelectMissile(missile);
-            }
-        }
-
-        private void UpdateFocusLines()
-        {
-            if (_lineMissileToPip != null) _map.Markers.Remove(_lineMissileToPip);
-            if (_lineTargetToPip != null) _map.Markers.Remove(_lineTargetToPip);
-
-            // 포커스된 요소가 없으면 종료
-            if (_selectedMissileMarkerVM == null || _selectedPIPMarkerVM == null || _selectedTargetMarkerVM == null)
-                return;
-
-            // Missile ↔ PIP
-            var missileToPipPoints = new List<PointLatLng>
-            {
-                new PointLatLng(_selectedMissileMarkerVM.Latitude, _selectedMissileMarkerVM.Longitude),
-                new PointLatLng(_selectedPIPMarkerVM.Latitude, _selectedPIPMarkerVM.Longitude)
-            };
-
-            _lineMissileToPip = CreateDashedRoute(missileToPipPoints, Colors.LightSkyBlue);
-            _map.Markers.Add(_lineMissileToPip);
-
-            // Target ↔ PIP
-            var targetToPipPoints = new List<PointLatLng>
-            {
-                new PointLatLng(_selectedTargetMarkerVM.Latitude, _selectedTargetMarkerVM.Longitude),
-                new PointLatLng(_selectedPIPMarkerVM.Latitude, _selectedPIPMarkerVM.Longitude)
-            };
-            _lineTargetToPip = CreateDashedRoute(targetToPipPoints, Colors.OrangeRed);
-            _map.Markers.Add(_lineTargetToPip);
-        }
-
-        private GMapRoute CreateDashedRoute(List<PointLatLng> points, Color color)
-        {
-            var route = new GMapRoute(points)
-            {
-                Shape = new Path
-                {
-                    Stroke = new SolidColorBrush(Colors.Black),
-                    StrokeThickness = 2,
-                    StrokeDashArray = new DoubleCollection { 3, 3 }, // 점선 패턴
-                    Opacity = 0.8
-                }
-            };
-            return route;
-        }
-
-        private void ClearFocus()
-        {
-
-            _missileService.ClearMissile();
-            _targetService.ClearTarget();
-
-            if (_selectedMissileMarkerVM != null) _selectedMissileMarkerVM.UpdateFocus(false);
-            if (_selectedTargetMarkerVM != null) _selectedTargetMarkerVM.UpdateFocus(false);
-            if (_selectedPIPMarkerVM != null) _selectedPIPMarkerVM.UpdateVisible(false);
-
-            _selectedMissileMarkerVM = null;
-            _selectedTargetMarkerVM = null;
-            _selectedPIPMarkerVM = null;
-
-            if (_lineMissileToPip != null) _map.Markers.Remove(_lineMissileToPip);
-            if (_lineTargetToPip != null) _map.Markers.Remove(_lineTargetToPip);
-            if (_routeMissilePath != null) _map.Markers.Remove(_routeMissilePath); // ✅ 경로 제거
-            if (_routeTargetPath != null) _map.Markers.Remove(_routeTargetPath);
-        }
-
-        private void UpdateFocus()
-        {
-            if(_missileService.SelectedMissile != null)
-            {
-                var selectedMissile = _missileService.SelectedMissile;
-                var missileVM = _missileMarkers
-                    .FirstOrDefault(m => m.Id == selectedMissile.Id);
-
-                if (missileVM != null)
-                {
-
-                    if (_selectedMissileMarkerVM != null)
-                    {
-                        _selectedMissileMarkerVM.UpdateFocus(false);
-                        _selectedMissileMarkerVM = null;
-                    }
-
-                    _selectedMissileMarkerVM = missileVM;
-                    _selectedMissileMarkerVM.UpdateFocus(true);
-                }
-
-                var selectedPIP = selectedMissile.PIP;
-
-                if (selectedPIP != null)
-                {
-                    var PIPVm = _pipMarkers.FirstOrDefault(m => m.MissileId == selectedMissile.Id);
-                    if(PIPVm != null)
-                    {
-                        _selectedPIPMarkerVM = PIPVm;
-                        _selectedPIPMarkerVM.UpdateVisible(true);
-                    }
-                }
-
-            }
-            if(_targetService.SelectedTarget != null)
-            {
-                var selectedTarget = _targetService.SelectedTarget;
-                var targetVm = _targetMarkers
-                    .FirstOrDefault(t => t.DefaultID == selectedTarget.Id.ToString());
-
-                if (targetVm != null) { 
-
-                    if(_selectedTargetMarkerVM != null)
-                    {
-                        _selectedTargetMarkerVM.UpdateFocus(false);
-                        _selectedTargetMarkerVM = null;
-                    }
-
-
-                    _selectedTargetMarkerVM = targetVm;
-                    _selectedTargetMarkerVM.UpdateFocus(true);
-                }
-            }
-
-
-            if(_targetService.SelectedTarget == null && _selectedTargetMarkerVM != null)
-            {
-                _selectedTargetMarkerVM.UpdateFocus(false);
-                _selectedTargetMarkerVM = null;
-            }
-
-        }
-
-        private void UpdateMarkers()
-        {
-            // 🔄 매 주기마다 지도 전체 마커 갱신
             _map.Markers.Clear();
-            _map.Markers.Add(_circle);
-            UpdateMissileMarker();
-            UpdatePIPMarker();
-            UpdateTargetMarker();
-            UpdateFocus();
-            UpdateFocusLines();
-            UpdateFocusPaths();
-        }
+            if (_circle != null) _map.Markers.Add(_circle);
 
-        // 마커마다 디스패쳐와 연결해서 업데이트하는 방식 -> 뷰모델을 디스패쳐와 연결해서 전체 마커를 업데이트하는방식
-        // 이유: 맵을 업데이트한다는것 -> 모든 마커들을 지우고 새로 그리는것
-        // 각각의 마커 뷰모델에서 map에 등록된 마커 instance를 하나씩 추적해서 삭제하고 새로운 것을 추가하는것은 비효율적이기때문에
-        // 맵 같은 경우는 뷰모델에서 전체 마커를 변경하는식으로 구현함
-
-        private void UpdateMissileMarker()
-        {
-            foreach (var msl in _missileService.GetAllMissiles())
+            // 1) 마커
+            foreach (var mk in _mapService.GetMarkerSpecs())
             {
+                FrameworkElement shape;
 
-                var vm = _missileMarkers.FirstOrDefault(vm => vm.Id == msl.Id);
+                if (mk.Kind == "Missile")
+                {
+                    if (!_missileVMs.TryGetValue(mk.Id, out var vm))
+                    {
+                        var m = _mapService.GetMissiles().First(x => x.Id == mk.Id);
+                        _missileVMs[mk.Id] = vm = new MissileMarkerViewModel(m);
+                    }
+                    vm.UpdateFocus(mk.Focused);
+                    shape = new MissileMarker { DataContext = vm };
+                }
+                else if (mk.Kind == "Target")
+                {
+                    char tid = mk.Id[0];
+                    if (!_targetVMs.TryGetValue(tid, out var vm))
+                    {
+                        var t = _mapService.GetTargets().First(x => x.Id == tid);
+                        _targetVMs[tid] = vm = new TargetMarkerViewModel(t);
+                    }
+                    vm.UpdateFocus(mk.Focused);
+                    shape = new TargetMarker { DataContext = vm };
+                }
+                else // "PIP"
+                {
+                    var missileId = mk.Id.Replace("PIP::", "");
+                    if (!_pipVMs.TryGetValue(missileId, out var vm))
+                    {
+                        var m = _mapService.GetMissiles().First(x => x.Id == missileId);
+                        if (m.PIP == null) continue;
+                        _pipVMs[missileId] = vm = new PIPMarkerViewModel(m.PIP, missileId);
+                    }
+                    vm.UpdateVisible(mk.Visible);
+                    shape = new PIPMarker { DataContext = vm };
+                }
 
-                if (vm == null)
+                var marker = new GMapMarker(new PointLatLng(mk.Lat, mk.Lon))
                 {
-                    // 🟢 최초 생성 시만
-                    vm = new MissileMarkerViewModel(msl);
-                    _missileMarkers.Add(vm);
-                }
-                else
-                {
-                    // 🟡 이후에는 업데이트만
-                    vm.UpdateMissileInfo(msl);
-                }
-                var marker = new GMapMarker(new PointLatLng(msl.Latitude, msl.Longitude))
-                {
-                    Shape = new MissileMarker { DataContext = vm },
-                    Offset = new Point(-25, -25) // UserControl 중심 보정
+                    Shape = shape,
+                    Offset = (mk.Kind == "PIP") ? new Point(0, 0) : new Point(-25, -25)
                 };
                 _map.Markers.Add(marker);
             }
-        }
 
-        private void UpdatePIPMarker()
-        {
-            foreach (var msl in _missileService.GetAllMissiles())
+            // 2) 라인
+            foreach (var ln in _mapService.GetLineSpecs())
             {
-                var pip = msl.PIP;
-                if (pip == null) continue;
+                var pts = new List<PointLatLng> { ln.From, ln.To };
+                _map.Markers.Add(CreateDashed(pts)); // "DashedBlack" 스타일만 사용
+            }
 
-                var vm = _pipMarkers.FirstOrDefault(vm => vm.MissileId == msl.Id);
-
-                if (vm == null)
-                {
-
-                    vm = new PIPMarkerViewModel(pip, msl.Id);
-                    _pipMarkers.Add(vm);
-
-                }
-                else
-                {
-                    //vm.UpdatePIP(pip);
-                }
-
-                var marker = new GMapMarker(new PointLatLng(pip.Latitude, pip.Longitude))
-                {
-                    Shape = new PIPMarker { DataContext = vm },
-                    Offset = new Point(0,0) // UserControl 중심 보정
-                };
-                _map.Markers.Add(marker);
+            // 3) 경로
+            foreach (var rt in _mapService.GetRouteSpecs())
+            {
+                _map.Markers.Add(CreatePath(rt.Points, rt.Color));
             }
         }
 
-        private void UpdateTargetMarker()
+        // ======================
+        // Helpers (뷰모델 전용)
+        // ======================
+        private GMapPolygon DrawDetectionCircle(PointLatLng center, double radiusMeters)
         {
-            foreach (var tgt in _targetService.GetAllTargets())
-            {
-                var vm = _targetMarkers.FirstOrDefault(vm => vm.Id == $"TARGET-{tgt.Id:D3}");
+            const double R = 6378137.0;
+            var pts = new List<PointLatLng>();
+            double lat = Deg2Rad(center.Lat);
+            double lon = Deg2Rad(center.Lng);
+            double d = radiusMeters / R;
 
-                if (vm == null)
-                {
-                    vm = new TargetMarkerViewModel(tgt);
-                    _targetMarkers.Add(vm);
-                }
-                else
-                {
-                    vm.UpdateTargetInfo(tgt);
-                }
-                var marker = new GMapMarker(new PointLatLng(tgt.CurLoc.Lat, tgt.CurLoc.Lon))
-                {
-                    Shape = new TargetMarker { DataContext = vm },
-                    Offset = new Point(-25, -25) // UserControl 중심 보정
-                };
-                _map.Markers.Add(marker);
-            }
-        }
-
-        private GMapPolygon DrawDetectionCircle()
-        {
-            if (_map == null || _mapService.Distance <= 0)
+            for (int i = 0; i <= 72; i++)
             {
-                throw new Exception("예외 발생: 맵이 로드되지 않았거나, 원을 그릴 수 없습니다.");
+                double a = 2 * System.Math.PI * i / 72;
+                double latP = System.Math.Asin(System.Math.Sin(lat) * System.Math.Cos(d) +
+                                               System.Math.Cos(lat) * System.Math.Sin(d) * System.Math.Cos(a));
+                double lonP = lon + System.Math.Atan2(System.Math.Sin(a) * System.Math.Sin(d) * System.Math.Cos(lat),
+                                                      System.Math.Cos(d) - System.Math.Sin(lat) * System.Math.Sin(latP));
+                pts.Add(new PointLatLng(Rad2Deg(latP), Rad2Deg(lonP)));
             }
 
-            var points = CreateCircle(_mapService.Center, _mapService.Distance, 72);
-            GMapPolygon CirclePolygon = new GMapPolygon(points)
+            return new GMapPolygon(pts)
             {
-                Shape = new Path
+                Shape = new System.Windows.Shapes.Path
                 {
                     Stroke = Brushes.LimeGreen,
                     StrokeThickness = 2,
                     Fill = Brushes.Transparent
                 }
             };
-            return CirclePolygon;
         }
 
+        private static double Deg2Rad(double d) => d * System.Math.PI / 180.0;
+        private static double Rad2Deg(double r) => r * 180.0 / System.Math.PI;
 
-        private static List<PointLatLng> CreateCircle(PointLatLng center, double radiusMeters, int segments)
+        private static GMapRoute CreateDashed(List<PointLatLng> pts) => new(pts)
         {
-            const double EarthRadius = 6378137.0;
-            var points = new List<PointLatLng>();
-            double lat = ToRadians(center.Lat);
-            double lon = ToRadians(center.Lng);
-            double d = radiusMeters / EarthRadius;
-
-            for (int i = 0; i <= segments; i++)
+            Shape = new System.Windows.Shapes.Path
             {
-                double angle = 2 * Math.PI * i / segments;
-                double latPoint = Math.Asin(Math.Sin(lat) * Math.Cos(d) +
-                                            Math.Cos(lat) * Math.Sin(d) * Math.Cos(angle));
-                double lonPoint = lon + Math.Atan2(Math.Sin(angle) * Math.Sin(d) * Math.Cos(lat),
-                                                   Math.Cos(d) - Math.Sin(lat) * Math.Sin(latPoint));
-                points.Add(new PointLatLng(ToDegrees(latPoint), ToDegrees(lonPoint)));
+                Stroke = new SolidColorBrush(Colors.Black),
+                StrokeThickness = 2,
+                StrokeDashArray = new System.Windows.Media.DoubleCollection { 3, 3 },
+                Opacity = 0.8
             }
-            return points;
-        }
+        };
 
-        private static double ToRadians(double deg) => deg * Math.PI / 180.0;
-        private static double ToDegrees(double rad) => rad * 180.0 / Math.PI;
-
-        ~MapViewModel()
+        private static GMapRoute CreatePath(List<PointLatLng> pts, Color color) => new(pts)
         {
-            UpdateDispatcher.Instance.Unregister(UpdateMarkers);
-        }
-
+            Shape = new System.Windows.Shapes.Path
+            {
+                Stroke = new SolidColorBrush(color),
+                StrokeThickness = 1.8,
+                Opacity = 0.8
+            }
+        };
     }
 }

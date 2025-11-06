@@ -101,7 +101,7 @@ namespace C2.ViewModels
         public Target Target { get; private set; }
 
         public string Id { get; private set; }
-        public string DefaultID { get; private set; }
+        public char DefaultID { get; private set; }
         public double Yaw { get; private set; }
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }
@@ -120,7 +120,7 @@ namespace C2.ViewModels
             Target = target;
 
             Id = $"TARGET-{(Target.Id):D3}";
-            DefaultID = Target.Id.ToString();
+            DefaultID = Target.Id;
             Yaw = Target.Yaw;
             Latitude = Target.CurLoc.Lat;
             Longitude = Target.CurLoc.Lon;
@@ -149,7 +149,7 @@ namespace C2.ViewModels
         public void UpdateTargetInfo(Target target)
         {
             Id = $"TARGET-{Target.Id:D3}";
-            DefaultID = Target.Id.ToString();
+            DefaultID = Target.Id;
             Yaw = Target.Yaw;
             Latitude = Target.CurLoc.Lat;
             Longitude = Target.CurLoc.Lon;

@@ -1,4 +1,7 @@
-﻿using C2.Models;
+﻿using C2.Messages;
+using C2.Models;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,13 +60,28 @@ namespace C2.Services
             }
         }
 
-        public void SelectTarget(char id)
+        //public void SelectTarget(char id)
+        //{
+        //    SelectedTarget = _targets[id];
+        //    WeakReferenceMessenger.Default.Send(new TargetSelectedMessage(true));
+        //}
+
+        public bool SelectTarget(char id)
         {
-            SelectedTarget = _targets[id];
+            if (!_targets.TryGetValue(id, out var target))
+                return false;
+
+            SelectedTarget = target;
+            WeakReferenceMessenger.Default.Send(new TargetSelectedMessage(id));
+            return true;
         }
         public void ClearTarget()
         {
             SelectedTarget = null;
+            WeakReferenceMessenger.Default.Send(new TargetSelectedMessage(null));
         }
     }
+
+
 }
+
