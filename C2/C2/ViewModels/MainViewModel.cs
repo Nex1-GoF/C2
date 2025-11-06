@@ -9,11 +9,35 @@ namespace C2.ViewModels
         private readonly LogService _logService = LogService.Instance;
         private readonly TargetService _targetService = TargetService.Instance;
         private readonly MissileService _missileService = MissileService.Instance;
+        private readonly UpdateDispatcher _updateDispatcher = UpdateDispatcher.Instance;
 
         [ObservableProperty] private bool _canAssign = true;
         [ObservableProperty] private bool _canLaunch = false;
         [ObservableProperty] private bool _progressBarVisible = false;
         [ObservableProperty] private double _launchProgress = 0;
+
+        public MainViewModel()
+        {
+            _updateDispatcher.Register(UpdateCanLaunch);
+        }
+
+        // 포커스를 감지할때만 canLaunch True
+        private void UpdateCanLaunch()
+        {
+            if(_targetService.SelectedTarget == null)
+            {
+                CanAssign = false;
+                return;
+            }
+
+            if(_missileService.CanLaunch() == false)
+            {
+                CanAssign = false;
+                return;
+            }
+
+            CanAssign = true;
+        }
 
         // ✅ 교전할당 버튼 Command
         [RelayCommand]
@@ -41,6 +65,7 @@ namespace C2.ViewModels
             CanLaunch = true;
 
             _logService.AddLog(Models.MessageType.System, $"교전할당 완료: {missileId} 생성됨.");
+            _targetService.ClearTarget();
         }
 
         // ✅ 발사 버튼 Command
@@ -80,8 +105,12 @@ namespace C2.ViewModels
 
             //  발사 조건 확인 후 다시 버튼 활성화
 
-            if (_missileService.AnyRemaining())
-                CanLaunch = true;
+            CanLaunch = _missileService.AnyRemaining();
+        }
+
+        ~MainViewModel()
+        {
+            _updateDispatcher.Unregister(UpdateCanLaunch);
         }
 
     }

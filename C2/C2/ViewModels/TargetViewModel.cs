@@ -14,6 +14,12 @@ namespace C2.ViewModels
 {
     public partial class TargetViewModel : ObservableObject
     {
+
+        private static readonly Lazy<TargetViewModel> _instance =
+        new(() => new TargetViewModel());
+
+        public static TargetViewModel Instance => _instance.Value;
+
         public ObservableCollection<Target> Targets { get; } = new();
         private readonly TargetService _service;
         private readonly UpdateDispatcher _updateDispatcher;
@@ -25,7 +31,7 @@ namespace C2.ViewModels
             set => SetProperty(ref _selectedTarget, value);
         }
 
-        public TargetViewModel()
+        private TargetViewModel()
         {
             _service = TargetService.Instance;
             _updateDispatcher = UpdateDispatcher.Instance;
@@ -38,9 +44,9 @@ namespace C2.ViewModels
                     100,
                     200,
                     0,
-                    (37, 105),
+                    (37, 125 + i),
                     DateTime.Now,
-                    (38, 100)
+                    (38, 125 + i)
                 );
                 _service.ReceiveTargetData(target);
             }
@@ -79,8 +85,10 @@ namespace C2.ViewModels
             else
             {
                 _service.SelectTarget(target.Id);
+                if (SelectedTarget != null) 
+                System.Diagnostics.Debug.WriteLine($"[PrevTarget] {SelectedTarget.Id}");
                 SelectedTarget = target;
-                System.Diagnostics.Debug.WriteLine($"[SelectTarget] {target.Id}");
+                System.Diagnostics.Debug.WriteLine($"[NextTarget] {SelectedTarget.Id}");
             }
         }
     }

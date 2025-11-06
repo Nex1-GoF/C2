@@ -25,11 +25,11 @@ namespace C2.Services
         {
             _logService = LogService.Instance;
             // 초기 미사일 4기 등록
-            for (int i = 1; i <= 4; i++)
+            for (int i = -2; i <= 1; i++)
             {
                 var missile = new Missile(
-                    id: $"MSL-{i:00}",
-                    latitudeRaw: C2Points.latitude,
+                    id: $"MSL-{i+3:00}",
+                    latitudeRaw: C2Points.latitude + (i*10000000),
                     longitudeRaw: C2Points.longitude,
                     altitude: C2Points.altitude
                 );
@@ -88,7 +88,13 @@ namespace C2.Services
 
         public bool AnyRemaining()
         {
-            var missile = GetAllMissiles().FirstOrDefault(m => m.State == MissileState.InitialGuidance && m.TargetId != null);
+            var missile = GetAllMissiles().FirstOrDefault(m => m.State == MissileState.LaunchReady && m.TargetId != null);
+            if (missile == null) return false;
+            return true;
+        }
+        public bool CanLaunch()
+        {
+            var missile = GetAllMissiles().FirstOrDefault(m => m.State == MissileState.LaunchReady);
             if (missile == null) return false;
             return true;
         }

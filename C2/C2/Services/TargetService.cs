@@ -18,6 +18,9 @@ namespace C2.Services
 
         private readonly object _lock = new();
 
+        public TargetService() { 
+        }
+
         // 0.1초마다 UI 갱신 시 이 리스트를 가져감
         public List<Target> GetAllTargets()
         {
