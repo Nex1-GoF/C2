@@ -98,7 +98,7 @@ namespace C2.ViewModels
 
     public partial class TargetMarkerViewModel
     {
-        private readonly Target _target;
+        public Target Target { get; private set; }
 
         public string Id { get; private set; }
         public string DefaultID { get; private set; }
@@ -117,14 +117,14 @@ namespace C2.ViewModels
 
         public TargetMarkerViewModel(Target target)
         {
-            _target = target;
+            Target = target;
 
-            Id = $"TARGET-{(_target.Id):D3}";
-            DefaultID = _target.Id.ToString();
-            Yaw = _target.Yaw;
-            Latitude = _target.CurLoc.Lat;
-            Longitude = _target.CurLoc.Lon;
-            Altitude = _target.Altitude;
+            Id = $"TARGET-{(Target.Id):D3}";
+            DefaultID = Target.Id.ToString();
+            Yaw = Target.Yaw;
+            Latitude = Target.CurLoc.Lat;
+            Longitude = Target.CurLoc.Lon;
+            Altitude = Target.Altitude;
 
             StrokeBrush = _unFocusedBrush;
             FillBrush = _unFocusedFill;
@@ -148,12 +148,12 @@ namespace C2.ViewModels
 
         public void UpdateTargetInfo(Target target)
         {
-            Id = $"TARGET-{_target.Id:D3}";
-            DefaultID = _target.Id.ToString();
-            Yaw = _target.Yaw;
-            Latitude = _target.CurLoc.Lat;
-            Longitude = _target.CurLoc.Lon;
-            Altitude = _target.Altitude;
+            Id = $"TARGET-{Target.Id:D3}";
+            DefaultID = Target.Id.ToString();
+            Yaw = Target.Yaw;
+            Latitude = Target.CurLoc.Lat;
+            Longitude = Target.CurLoc.Lon;
+            Altitude = Target.Altitude;
         }
     }
 

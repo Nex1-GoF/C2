@@ -7,7 +7,7 @@
              Background="#0A1B2A">
 
     <UserControl.DataContext>
-        <vm:TargetViewModel/>
+        <x:Static Member="vm:TargetViewModel.Instance" />
     </UserControl.DataContext>
 
     <UserControl.Resources>

@@ -23,6 +23,9 @@ namespace C2.ViewModels
         private readonly List<TargetMarkerViewModel> _targetMarkers = new();
         private readonly List<PIPMarkerViewModel> _pipMarkers = new();
 
+        private readonly TargetViewModel _targetViewModel; // 업데이트
+        private readonly MissilePanelViewModel _missileViewModel; // 업데이트
+
         //private readonly MockMissileService _missileService;
         //private readonly MockTargetService _targetService;
         private readonly MissileService _missileService;
@@ -60,6 +63,8 @@ namespace C2.ViewModels
             foreach (var tgt in _targetService.GetAllTargets())
                 _targetMarkers.Add(new TargetMarkerViewModel(tgt));
 
+           _targetViewModel = TargetViewModel.Instance;
+            _missileViewModel = MissilePanelViewModel.Instance;
                 
 
             InitializeMap();
@@ -156,13 +161,17 @@ namespace C2.ViewModels
 
             // 🔹 새 포커스 지정
             string targetId = targetVM.DefaultID;
-            _targetService.SelectTarget(targetId[0]);
+            var target= targetVM.Target;
+
+            _targetViewModel.SelectTarget(target);
+            //_targetService.SelectTarget(target); // Todo: 서비스로 동작하고 메세지로 받도록
 
             var missile = _missileService.GetAllMissiles()
                 .FirstOrDefault(m=>m.TargetId != null && m.TargetId == targetId);
 
             if (missile != null) {
-                _missileService.SelectMissile(missile.Id);
+                //_missileService.SelectMissile(missile.Id);
+                _missileViewModel.SelectMissile(missile);
             }
         }
 
@@ -216,6 +225,10 @@ namespace C2.ViewModels
             _missileService.ClearMissile();
             _targetService.ClearTarget();
 
+            if (_selectedMissileMarkerVM != null) _selectedMissileMarkerVM.UpdateFocus(false);
+            if (_selectedTargetMarkerVM != null) _selectedTargetMarkerVM.UpdateFocus(false);
+            if (_selectedPIPMarkerVM != null) _selectedPIPMarkerVM.UpdateVisible(false);
+
             _selectedMissileMarkerVM = null;
             _selectedTargetMarkerVM = null;
             _selectedPIPMarkerVM = null;
@@ -228,7 +241,7 @@ namespace C2.ViewModels
 
         private void UpdateFocus()
         {
-            if(_missileService.SelectedMissile != null && _selectedMissileMarkerVM == null)
+            if(_missileService.SelectedMissile != null)
             {
                 var selectedMissile = _missileService.SelectedMissile;
                 var missileVM = _missileMarkers
@@ -236,6 +249,13 @@ namespace C2.ViewModels
 
                 if (missileVM != null)
                 {
+
+                    if (_selectedMissileMarkerVM != null)
+                    {
+                        _selectedMissileMarkerVM.UpdateFocus(false);
+                        _selectedMissileMarkerVM = null;
+                    }
+
                     _selectedMissileMarkerVM = missileVM;
                     _selectedMissileMarkerVM.UpdateFocus(true);
                 }
@@ -253,16 +273,31 @@ namespace C2.ViewModels
                 }
 
             }
-            if(_targetService.SelectedTarget != null && _selectedTargetMarkerVM != null)
+            if(_targetService.SelectedTarget != null)
             {
                 var selectedTarget = _targetService.SelectedTarget;
                 var targetVm = _targetMarkers
                     .FirstOrDefault(t => t.DefaultID == selectedTarget.Id.ToString());
 
                 if (targetVm != null) { 
+
+                    if(_selectedTargetMarkerVM != null)
+                    {
+                        _selectedTargetMarkerVM.UpdateFocus(false);
+                        _selectedTargetMarkerVM = null;
+                    }
+
+
                     _selectedTargetMarkerVM = targetVm;
                     _selectedTargetMarkerVM.UpdateFocus(true);
                 }
+            }
+
+
+            if(_targetService.SelectedTarget == null && _selectedTargetMarkerVM != null)
+            {
+                _selectedTargetMarkerVM.UpdateFocus(false);
+                _selectedTargetMarkerVM = null;
             }
 
         }
