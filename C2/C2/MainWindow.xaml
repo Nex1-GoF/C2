@@ -4,8 +4,19 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:views="clr-namespace:C2.Views"
+        xmlns:local="clr-namespace:C2"
+        xmlns:vm="clr-namespace:C2.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="1200">
+        Title="C2 Command Center"
+        Height="700" Width="1200">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <local:BoolToTextConverter x:Key="BoolToTextConverter"/>
+    </Window.Resources>
 
     <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>
@@ -23,14 +34,14 @@
             <!-- 지도 -->
             <views:MapPanel x:Name="MapPanelRef" Grid.Row="0" Background="LightBlue"/>
 
-            <!-- ✅ 오른쪽 아래: 발사 UI -->
+            <!-- 오른쪽 아래: 발사 UI -->
             <StackPanel Orientation="Vertical"
-                        Grid.Row="0" Grid.Column="0"
+                        Grid.Row="0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Margin="10">
 
-                <!-- ✅ 발사 진행 바 -->
+                <!-- 발사 진행 바 -->
                 <ProgressBar Height="8"
                              Width="170"
                              Margin="0,0,0,5"
@@ -48,14 +59,17 @@
                     </ProgressBar.Style>
                 </ProgressBar>
 
-                <!-- ✅ 버튼 그룹 -->
+                <!-- 버튼 그룹 -->
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="발사"
-                            Width="80"
-                            Margin="0,0,5,0"
-                            Command="{Binding LaunchCommand}"
-                            IsEnabled="{Binding CanLaunch}"/>
+                    <!-- 발사 버튼 -->
+                    <Button Width="80"
+                        Margin="0,0,5,0"
+                        Content="{Binding IsLaunching, Converter={StaticResource BoolToTextConverter}, ConverterParameter='발사|발사취소'}"
+                        Command="{Binding LaunchOrAbortCommand}"
+                        IsEnabled="{Binding CanLaunchOrAbort}"/>
 
+
+                    <!-- 교전할당 버튼 -->
                     <Button Content="교전할당"
                             Width="80"
                             Margin="5,0,0,0"
@@ -65,8 +79,9 @@
             </StackPanel>
 
             <!-- 유도탄 패널 -->
-            <views:MissilePanel Grid.Row="1" Grid.Column="0"
-                                Background="LightGreen" x:Name="MissilePanelRef"/>
+            <views:MissilePanel Grid.Row="1"
+                                Background="LightGreen"
+                                x:Name="MissilePanelRef"/>
         </Grid>
 
         <!-- 오른쪽: 표적 + 로그 -->

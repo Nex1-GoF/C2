@@ -30,7 +30,7 @@ namespace C2.Views
 
         private void CollapseButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is MissilePanelViewModel vm)
+            if (DataContext is MissileViewModel vm)
             {
                 vm.IsCollapsed = !vm.IsCollapsed;
                 CollapseToggled?.Invoke(vm.IsCollapsed);
@@ -54,7 +54,7 @@ namespace C2.Views
         {
             var window = Application.Current.MainWindow as C2.MainWindow;
             var missilePanel = window?.MissilePanelRef;
-            if (missilePanel?.DataContext is MissilePanelViewModel vm)
+            if (missilePanel?.DataContext is MissileViewModel vm)
             {
                 return vm.IsCollapsed ? CompactTemplate : ExpandedTemplate;
             }

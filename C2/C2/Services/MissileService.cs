@@ -1,4 +1,6 @@
-﻿using C2.Models;
+﻿using C2.Messages;
+using C2.Models;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +21,7 @@ namespace C2.Services
         private readonly Dictionary<string, Missile> _missiles = new();
 
         // ✅ 선택된 미사일 (단일)
-        public Missile? SelectedMissile { get; private set; }
+        public List<Missile> SelectedMissiles { get; private set; } = new();
 
         private MissileService()
         {
@@ -100,19 +102,24 @@ namespace C2.Services
         }
 
         // ✅ 미사일 선택
-        public bool SelectMissile(string id)
+        public bool SelectMissiles(IEnumerable<string> ids)
         {
-            if (!_missiles.TryGetValue(id, out var missile))
-                return false;
+            SelectedMissiles.Clear();
+            foreach (var id in ids)
+            {
+                if (_missiles.TryGetValue(id, out var missile))
+                    SelectedMissiles.Add(missile);
+            }
 
-            SelectedMissile = missile;
-            return true;
+            WeakReferenceMessenger.Default.Send(new MissileSelectedMessage(null)); // or multiple msg
+            return SelectedMissiles.Count > 0;
         }
 
-        // ✅ 선택 해제
-        public void ClearMissile()
+        public void ClearMissiles()
         {
-            SelectedMissile = null;
+            SelectedMissiles.Clear();
+            WeakReferenceMessenger.Default.Send(new MissileSelectedMessage(null));
         }
+
     }
 }

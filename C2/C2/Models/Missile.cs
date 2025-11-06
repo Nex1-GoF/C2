@@ -19,6 +19,13 @@ namespace C2.Models
         public double Longitude { get; set; }
         public short Altitude { get; set; }
 
+        public PIP (double  lat, double lon, short alt)
+        {
+            Latitude = lat;
+            Longitude = lon;
+            Altitude = alt;
+        }
+
     }
         public class Missile : INotifyPropertyChanged
     {

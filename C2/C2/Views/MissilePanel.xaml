@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:C2.Views">
 
     <UserControl.DataContext>
-        <vm:MissilePanelViewModel/>
+        <vm:MissileViewModel/>
     </UserControl.DataContext>
 
     <UserControl.Resources>

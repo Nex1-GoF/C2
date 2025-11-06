@@ -7,7 +7,7 @@
              Background="#0A1B2A">
 
     <UserControl.DataContext>
-        <x:Static Member="vm:TargetViewModel.Instance" />
+        <vm:TargetViewModel/>
     </UserControl.DataContext>
 
     <UserControl.Resources>
@@ -24,16 +24,14 @@
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
 
-                <!-- ✅ 여기서 컨테이너 스타일에 트리거 설정 -->
+                <!-- ✅ 선택 시 외곽선 하이라이트 -->
                 <ItemsControl.ItemContainerStyle>
                     <Style TargetType="ContentPresenter">
                         <Style.Triggers>
                             <DataTrigger Value="True">
                                 <DataTrigger.Binding>
                                     <MultiBinding Converter="{StaticResource IsSelectedTargetConverter}">
-                                        <!-- 현재 카드 Target 객체 -->
                                         <Binding Path="." />
-                                        <!-- ViewModel의 SelectedTarget -->
                                         <Binding Path="DataContext.SelectedTarget"
                                                  RelativeSource="{RelativeSource AncestorType=UserControl}" />
                                     </MultiBinding>
@@ -61,15 +59,17 @@
                     </Style>
                 </ItemsControl.ItemContainerStyle>
 
-                <!-- ✅ 각 표적 카드 템플릿 -->
+                <!-- ✅ 표적 카드 템플릿 -->
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:Target}">
-                        <Border Width="220" Height="130" Margin="6" Padding="8"
+                        <Button Width="220" Height="130" Margin="6" Padding="8"
                                 Background="#1E2A3A"
                                 BorderBrush="#2E3C4F"
                                 BorderThickness="1"
-                                CornerRadius="8"
-                                MouseDown="TargetCard_Click">
+                                Cursor="Hand"
+                                Command="{Binding DataContext.TargetCardClickCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}">
+
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -85,7 +85,7 @@
                                              Margin="0,0,6,0"/>
                                     <TextBlock Text="{Binding Id}" Foreground="White" FontWeight="Bold" FontSize="14"/>
                                     <TextBlock Text=" | " Foreground="Gray"/>
-                                    <TextBlock Text="{Binding State}" 
+                                    <TextBlock Text="{Binding State}"
                                                Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
                                                FontWeight="Bold" FontSize="13"/>
                                 </StackPanel>
@@ -105,7 +105,31 @@
                                                Foreground="DarkGray" FontSize="11"/>
                                 </StackPanel>
                             </Grid>
-                        </Border>
+
+                            <!-- ✅ 버튼 스타일 (투명 효과) -->
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="#1E2A3A"/>
+                                    <Setter Property="BorderBrush" Value="#2E3C4F"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="border"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                                    <Border.CornerRadius>8</Border.CornerRadius>
+                                                    <ContentPresenter HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </Button.Style>
+
+                        </Button>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
