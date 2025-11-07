@@ -23,6 +23,7 @@ namespace C2.Services
         // ✅ 선택된 미사일 (단일)
         public List<Missile> SelectedMissiles { get; private set; } = new();
 
+        private readonly object _lock = new();
         private MissileService()
         {
             _logService = LogService.Instance;
@@ -121,5 +122,20 @@ namespace C2.Services
             WeakReferenceMessenger.Default.Send(new MissileSelectedMessage(null));
         }
 
+        public void ReceiveMissileData(Missile newData)
+        {
+            lock (_lock)
+            {
+                if (_missiles.TryGetValue(newData.Id, out var existing))
+                {
+                    existing.Update(newData);
+                }
+                else
+                {
+                    // 초기 4기 생성된 경우에만 들어옴 (이미 있음)
+                    _missiles[newData.Id] = newData;
+                }
+            }
+        }
     }
 }

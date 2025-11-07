@@ -116,5 +116,18 @@ namespace C2.Models
             Speed = 0;
             State = MissileState.LaunchReady;
         }
+
+        public void Update(Missile src)
+        {
+            LatitudeRaw = src.LatitudeRaw;
+            LongitudeRaw = src.LongitudeRaw;
+            Altitude = src.Altitude;
+            YawRaw = src.YawRaw;
+            PitchRaw = src.PitchRaw;
+            Speed = src.Speed;
+            FlightTime = src.FlightTime;
+            State = src.State;
+            TargetId = src.TargetId;
+        }
     }
 }
