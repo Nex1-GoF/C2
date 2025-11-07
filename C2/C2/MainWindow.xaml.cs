@@ -1,4 +1,6 @@
-﻿using C2.Services;
+﻿using C2.Models;
+using C2.Network;
+using C2.Services;
 using C2.ViewModels;
 using System.ComponentModel;
 using System.Globalization;
@@ -22,14 +24,24 @@ namespace C2
         private const double MapDefaultRatio = 0.7;
 
         private readonly MainViewModel _vm;
-
+        private TargetReceiver _targetReceiver;
+        private MissileReceiver _missileReceiver;
         public MainWindow()
         {
             InitializeComponent();
             MissilePanelRef.CollapseToggled += OnMissileCollapseChanged;
             _vm = new MainViewModel();
             DataContext = _vm;
-            
+            _targetReceiver = new TargetReceiver(50000);
+            _targetReceiver.Start();
+            _missileReceiver = new MissileReceiver(51000);
+            _missileReceiver.Start();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _targetReceiver.Stop();
+            base.OnClosed(e);
         }
 
         private void OnMissileCollapseChanged(bool isCollapsed)
