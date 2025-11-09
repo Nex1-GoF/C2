@@ -1,6 +1,7 @@
 ﻿using C2.Messages;
 using C2.Models;
 using C2.Services;
+using C2.Network;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
