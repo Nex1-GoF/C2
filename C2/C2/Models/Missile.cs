@@ -8,6 +8,7 @@ namespace C2.Models
     public enum MissileState : byte
     {
         LaunchReady = 1,
+        Launching,
         InitialGuidance,
         MidGuidance,
         TerminalGuidance,
@@ -62,7 +63,19 @@ namespace C2.Models
         public uint FlightTime { get; set; }
 
         public string Id { get; set; }
-        public string? TargetId { get; set; }
+        private string? _targetId;
+        public string? TargetId
+        {
+            get => _targetId;
+            set
+            {
+                if (_targetId != value)
+                {
+                    _targetId = value;
+                    OnPropertyChanged(nameof(TargetId));
+                }
+            }
+        }
 
         public double Latitude => LatitudeRaw / 1e7;
         public double Longitude => LongitudeRaw / 1e7;
