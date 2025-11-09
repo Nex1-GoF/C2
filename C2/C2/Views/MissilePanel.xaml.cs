@@ -89,6 +89,7 @@ namespace C2.Views
                 return state switch
                 {
                     MissileState.LaunchReady => "대기",
+                    MissileState.Launching => "발사 중",        // ✅ 추가
                     MissileState.InitialGuidance => "초기유도",
                     MissileState.MidGuidance => "중기유도",
                     MissileState.TerminalGuidance => "종말유도",
@@ -98,9 +99,11 @@ namespace C2.Views
             }
             return "";
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => Binding.DoNothing;
     }
+
 
     // 상태 → 색상
     public class StateToColorConverter : IValueConverter
@@ -112,6 +115,7 @@ namespace C2.Views
                 return state switch
                 {
                     MissileState.LaunchReady => Brushes.SkyBlue,
+                    MissileState.Launching => new SolidColorBrush(Color.FromRgb(0x66, 0xCC, 0xFF)), // ✅ 발사 중 (밝은 파랑)
                     MissileState.InitialGuidance => Brushes.Yellow,
                     MissileState.MidGuidance => Brushes.Orange,
                     MissileState.TerminalGuidance => Brushes.Red,
@@ -121,7 +125,23 @@ namespace C2.Views
             }
             return Brushes.SkyBlue;
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => Binding.DoNothing;
+    }
+
+
+    public class StateToEnabledConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is MissileState state)
+                return state == MissileState.MidGuidance; // 중기유도 상태일 때만 버튼 활성화
+
+            return false;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
     }
 }

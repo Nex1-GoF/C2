@@ -51,6 +51,15 @@ namespace C2.Services
             return missile;
         }
 
+        //public Missile? GetLaunchedMissile()
+        //{
+        //    return _missiles.Values.FirstOrDefault(m => m.State == MissileState.Launching);
+        //}
+        //public Missile? GetInitialGuidanceMissile()
+        //{
+        //    return _missiles.Values.FirstOrDefault(m => m.State == MissileState.InitialGuidance);
+        //}
+
         // ✅ 교전할당 시 사용
         public string AssignTarget(string targetId)
         {
@@ -68,32 +77,29 @@ namespace C2.Services
 
         }
 
-        public string? StartLaunchMissile()
+        public string? UpdateMissileState(MissileState fromState, MissileState toState)
         {
-            var missile = GetAllMissiles().FirstOrDefault(m=>m.State == MissileState.LaunchReady && m.TargetId != null);
+            var missile = GetAllMissiles()
+                .FirstOrDefault(m => m.State == fromState && m.TargetId != null);
 
-            if(missile == null) return null;
+            if (missile == null)
+                return null;
 
-            missile.State = MissileState.InitialGuidance;
+            missile.State = toState;
             return missile.Id;
-
         }
-        public bool LaunchMissile()
-        {
-            var missile = GetAllMissiles().FirstOrDefault(m=>m.State == MissileState.InitialGuidance && m.TargetId != null);
-
-            if(missile == null) return false;
-
-            missile.State = MissileState.MidGuidance;
-            return true;
-
-        }
-
+        
         public bool AnyRemaining()
         {
             var missile = GetAllMissiles().FirstOrDefault(m => m.State == MissileState.LaunchReady && m.TargetId != null);
             if (missile == null) return false;
             return true;
+        }
+        public void CancelLaunch()
+        {
+            var missile = GetAllMissiles().FirstOrDefault(m => m.State == MissileState.Launching && m.TargetId != null);
+            if (missile == null) return;
+            missile.State = MissileState.LaunchReady;
         }
         public bool CanLaunch()
         {

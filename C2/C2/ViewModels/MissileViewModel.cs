@@ -1,7 +1,9 @@
-﻿using C2.Models;
+﻿using C2.Messages;
+using C2.Models;
 using C2.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -96,6 +98,7 @@ namespace C2.ViewModels
                 // 미사일 모델의 Yaw 갱신
                 local.YawRaw = (short)(yaw * 1e7);
             }
+            // Todo: 미사일 비상폭파 기능 제한 걸기
         }
 
         private static double CalculateYaw(double lat1, double lon1, double lat2, double lon2)

@@ -5,6 +5,7 @@ using GMap.NET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Interop;
 using System.Windows.Media; // Color
 
 namespace C2.Services
@@ -117,9 +118,10 @@ namespace C2.Services
             // 미사일 + PIP
             foreach (var m in _missileService.GetAllMissiles())
             {
+                if (m.State == MissileState.Abort) continue;
                 bool focused = selectedIds.Contains(m.Id);
                 list.Add((m.Id, "Missile", m.Latitude, m.Longitude, focused, true));
-
+                
                 if (m.PIP != null)
                 {
                     // 포커스된 미사일의 PIP만 표시
@@ -149,6 +151,7 @@ namespace C2.Services
             {
                 var msl = _missileService.GetMissile(mid);
                 if (msl?.PIP == null) continue;
+                if(msl.State==MissileState.Abort) continue;
 
                 // Missile ↔ PIP
                 lines.Add((new PointLatLng(msl.Latitude, msl.Longitude),

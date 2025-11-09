@@ -5,9 +5,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace C2.ViewModels
 {
@@ -63,7 +63,20 @@ namespace C2.ViewModels
         // 초기유도 절차 수행
         public void InitialGuidence(string missileId, string msg)
         {
-            
+
+            // 키 생성
+            var sessionKey = GenerateSessionKey();
+
+            //SendToRadar(payloadForRadar);
+            //SendToMissile(payloadForRadar);
+
+
+        }
+        public static byte[] GenerateSessionKey()
+        {
+            var key = new byte[32]; // 256-bit
+            RandomNumberGenerator.Fill(key);
+            return key;
         }
 
         public void Stop()
