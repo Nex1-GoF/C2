@@ -26,21 +26,21 @@ namespace C2
         private readonly MainViewModel _vm;
         private TargetReceiver _targetReceiver;
         private MissileReceiver _missileReceiver;
+        private SocketManager _socketManager;
+
         public MainWindow()
         {
             InitializeComponent();
             MissilePanelRef.CollapseToggled += OnMissileCollapseChanged;
             _vm = new MainViewModel();
             DataContext = _vm;
-            _targetReceiver = new TargetReceiver(50000);
-            _targetReceiver.Start();
-            _missileReceiver = new MissileReceiver(51000);
-            _missileReceiver.Start();
+            _socketManager = new SocketManager();
+            _targetReceiver = new TargetReceiver(_socketManager);
+            _missileReceiver = new MissileReceiver(_socketManager);
         }
 
         protected override void OnClosed(EventArgs e)
         {
-            _targetReceiver.Stop();
             base.OnClosed(e);
         }
 
