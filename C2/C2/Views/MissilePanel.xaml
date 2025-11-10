@@ -3,25 +3,32 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:C2.ViewModels"
              xmlns:models="clr-namespace:C2.Models"
-             xmlns:local="clr-namespace:C2.Views">
+             xmlns:local="clr-namespace:C2.Views"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+    d:DesignHeight="300"
+    d:DesignWidth="1600">
 
+    <!-- ViewModel 연결 -->
     <UserControl.DataContext>
         <vm:MissileViewModel/>
     </UserControl.DataContext>
 
     <UserControl.Resources>
-
-        <!-- ✅ 1. 변환기 정의 -->
+        <!-- 변환기 -->
         <local:StateToTextConverter x:Key="StateToTextConverter"/>
         <local:StateToColorConverter x:Key="StateToColorConverter"/>
         <local:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
         <local:StateToEnabledConverter x:Key="StateToEnabledConverter"/>
 
-        <!-- ✅ 2. 공용 버튼 스타일 (활성화/비활성 시 색상 전환) -->
+        <!-- 공용 버튼 스타일 -->
         <Style x:Key="AbortButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="Gray"/>
             <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="15"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="Red"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="True">
                     <Setter Property="Foreground" Value="White"/>
@@ -29,119 +36,141 @@
             </Style.Triggers>
         </Style>
 
-        <!-- ✅ 3. 카드 템플릿 -->
+        <!-- 카드 템플릿: Width 고정 제거, Stretch + MinWidth만 -->
         <DataTemplate x:Key="ExpandedCardTemplate">
-            <Border Background="#1E2A3A" Margin="6" Padding="10" CornerRadius="10" Width="180">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Ellipse Width="18" Height="18"
-                                 Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                                 Stroke="Black" StrokeThickness="1"
-                                 HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding Id}" Foreground="White" FontWeight="Bold" FontSize="16" Margin="4,0,0,0"/>
-                    </StackPanel>
+            <Border Background="#1E2A3A"
+                    Margin="6"
+                    Padding="10"
+                    CornerRadius="10"
+                    HorizontalAlignment="Stretch"
+                    MinWidth="160">
+                <Grid>
+                    <StackPanel Orientation="Vertical" Margin="0,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="30" Height="30"
+             Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
+             Stroke="Black" StrokeThickness="1"
+             HorizontalAlignment="Center" />
+                            <TextBlock Text="L-SAM"
+                Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
+               FontWeight="Bold"
+               FontSize="25"
+               Margin="4,0,0,0"/>
+                        </StackPanel>
 
-                    <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
-                               Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"/>
-                    <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}" Foreground="LightGray"/>
-                    <TextBlock Text="{Binding Speed, StringFormat='속도: {0} m/s'}" Foreground="LightGray"/>
-                    <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="LightBlue"/>
+                        <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
+           Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}" FontSize="20" Margin="20,0,0,0"/>
+                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="LightBlue" FontSize="16" Margin="10,20,0,0"/>
+                        
+                        <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}, StringFormat='상태: {0}'}"
+Foreground="LightGray" FontSize="16"  Margin="10,0,0,0"/>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
-                        <Button Content="비상폭파" 
-                                Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}" 
-                                IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
-                                Width="60" Height="24" Margin="4,0"
-                                Background="#8B0000"
-                                Style="{StaticResource AbortButtonStyle}"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+
+                        </StackPanel>
                     </StackPanel>
-                </StackPanel>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
+                        <TextBlock Text="{Binding Id}"
+            Foreground="LightGray"
+           FontWeight="Bold"
+           FontSize="25"
+           Margin="4,0,0,20" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Latitude, StringFormat='위도: {0}°'}" Foreground="LightGray" FontSize="16"/>
+                        <TextBlock Text="{Binding Longitude, StringFormat='경도: {0}° '}" Foreground="LightGray" FontSize="16"/>
+                        <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}" Foreground="LightGray" FontSize="16"/>
+                        <TextBlock Text="{Binding Speed, StringFormat='속력: {0} m/s'}" Foreground="LightGray" FontSize="16"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,6,0,0">
+                            <Button Content="비상폭파" 
+            Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+            CommandParameter="{Binding}"
+            IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
+            Width="80" Height="30" Margin="0,0,0,0"
+            Style="{StaticResource AbortButtonStyle}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
             </Border>
         </DataTemplate>
 
         <DataTemplate x:Key="CompactCardTemplate">
             <Border Background="#1A2535"
-                    Margin="6"
+                    Margin="3"
                     Padding="8"
                     CornerRadius="8"
-                    Width="180"
-                    Height="120"
+                    HorizontalAlignment="Stretch"
                     BorderBrush="#2E3C4F"
-                    BorderThickness="1">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-
-                    <!-- 상태 아이콘 -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,1">
-                        <Ellipse Width="18" Height="18"
-                                 Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                                 Stroke="Black" StrokeThickness="1"
-                                 HorizontalAlignment="Center"/>
+                    BorderThickness="1"
+                    MinWidth="160">
+                <StackPanel Orientation="Vertical">
+                    <!-- 상태 아이콘/ID -->
+                    <Grid>
+                        <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="20" Height="20"
+Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
+Stroke="Black" StrokeThickness="1" VerticalAlignment="Center"
+/>
+                        <TextBlock Text="L-SAM"
+ Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
+FontWeight="Bold"
+FontSize="20" VerticalAlignment="Top"
+Margin="4,0,0,0"/>
+                            <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
+Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}" FontSize="15" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="{Binding Id}"
-                                   Foreground="White"
-                                   FontWeight="Bold"
-                                   FontSize="14"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,4"/>
-                    </StackPanel>
+ Foreground="LightGray"
+FontWeight="Bold"
+FontSize="15"
+Margin="0,0,10,0" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <Grid>
+                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="LightGray" FontSize="16" Margin="10,0,0,0"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0">
+                            <Button Content="비상폭파" 
+Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+CommandParameter="{Binding}"
+IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
+Width="100" Height="30" Margin="0,0,0,0"
+Style="{StaticResource AbortButtonStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                   
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,2,0,1">
-                        <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
-                                   Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                                   FontWeight="Bold"
-                                   FontSize="13"
-                                   HorizontalAlignment="Center"
-                                   Margin="0,2,0,0"/>
-                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}"
-                                   Foreground="LightGray"
-                                   FontSize="12"
-                                   HorizontalAlignment="Center"
-                                   Margin="6,2,0,0"/>
-                    </StackPanel>
-
-                    <!-- 버튼 영역 -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
-                        <Button Content="비상폭파"
-                                Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}" 
-                                IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
-                                Width="60" Height="24" Margin="4,0"
-                                Background="#552222"
-                                Style="{StaticResource AbortButtonStyle}"/>
-                    </StackPanel>
                 </StackPanel>
             </Border>
         </DataTemplate>
 
-        <!-- ✅ 4. 템플릿 선택자 -->
+        <!-- 템플릿 선택자 -->
         <local:MissileTemplateSelector x:Key="MissileTemplateSelector"
                                        ExpandedTemplate="{StaticResource ExpandedCardTemplate}"
                                        CompactTemplate="{StaticResource CompactCardTemplate}"/>
     </UserControl.Resources>
 
-    <!-- ✅ 5. 실제 레이아웃 -->
+    <!-- 레이아웃 -->
     <Grid Background="#0A1B2A">
-        <StackPanel>
-            <Button x:Name="CollapseButton"
-                    Content="{Binding IsCollapsed, Converter={StaticResource BooleanToTextConverter}, ConverterParameter='접기|펼치기'}"
-                    Background="#009E4F"
-                    Foreground="White"
-                    FontWeight="Bold"
-                    Padding="8,4"
-                    HorizontalAlignment="Right"
-                    Click="CollapseButton_Click"/>
+        <ScrollViewer VerticalScrollBarVisibility="Disabled"
+                      HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="MissileItemsControl"
+                          ItemsSource="{Binding Missiles}"
+                          ItemTemplateSelector="{StaticResource MissileTemplateSelector}"
+                          HorizontalContentAlignment="Stretch">
+                <!-- 셀 폭을 꽉 채우게 -->
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!-- ✅ 4열 고정 -->
+                        <UniformGrid Columns="4"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl x:Name="MissileItemsControl"
-                              ItemsSource="{Binding Missiles}"
-                              ItemTemplateSelector="{StaticResource MissileTemplateSelector}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" IsItemsHost="True"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                </ItemsControl>
-            </ScrollViewer>
-        </StackPanel>
+                <!-- 각 셀 여백/정렬 -->
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Margin" Value="6"/>
+                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+            </ItemsControl>
+        </ScrollViewer>
     </Grid>
 </UserControl>
