@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Input;
 
 namespace C2.ViewModels
 {
@@ -23,7 +24,6 @@ namespace C2.ViewModels
         // ✅ 여러 미사일 선택 가능하도록 리스트화
         private readonly List<Missile> _selectedMissiles = new();
         public IReadOnlyList<Missile> SelectedMissiles => _selectedMissiles;
-
         public MissileViewModel()
         {
             _service = MissileService.Instance;

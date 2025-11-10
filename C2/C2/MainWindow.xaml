@@ -8,7 +8,7 @@
         xmlns:vm="clr-namespace:C2.ViewModels"
         mc:Ignorable="d"
         Title="C2 Command Center"
-        Height="700" Width="1200">
+        Height="1080" Width="1920">
 
     <Window.DataContext>
         <vm:MainViewModel/>
@@ -16,24 +16,43 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:BoolToTextConverter x:Key="BoolToTextConverter"/>
+        <views:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
+
     </Window.Resources>
 
     <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="8*"/>
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
 
         <!-- 왼쪽: 지도 + 유도탄 -->
         <Grid x:Name="LeftGrid" Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="5*"/>
-                <RowDefinition Height="2*"/>
+                <RowDefinition Height="7.5*"/>
+                <RowDefinition Height="2.5*"/>
             </Grid.RowDefinitions>
 
             <!-- 지도 -->
             <views:MapPanel x:Name="MapPanelRef" Grid.Row="0" Background="LightBlue"/>
-
+            <StackPanel Orientation="Vertical"
+            Grid.Row="0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Bottom"
+            Margin="0">
+                <!--접기/펼치기-->
+                <Button
+    Content="{Binding ElementName=MissilePanelRef, Path=DataContext.IsCollapsed,
+                     Converter={StaticResource BooleanToTextConverter},
+                     ConverterParameter='접기|펼치기'}"
+    Click="GlobalCollapseButton_Click"
+    VerticalAlignment="Top"
+    Margin="0,16,16,0"
+    Panel.ZIndex="99"
+    Width="50" Height="30"
+    Background="#303030" Foreground="White" FontWeight="Bold"
+    Opacity="0.9"/>
+            </StackPanel>
             <!-- 오른쪽 아래: 발사 UI -->
             <StackPanel Orientation="Vertical"
                         Grid.Row="0"
@@ -87,12 +106,12 @@
         <!-- 오른쪽: 표적 + 로그 -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="5*"/>
-                <RowDefinition Height="2*"/>
+                <RowDefinition Height="7.5*"/>
+                <RowDefinition Height="2.5*"/>
             </Grid.RowDefinitions>
 
             <!-- 표적 패널 -->
-            <views:TargetPanel Grid.Row="0" Background="LightCoral"/>
+            <views:TargetPanel Grid.Row="0" Background="#0A1B2A"/>
 
             <!-- 로그 패널 -->
             <views:LogPanel Grid.Row="1" Background="LightGray"/>
