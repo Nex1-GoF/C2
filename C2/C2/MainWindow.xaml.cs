@@ -34,7 +34,10 @@ namespace C2
             MissilePanelRef.CollapseToggled += OnMissileCollapseChanged;
             _vm = new MainViewModel();
             DataContext = _vm;
+
             _socketManager = new SocketManager();
+            _socketManager.Initialize();
+
             _targetReceiver = new TargetReceiver(_socketManager);
             _missileReceiver = new MissileReceiver(_socketManager);
         }

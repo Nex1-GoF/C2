@@ -1,11 +1,12 @@
 ﻿using C2.Models;
 using C2.Network;
 using C2.Services;
+using System;
 
 public class MissileReceiver
 {
     private readonly MissileService _service;
-    private readonly SocketManager _socketManager;   // 주입받을 송신 소켓 관리자
+    private readonly SocketManager _socketManager;   // 그대로 SocketManager 참조
     private readonly string _unrealIp;
     private readonly int _unrealPort;
 
@@ -15,9 +16,11 @@ public class MissileReceiver
         _socketManager = socketManager;
         _unrealIp = unrealIp;
         _unrealPort = unrealPort;
+
+        _socketManager.MissileReceived += HandlePacket;
     }
 
-    public void HandlePacket(MslInfoPacket mslInfo)
+    private void HandlePacket(MslInfoPacket mslInfo)
     {
         var missile = ToMissile(mslInfo);
         _service.ReceiveMissileData(missile);
