@@ -4,6 +4,7 @@ using C2.Services;
 using C2.ViewModels;
 using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -35,11 +36,21 @@ namespace C2
             _vm = new MainViewModel();
             DataContext = _vm;
 
+            NativeMethods.AllocConsole();
+
             _socketManager = new SocketManager();
             _socketManager.Initialize();
 
             _targetReceiver = new TargetReceiver(_socketManager);
             _missileReceiver = new MissileReceiver(_socketManager);
+        }
+
+        // 로그 확인용 - 콘솔 창 열기
+        static class NativeMethods
+        {
+            [DllImport("kernel32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool AllocConsole();
         }
 
         protected override void OnClosed(EventArgs e)
