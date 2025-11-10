@@ -1,112 +1,68 @@
 ﻿using C2.Models;
 using C2.Services;
 using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace C2.Network
 {
     public class TargetReceiver
     {
         private readonly TargetService _service;
-        private readonly UdpClient _udp;
-        private bool _running = true;
-        private readonly int _listenPort;
+        private readonly SocketManager _socketManager;
 
-
-        public TargetReceiver(int port = 50000)
+        public TargetReceiver(SocketManager socketManager)
         {
-            _listenPort = port;
             _service = TargetService.Instance;
-            _udp = new UdpClient(_listenPort);
+            _socketManager = socketManager;
         }
 
-        public void Start()
+        public void HandlePacket(TgtInfoPacket tgtInfo)
         {
-            _running = true;
-            Console.WriteLine($"[TargetReceiver] Listening (event-based) on port {_listenPort}");
-            BeginReceiveLoop();
+            var target = ToTarget(tgtInfo);
+            _service.ReceiveTargetData(target);
+            SendToRadar(tgtInfo);
         }
 
-        public void Stop()
+        private void SendToRadar(TgtInfoPacket tgtInfo)
         {
-            _running = false;
-            _udp.Close();
-        }
-
-        /// <summary>
-        /// 비동기 수신 루프 시작
-        /// </summary>
-        private async void BeginReceiveLoop()
-        {
-            while (_running)
+            try
             {
-                try
-                {
-                    // 데이터가 수신될 때까지 비동기 대기 (polling 아님)
-                    UdpReceiveResult result = await _udp.ReceiveAsync();
-
-                    if (!_running)
-                        break;
-
-                    byte[] data = result.Buffer;
-
-                    // 변환 함수 호출
-                    Target ReceiveTarget = Parse(data);
-                    if (ReceiveTarget != null)
-                    {
-                        _service.ReceiveTargetData(ReceiveTarget);
-                        SendToRadar(ReceiveTarget);
-                    }
-                }
-                catch (ObjectDisposedException)
-                {
-                    // 소켓이 닫힐 때 발생하는 정상 종료 예외
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[TargetReceiver] Error: {ex.Message}");
-                    await Task.Delay(50);
-                }
+                _socketManager.Send(tgtInfo.Serialize(), "127.0.0.1", 8003);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RadarSend] Error: {ex.Message}");
             }
         }
 
-        /// <summary>
-        /// 표적 정보를 레이더로 재전송 (선택)
-        /// </summary>
-        private void SendToRadar(Target target)
+        public static Target ToTarget(TgtInfoPacket packet)
         {
-            /*
-                작성해주세요
+            int speed = (int)Math.Sqrt(packet.Vx * packet.Vx +
+                                       packet.Vy * packet.Vy +
+                                       packet.Vz * packet.Vz);
 
+            int altitude = packet.Z;
+            int yaw = (int)(Math.Atan2(packet.Y, packet.X) * 180.0 / Math.PI);
+            var curLoc = (Lat: packet.X / 1e7, Lon: packet.Y / 1e7);
+            var detectTime = DateTimeOffset.FromUnixTimeMilliseconds(packet.Timestamp).DateTime;
 
-            */
-            //참고용
-            //try
-            //{
-            //    using var radarClient = new UdpClient();
-            //    string msg = $"ID={target.Id}, Lat={target.CurLoc.Lat:F5}, Lon={target.CurLoc.Lon:F5}, Alt={target.Altitude}";
-            //    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(msg);
-            //    radarClient.Send(bytes, bytes.Length, "127.0.0.1", 51000);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine($"[RadarSend] {ex.Message}");
-            //}
-        }
+            var target = new Target(
+                id: packet.Id[0],
+                speed: speed,
+                altitude: altitude,
+                yaw: yaw,
+                endLoc: curLoc,
+                detectTime: detectTime,
+                curLoc: curLoc
+            );
 
-        private Target Parse(byte[] data)
-        {
-            Target target = null;
-            /*
-                작성해주세요
+            target.State = packet.Type switch
+            {
+                'G' => TargetState.Guidance,
+                'T' => TargetState.Terminate,
+                _ => TargetState.Unknown
+            };
 
-
-            */
             return target;
         }
-
     }
 }
