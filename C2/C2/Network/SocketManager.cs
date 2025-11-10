@@ -10,7 +10,7 @@ public class SocketManager
 
     // 이벤트 정의
     public event Action<MslInfoPacket>? MissileReceived;
-    public event Action<TgtInfoPacket>? TargetReceived;
+    public event Action<TgtInfoInputPacket>? TargetReceived;
 
     public void Initialize()
     {
@@ -59,7 +59,7 @@ public class SocketManager
                     break;
 
                 case 7003:
-                    var tgtInfo = new TgtInfoPacket();
+                    var tgtInfo = new TgtInfoInputPacket();
                     tgtInfo.Deserialize(data);
                     TargetReceived?.Invoke(tgtInfo);
                     break;
