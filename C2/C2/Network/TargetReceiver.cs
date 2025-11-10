@@ -18,6 +18,7 @@ public class TargetReceiver
 
     private void HandlePacket(TgtInfoPacket tgtInfo)
     {
+        Console.WriteLine("tgtInfo 수신 완료.");
         var target = ToTarget(tgtInfo);
         _service.ReceiveTargetData(target);
         SendToRadar(tgtInfo);
