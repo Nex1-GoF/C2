@@ -17,6 +17,7 @@ namespace C2.Network
 
         private readonly LogService _logService = LogService.Instance;
         private readonly MissileService _missileService = MissileService.Instance;
+        private readonly TargetService _targetService = TargetService.Instance;
 
         private IGuidanceState? _currentState;
         private CancellationTokenSource? _cts;
@@ -28,10 +29,12 @@ namespace C2.Network
         {
             { typeof(PowerOnState), 17 },
             { typeof(BitCheckState), 33 },
+            { typeof(AlignState), 41 },
             { typeof(KeyState), 50 },
             { typeof(IgnitionState), 67 },
             { typeof(PipCalculationState), 83 },
             { typeof(LaunchState), 100 },
+            { typeof(InitialGuidanceState), 100 },
         };
 
         public async Task StartAsync()
@@ -261,14 +264,42 @@ namespace C2.Network
             {
                 await base.EnterAsync(token);
 
-                // --------------------------------------------------------------------------------------
-                        // 초기 PIP 계산: 어떤 방법으로 구현하기로 했는지 알려줘야 할듯
-                // --------------------------------------------------------------------------------------
-                        //TODO: NetworkMessages에서 Msg_II0011 클래스 이용
+                // ✅ 시뮬레이션용: 네트워크 송신 없음
+                var missile = _manager._missileService.GetAllMissiles().FirstOrDefault(m=>m.State==MissileState.Launching);
+                if (missile == null)
+                {
+                    return;
+                }
 
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
+                var targetId = missile.TargetId;
+                var target = _manager._targetService.GetTarget(targetId[0]);
+                if (target == null)
+                {
+                    return;
+                }
+
+                // 미사일 / 표적 좌표
+                double mLat = missile.Latitude;
+                double mLon = missile.Longitude;
+                double tLat = target.CurLoc.Lat;
+                double tLon = target.CurLoc.Lon;
+
+                // 중간 지점 계산
+                double pipLat = (mLat + tLat) / 2.0;
+                double pipLon = (mLon + tLon) / 2.0;
+
+                // 미사일 객체에 저장 (간단히)
+                missile.PIP = new PIP(pipLat, pipLon, 0);
+
+                _manager._logService.AddLog(
+                    MessageType.System,
+                    $"PIP 계산 완료: ({pipLat:F6}, {pipLon:F6}) 추가됨"
+                );
+
+                await Task.Delay(500, token); // 시뮬레이션용 딜레이
             }
         }
+
 
         private class LaunchState : BaseGuidanceState
         {
