@@ -4,29 +4,47 @@
              xmlns:vm="clr-namespace:C2.ViewModels"
              xmlns:models="clr-namespace:C2.Models">
 
+    <!-- ✅ ViewModel 바인딩 -->
     <UserControl.DataContext>
         <vm:LogViewModel/>
     </UserControl.DataContext>
 
     <Border Background="#132235" Padding="10" CornerRadius="6">
-        <!-- ✅ ScrollViewer에 반드시 x:Name 추가 -->
+        <!-- ✅ ScrollViewer는 스크롤 이벤트를 위해 x:Name 유지 -->
         <ScrollViewer x:Name="LogScroll"
                       VerticalScrollBarVisibility="Auto"
                       ScrollChanged="ScrollViewer_ScrollChanged">
 
+            <!-- 로그 목록 -->
             <ItemsControl ItemsSource="{Binding DisplayLogs}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:Log}">
-                        <StackPanel Orientation="Horizontal" Margin="2">
-                            <TextBlock Text="{Binding DateTime, StringFormat='[HH:mm:ss] '}"
+
+                        <!-- ✅ StackPanel → Grid로 변경 (줄바꿈 지원) -->
+                        <Grid Margin="2,2,2,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 타임스탬프 -->
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding DateTime, StringFormat='[HH:mm:ss] '}"
                                        Foreground="LightGray"
-                                       FontSize="13"/>
-                            <TextBlock Text="{Binding Message}"
+                                       FontSize="13"
+                                       VerticalAlignment="Top"
+                                       Margin="0,0,4,0"/>
+
+                            <!-- 로그 메시지 -->
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding Message}"
                                        Foreground="{Binding Foreground}"
                                        FontSize="13"
                                        TextWrapping="Wrap"
-                                       Margin="4,0,0,0"/>
-                        </StackPanel>
+                                       TextTrimming="None"
+                                       Margin="0,0,0,0"/>
+                        </Grid>
+
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
