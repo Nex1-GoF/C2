@@ -256,37 +256,34 @@ namespace C2.Network
         }
     }
 
-
     // TgtInfoOutPutPacket
     public class TgtInfoOutputPacket : BasePacket
     {
-        public string Id { get; set; }        // 4 bytes 문자열
-        public char Type { get; set; }        // 1 byte
+        public const int TGT_INFO_OUTPUT_PACKET_SIZE = 24;
+
         public int X { get; set; }            // int32_t (4 bytes)
         public int Y { get; set; }            // int32_t (4 bytes)
-        public int Z { get; set; }            // int32_t (4 bytes)
-        public short Vx { get; set; }         // int16_t (2 bytes)
-        public short Vy { get; set; }         // int16_t (2 bytes)
+        public short Z { get; set; }            // int32_t (4 bytes)
+        public int Vx { get; set; }         // int16_t (2 bytes)
+        public int Vy { get; set; }         // int16_t (2 bytes)
         public short Vz { get; set; }         // int16_t (2 bytes)
-        public uint Timestamp { get; set; }   // uint32_t (4 bytes)
+        public uint DetectedMslTime { get; set; }   // uint32_t (4 bytes)
 
         public TgtInfoOutputPacket() { }
 
-        public TgtInfoOutputPacket(HeaderPacket header, string id,
-                             int x, int y, int z,
-                             short vx, short vy, short vz,
-                             char type, uint timestamp)
+        public TgtInfoOutputPacket(HeaderPacket header,
+                                   int x, int y, short z,
+                                   int vx, int vy, short vz,
+                                   uint detectedMslTime)
         {
             Header = header;
-            Id = id.Length == 4 ? id : id.PadRight(4).Substring(0, 4);
             X = x;
             Y = y;
             Z = z;
             Vx = vx;
             Vy = vy;
             Vz = vz;
-            Type = type;
-            Timestamp = timestamp;
+            DetectedMslTime = detectedMslTime;
         }
 
         public override byte[] Serialize()
@@ -294,15 +291,13 @@ namespace C2.Network
             var buffer = new List<byte>(Header.Serialize());
 
             var body = new List<byte>();
-            body.AddRange(Encoding.ASCII.GetBytes(Id.Substring(0, 4)));
-            body.Add((byte)Type);
             body.AddRange(BitConverter.GetBytes(X));
             body.AddRange(BitConverter.GetBytes(Y));
             body.AddRange(BitConverter.GetBytes(Z));
             body.AddRange(BitConverter.GetBytes(Vx));
             body.AddRange(BitConverter.GetBytes(Vy));
             body.AddRange(BitConverter.GetBytes(Vz));
-            body.AddRange(BitConverter.GetBytes(Timestamp));
+            body.AddRange(BitConverter.GetBytes(DetectedMslTime));
 
             buffer.AddRange(body);
             return buffer.ToArray();
@@ -310,32 +305,31 @@ namespace C2.Network
 
         public override void Deserialize(byte[] buffer)
         {
-            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + 27)
-                throw new ArgumentException("Buffer too small for TgtInfoPacket");
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + TGT_INFO_OUTPUT_PACKET_SIZE)
+                throw new ArgumentException("Buffer too small for TgtInfoOutputPacket");
 
             var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
             Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
             Header = HeaderPacket.Deserialize(hdrBuffer);
 
-            Id = Encoding.ASCII.GetString(buffer, HeaderPacket.HEADER_PACKET_SIZE, 4);
-            Type = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 4];
-            X = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 5);
-            Y = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 9);
-            Z = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 13);
-            Vx = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 17);
-            Vy = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 19);
-            Vz = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 21);
-            Timestamp = BitConverter.ToUInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 23);
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+            X = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Y = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Z = BitConverter.ToInt16(buffer, offset); offset += 2;
+            Vx = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vy = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vz = BitConverter.ToInt16(buffer, offset); offset += 2;
+            DetectedMslTime = BitConverter.ToUInt32(buffer, offset); offset += 4;
         }
 
         public override string ToString()
         {
             return $"[TgtInfoOutputPacket]\n{Header}\n" +
-                   $"Detection(id={Id}, type={Type}, " +
-                   $"x={X}, y={Y}, z={Z}, " +
-                   $"vx={Vx}, vy={Vy}, vz={Vz}, " +
-                   $"timestamp={Timestamp} ms)";
+                   $"Position(x={X}, y={Y}, z={Z}, " +
+                   $"velocity(vx={Vx}, vy={Vy}, vz={Vz}), " +
+                   $"DetectedMslTime={DetectedMslTime} ms)";
         }
     }
+
 
 }
