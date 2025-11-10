@@ -16,15 +16,15 @@ public class TargetReceiver
         _socketManager.TargetReceived += HandlePacket;
     }
 
-    private void HandlePacket(TgtInfoPacket tgtInfo)
+    private void HandlePacket(TgtInfoInputPacket tgtInfo)
     {
-        Console.WriteLine("tgtInfo 수신 완료.");
+        Console.WriteLine(tgtInfo.ToString());
         var target = ToTarget(tgtInfo);
         _service.ReceiveTargetData(target);
         SendToRadar(tgtInfo);
     }
 
-    private void SendToRadar(TgtInfoPacket tgtInfo)
+    private void SendToRadar(TgtInfoInputPacket tgtInfo)
     {
         try
         {
@@ -36,19 +36,17 @@ public class TargetReceiver
         }
     }
 
-    public static Target ToTarget(TgtInfoPacket packet)
+    public static Target ToTarget(TgtInfoInputPacket packet)
     {
-        int speed = (int)Math.Sqrt(packet.Vx * packet.Vx +
-                                   packet.Vy * packet.Vy +
-                                   packet.Vz * packet.Vz);
+        int speed = packet.Speed;
 
-        int altitude = packet.Z;
-        int yaw = (int)(Math.Atan2(packet.Y, packet.X) * 180.0 / Math.PI);
-        var curLoc = (Lat: packet.X / 1e7, Lon: packet.Y / 1e7);
-        var detectTime = DateTimeOffset.FromUnixTimeMilliseconds(packet.Timestamp).DateTime;
+        int altitude = packet.Altitude;
+        int yaw = packet.Yaw;
+        var curLoc = (Lat: packet.Latitude / 1e7, Lon: packet.Longtitude/ 1e7);
+        var detectTime = DateTimeOffset.FromUnixTimeMilliseconds((long)packet.DetectedTime).DateTime;
 
         var target = new Target(
-            id: packet.Id[0],
+            id: packet.DetectedId,
             speed: speed,
             altitude: altitude,
             yaw: yaw,
@@ -56,13 +54,6 @@ public class TargetReceiver
             detectTime: detectTime,
             curLoc: curLoc
         );
-
-        target.State = packet.Type switch
-        {
-            'G' => TargetState.Guidance,
-            'T' => TargetState.Terminate,
-            _ => TargetState.Unknown
-        };
 
         return target;
     }
