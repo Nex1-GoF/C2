@@ -1,10 +1,14 @@
 ﻿using C2.Models;
 using C2.Network;
 using C2.Services;
+using GMap.NET;
+using System.Windows.Controls;
 
 public class TargetReceiver
 {
-    private readonly TargetService _service;
+    private readonly TargetService _targetService;
+    private readonly MissileService _missileService;
+
     private readonly SocketManager _socketManager;
 
     private const double ReferenceLat = 37.5665; // 기준 위도
@@ -12,7 +16,8 @@ public class TargetReceiver
 
     public TargetReceiver(SocketManager socketManager)
     {
-        _service = TargetService.Instance;
+        _targetService = TargetService.Instance;
+        _missileService = MissileService.Instance;
         _socketManager = socketManager;
 
         // 이벤트 구독
@@ -24,9 +29,16 @@ public class TargetReceiver
         Console.WriteLine(tgtInfo.ToString());
 
         var target = ToTarget(tgtInfo);
-        _service.ReceiveTargetData(target);
+        _targetService.ReceiveTargetData(target);
 
-        var tgtInfoOutput = ToTgtInfoOutput(tgtInfo);
+        var missile = _missileService.GetAllMissiles().FirstOrDefault(m => m.TargetId != null && m.TargetId.Equals(target.Id.ToString()));
+        if(missile == null)
+        {
+            //TODO: 예외처리
+            return;
+        }
+        var mslId = $"M{int.Parse(missile.Id):000}";
+        var tgtInfoOutput = ToTgtInfoOutput(tgtInfo, mslId);
         Console.WriteLine(tgtInfoOutput.ToString());
         SendToRadar(tgtInfoOutput);
     }
@@ -35,7 +47,7 @@ public class TargetReceiver
     {
         try
         {
-            _socketManager.Send(tgtInfo.Serialize(), "127.0.0.1", 8003);
+            _socketManager.Send(tgtInfo.Serialize(), "192.168.206.129", 8003);
         }
         catch (Exception ex)
         {
@@ -65,22 +77,24 @@ public class TargetReceiver
         return target;
     }
 
-    private TgtInfoOutputPacket ToTgtInfoOutput(TgtInfoInputPacket tgtInfoInput) 
+    private TgtInfoOutputPacket ToTgtInfoOutput(TgtInfoInputPacket tgtInfoInput, String mslId)
     {
-        var(x, y) = LatLonToXY(tgtInfoInput.Latitude / 1e7, tgtInfoInput.Longtitude / 1e7, ReferenceLat, ReferenceLon);
+        var (x, y) = LatLonToXY(tgtInfoInput.Latitude / 1e7, tgtInfoInput.Longtitude / 1e7, ReferenceLat, ReferenceLon);
 
         double headingRad = (tgtInfoInput.Yaw / 100.0) * Math.PI / 180.0;
         double vx = Math.Sin(headingRad) * tgtInfoInput.Speed;   // 동
         double vy = Math.Cos(headingRad) * tgtInfoInput.Speed;   // 북
 
+        // Updated to use the constructor with required parameters
+        HeaderPacket headerPacket = new("C001", mslId, tgtInfoInput.Header.Seq, tgtInfoInput.Header.MsgSize);
 
-        TgtInfoOutputPacket tgtInfoOutput = new TgtInfoOutputPacket
+        TgtInfoOutputPacket tgtInfoOutput = new()
         {
-            Header = tgtInfoInput.Header,
+            Header = headerPacket,
             X = (int)(x * 1e3),
             Y = (int)(y * 1e3),
             Z = tgtInfoInput.Altitude,
-            Vx = (int)(vx * 1e3), 
+            Vx = (int)(vx * 1e3),
             Vy = (int)(vy * 1e3),
             Vz = 0,
             DetectedMslTime = (uint)(tgtInfoInput.DetectedTime - 1000)

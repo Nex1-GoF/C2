@@ -22,6 +22,7 @@ public class MissileReceiver
 
     private void HandlePacket(MslInfoPacket mslInfo)
     {
+        Console.WriteLine(mslInfo.ToString());
         var missile = ToMissile(mslInfo);
         _service.ReceiveMissileData(missile);
         SendToUnreal(missile);

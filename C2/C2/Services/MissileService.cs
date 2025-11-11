@@ -31,7 +31,7 @@ namespace C2.Services
             for (int i = -2; i <= 1; i++)
             {
                 var missile = new Missile(
-                    id: $"MSL-{i+3:00}",
+                    id: $"{i+3}",
                     latitudeRaw: C2Points.latitude + (i*10000000),
                     longitudeRaw: C2Points.longitude,
                     altitude: C2Points.altitude
@@ -70,6 +70,9 @@ namespace C2.Services
 
 
                 _missiles[missile.Id].TargetId = targetId;
+
+
+
                 return missile.Id;
             
             }
