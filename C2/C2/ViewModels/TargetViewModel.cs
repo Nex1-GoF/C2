@@ -34,19 +34,19 @@ namespace C2.ViewModels
             _updateDispatcher = UpdateDispatcher.Instance;
 
             // ✅ 테스트용 더미 표적 생성
-            for (int i = 1; i <= 4; i++)
-            {
-                var target = new Target(
-                    (char)('A' + i - 1),
-                    100,
-                    200,
-                    0,
-                    (37, 125 + i),
-                    DateTime.Now,
-                    (38, 125 + i)
-                );
-                _targetService.ReceiveTargetData(target);
-            }
+            //for (int i = 1; i <= 4; i++)
+            //{
+            //    var target = new Target(
+            //        (char)('A' + i - 1),
+            //        100,
+            //        200,
+            //        0,
+            //        (37, 125 + i),
+            //        DateTime.Now,
+            //        (38, 125 + i)
+            //    );
+            //    _targetService.ReceiveTargetData(target);
+            //}
 
             _updateDispatcher.Register(UpdateTargets);
 

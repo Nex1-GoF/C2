@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 
@@ -53,6 +54,7 @@ namespace C2.ViewModels
             var mslId = $"M{int.Parse(missile.Id):000}";
             _abortManager.AbortMissile(mslId);
 
+            Debug.WriteLine("hi");
             // TODO: 폭파 로직 추가
             // TODO: DatalinkService의 비상폭파 로직 실행
         }

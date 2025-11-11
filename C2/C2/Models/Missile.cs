@@ -83,6 +83,7 @@ namespace C2.Models
         public double Pitch => PitchRaw / 100.0;
         public List<(double Lat, double Lon)> PathHistory { get; } = new();
         public PIP? PIP { get; set; }
+        public ulong flightTime;
         public Missile(
             string id,
             int latitudeRaw,
@@ -104,6 +105,7 @@ namespace C2.Models
             State = state;
             TargetId = targetId;
             Speed = 0;
+            flightTime = 0;
         }
 
         public Missile() { }

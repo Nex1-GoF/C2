@@ -2,6 +2,7 @@
 using C2.Network;
 using C2.Services;
 using GMap.NET;
+using System.Diagnostics;
 using System.Windows.Controls;
 
 public class TargetReceiver
@@ -80,13 +81,14 @@ public class TargetReceiver
     private TgtInfoOutputPacket ToTgtInfoOutput(TgtInfoInputPacket tgtInfoInput, String mslId)
     {
         var (x, y) = LatLonToXY(tgtInfoInput.Latitude / 1e7, tgtInfoInput.Longtitude / 1e7, ReferenceLat, ReferenceLon);
-
+        Debug.WriteLine("x: " + x + ", y: " + y);
         double headingRad = (tgtInfoInput.Yaw / 100.0) * Math.PI / 180.0;
         double vx = Math.Sin(headingRad) * tgtInfoInput.Speed;   // 동
         double vy = Math.Cos(headingRad) * tgtInfoInput.Speed;   // 북
 
         // Updated to use the constructor with required parameters
         HeaderPacket headerPacket = new("C001", mslId, tgtInfoInput.Header.Seq, tgtInfoInput.Header.MsgSize);
+        var missile = _missileService.GetMissile(mslId.Substring(3));
 
         TgtInfoOutputPacket tgtInfoOutput = new()
         {
@@ -97,7 +99,7 @@ public class TargetReceiver
             Vx = (int)(vx * 1e3),
             Vy = (int)(vy * 1e3),
             Vz = 0,
-            DetectedMslTime = (uint)(tgtInfoInput.DetectedTime - 1000)
+            DetectedMslTime = (uint)(tgtInfoInput.DetectedTime - missile.flightTime)
         };
 
         return tgtInfoOutput;
