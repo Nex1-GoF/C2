@@ -156,13 +156,17 @@ namespace C2.Network
                     string senderId = "C001";
                     string receiverId = $"M{int.Parse(missile.Id):000}";
                     var header = new HeaderPacket(senderId, receiverId, (uint)seq, (byte)0);
-                    var abortMsg = new UnifiedMessage(header);
+
+                    BasePacket abortMsg = seq == 4
+                        ? new KeyExchangeMessage(header)
+                        : new InitialGuidanceMessage(header);
+
                     byte[] packet = abortMsg.Serialize();
 
                     var linkConfig = new LauncherLinkConfig();
                     if (linkConfig.TryGetLink(missile, out var link))
                     {
-                        using var client = new UdpClient(link.txPort);
+                        using var client = new UdpClient(link.rxPort);
                         var ep = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
                         client.Send(packet, packet.Length, ep);
                     }
@@ -213,7 +217,7 @@ namespace C2.Network
             private readonly LauncherLinkConfig _linkConfig = new LauncherLinkConfig();
 
             public abstract string Name { get; }
-            public abstract IGuidanceState? NextState { get; }
+            public virtual IGuidanceState? NextState { get; set; }
 
             protected BaseGuidanceState(InitialGuidanceManager manager, Missile missile)
             {
@@ -240,28 +244,46 @@ namespace C2.Network
                     string senderId = "C001";
                     string receiverId = $"M{int.Parse(missile.Id):000}";
                     var header = new HeaderPacket(senderId, receiverId, (uint)seq, (byte)msgSize);
-                    var message = new UnifiedMessage(header);
 
-                    if (seq == 4 && body != null)
-                        message.SetEncryptionKey(body);
-                    else if (seq == 6 && body != null)
-                        message.SetPIP(BitConverter.ToInt32(body, 0),
-                                       BitConverter.ToInt32(body, 4),
-                                       BitConverter.ToInt32(body, 8));
+                    BasePacket message = seq switch
+                    {
+                        4 => new KeyExchangeMessage(header),
+                        6 => new InitialPipMessage(header),
+                        _ => new InitialGuidanceMessage(header)
+                    };
 
+                    if (message is KeyExchangeMessage keyMsg && body  != null)
+                    {
+                        keyMsg.SetEncryptionKey(body);
+                    }
+                    else if (message is InitialPipMessage pipMsg && body != null)
+                    {
+                        pipMsg.SetPIP(
+                            BitConverter.ToInt32(body, 0),
+                            BitConverter.ToInt32(body, 4),
+                            BitConverter.ToInt32(body, 8)
+                        );
+                    }
+
+                    using var client = new UdpClient(link.rxPort);
                     var packet = message.Serialize();
-                    using var client = new UdpClient(link.txPort);
-                    client.Client.ReceiveTimeout = 3000;
+                    client.Client.ReceiveTimeout = 10000;
 
-                    var sendEp = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
-                    var recvEp = new IPEndPoint(IPAddress.Any, link.rxPort);
+                    var sendEp = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort); 
+                    var recvEp = new IPEndPoint(IPAddress.Parse(link.rxIp), link.rxPort);
 
                     _manager._logService.AddLog(MessageType.System,
                         $"[II-{seq:D4}] 송신 시작 ({missile.Id}) → {link.txIp}:{link.txPort}");
                     client.Send(packet, packet.Length, sendEp);
 
                     var recvBytes = client.Receive(ref recvEp);
-                    var response = ResponseMessage.Deserialize(recvBytes);
+                    var response = ResponseMessage.FromBytes(recvBytes); 
+                    if (response.Header.Seq == seq)
+                    {
+                        _manager._logService.AddLog(MessageType.System,
+                            $"[II-{seq:D4}] 응답 수신 ← {recvEp.Address}:{recvEp.Port}");
+                        return true;
+                    }
 
                     if (response.Header.Seq == seq)
                     {
@@ -293,18 +315,21 @@ namespace C2.Network
         private class PowerOnState : BaseGuidanceState
         {
             public override string Name => "전원 점검";
-            public override IGuidanceState NextState => new BitCheckState(_manager, _launchingMissile);
+            //public override IGuidanceState NextState => new BitCheckState(_manager, _launchingMissile);
+            public override IGuidanceState? NextState { get; set; }
 
-            public PowerOnState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            public PowerOnState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new BitCheckState(_manager, _launchingMissile); }
 
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
+                _manager._missileService.UpdateMissileState(MissileState.LaunchReady, MissileState.Launching);
 
                 bool ok = SendAndWaitForAck(_launchingMissile, seq: 1);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 1);
+                    NextState = null;
                     return;
                 }
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
@@ -316,8 +341,8 @@ namespace C2.Network
         private class BitCheckState : BaseGuidanceState
         {
             public override string Name => "BIT 검사";
-            public override IGuidanceState NextState => new AlignState(_manager, _launchingMissile);
-            public BitCheckState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            public override IGuidanceState? NextState { get; set; }
+            public BitCheckState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new AlignState(_manager, _launchingMissile); }
 
             public override async Task EnterAsync(CancellationToken token)
             {
@@ -327,6 +352,7 @@ namespace C2.Network
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 2);
+                    NextState = null;
                     return;
                 }
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
@@ -336,8 +362,8 @@ namespace C2.Network
         private class AlignState : BaseGuidanceState
         {
             public override string Name => "항법 정렬";
-            public override IGuidanceState NextState => new KeyState(_manager, _launchingMissile);
-            public AlignState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            public override IGuidanceState? NextState { get; set; }
+            public AlignState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new KeyState(_manager, _launchingMissile); }
 
             public override async Task EnterAsync(CancellationToken token)
             {
@@ -346,6 +372,7 @@ namespace C2.Network
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 3);
+                    NextState = null;
                     return;
                 }
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
@@ -354,8 +381,8 @@ namespace C2.Network
         private class KeyState : BaseGuidanceState
         {
             public override string Name => "KEY 전송";
-            public override IGuidanceState NextState => new IgnitionState(_manager, _launchingMissile);
-            public KeyState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            public override IGuidanceState? NextState { get; set; }
+            public KeyState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new IgnitionState(_manager, _launchingMissile); }
             private byte[] GenerateSessionKey()
             {
                 var key = new byte[32];
@@ -371,6 +398,7 @@ namespace C2.Network
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 4);
+                    NextState = null;
                     return;
                 }
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
@@ -381,8 +409,8 @@ namespace C2.Network
         private class IgnitionState : BaseGuidanceState
         {
             public override string Name => "점화 준비";
-            public override IGuidanceState NextState => new PipCalculationState(_manager, _launchingMissile);
-            public IgnitionState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            public override IGuidanceState? NextState { get; set; }
+            public IgnitionState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new PipCalculationState(_manager, _launchingMissile); }
 
             public override async Task EnterAsync(CancellationToken token)
             {
@@ -391,6 +419,7 @@ namespace C2.Network
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 5);
+                    NextState = null;
                     return;
                 }
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
@@ -400,8 +429,73 @@ namespace C2.Network
         private class PipCalculationState : BaseGuidanceState
         {
             public override string Name => "PIP 계산";
-            public override IGuidanceState NextState => new LaunchState(_manager, _launchingMissile);
-            public PipCalculationState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            public override IGuidanceState? NextState { get; set; }
+            public PipCalculationState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new LaunchState(_manager, _launchingMissile); }
+
+
+            private static (double x, double y) LatLonToXY(double lat, double lon, double lat0, double lon0)
+            {
+                const double R = 6_378_137.0; // 지구 반경 (m)
+                double lat0Rad = lat0 * Math.PI / 180.0;
+                double dLat = (lat - lat0) * Math.PI / 180.0;
+                double dLon = (lon - lon0) * Math.PI / 180.0;
+
+                double x = dLon * R * Math.Cos(lat0Rad);
+                double y = dLat * R;
+                return (x, y);
+            }
+            private (double lat, double lon) XYToLatLon(double x, double y, double lat0, double lon0)
+            {
+                const double R = 6_378_137.0;
+                double lat0Rad = lat0 * Math.PI / 180.0;
+
+                double newLat = lat0 + (y / R) * (180.0 / Math.PI);
+                double newLon = lon0 + (x / (R * Math.Cos(lat0Rad))) * (180.0 / Math.PI);
+
+                return (newLat, newLon);
+            }
+            
+            public static (int pipX, int pipY) ComputePIP(
+            Target target,
+            double missileLat, double missileLon,
+            int missileSpeed,            // ✅ int 단위 (m/s)
+            double lat0, double lon0)
+            {
+                // 1️⃣ 위경도 → 평면 좌표
+                var (tx, ty) = LatLonToXY(target.CurLoc.Lat, target.CurLoc.Lon, lat0, lon0);
+                var (mx, my) = LatLonToXY(missileLat, missileLon, lat0, lon0);
+
+                // 2️⃣ Yaw (1e7으로 스케일 보정)
+                //double yawDeg = target.Yaw / 1e7;
+                double yawDeg = 175.0;
+                double theta = yawDeg * Math.PI / 180.0;
+
+                // 3️⃣ 타겟 진행 방향 단위벡터 * 속도(m/s)
+                double dx = target.Speed * Math.Sin(theta);
+                double dy = target.Speed * Math.Cos(theta);
+
+                // 4️⃣ 교차 시간 t 탐색 (선형 탐색)
+                double t = 0.0;
+                double left = 0, right = 2000; // 최대 1000초 탐색
+                for (int i = 0; i < 100; i++)
+                {
+                    t = (left + right) / 2.0;
+                    double tx_t = tx + dx * t;
+                    double ty_t = ty + dy * t;
+                    double dist = Math.Sqrt(Math.Pow(tx_t - mx, 2) + Math.Pow(ty_t - my, 2));
+
+                    if (dist > missileSpeed * t)
+                        left = t;
+                    else
+                        right = t;
+                }
+
+                // 5️⃣ 최종 PIP 계산 (1e7 스케일 적용 후 정수 변환)
+                int pipX = (int)Math.Round((tx + dx * t));
+                int pipY = (int)Math.Round((ty + dy * t));
+
+                return (pipX, pipY);
+            }
 
             private byte[] BuildPipBody(int x, int y, int z)
             {
@@ -416,9 +510,35 @@ namespace C2.Network
             {
                 await base.EnterAsync(token);
 
-                        // Todo: X Y Z 변환해서 보내야함
+                // Todo: X Y Z 변환해서 보내야함
+                char targetId = _launchingMissile.TargetId[0];
+                // 1. PIP를 구한다. (현재 표적 위 경 고도
+                var target = _manager._targetService.GetTarget(targetId);
 
-                byte[] pip = BuildPipBody(10, 10, 10);
+                if(target == null)
+                {
+                    NextState = null;
+                    return;
+                }
+
+                (int x, int y) targetXY = ComputePIP(
+                     target: target,
+                     missileLat: _launchingMissile.Latitude,
+                     missileLon: _launchingMissile.Longitude,
+                     missileSpeed: 1000,
+                     lat0: _launchingMissile.Latitude,
+                     lon0: _launchingMissile.Longitude
+
+                );
+
+                byte[] pip = BuildPipBody(targetXY.x, targetXY.y, 10);
+
+                (double lat, double lon) targetLatLon = XYToLatLon(targetXY.x, targetXY.y, _launchingMissile.Latitude, _launchingMissile.Longitude);
+
+                _launchingMissile.PIP = new PIP(targetLatLon.lat, targetLatLon.lon, 10);
+
+
+
                 bool ok = SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
                 if (!ok)
                 {
@@ -433,8 +553,8 @@ namespace C2.Network
         private class LaunchState : BaseGuidanceState
         {
             public override string Name => "발사";
-            public override IGuidanceState? NextState => new InitialGuidanceState(_manager, _launchingMissile);
-            public LaunchState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            public override IGuidanceState? NextState { get; set; }
+            public LaunchState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new InitialGuidanceState(_manager, _launchingMissile); }
 
             public override async Task EnterAsync(CancellationToken token)
             {
@@ -450,6 +570,7 @@ namespace C2.Network
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 7);
+                    NextState = null;
                     return;
                 }
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
@@ -485,10 +606,10 @@ namespace C2.Network
 
                 _configMap = new Dictionary<Missile, (string, int, string, int)>
                 {
-                    { _missileService.GetAllMissiles()[0], ("192.168.1.50", 9014, "192.168.1.100", 9015) },
-                    { _missileService.GetAllMissiles()[1], ("192.168.1.51", 9024, "192.168.1.100", 9025) },
-                    { _missileService.GetAllMissiles()[2], ("192.168.1.52", 9034, "192.168.1.100", 9035) },
-                    { _missileService.GetAllMissiles()[3], ("192.168.1.53", 9044, "192.168.1.100", 9045) }
+                    { _missileService.GetAllMissiles()[0], ("192.168.177.128", 9014, "192.168.0.15", 9015) },
+                    { _missileService.GetAllMissiles()[1], ("192.168.1.100", 9025, "192.168.1.51", 9024) },
+                    { _missileService.GetAllMissiles()[2], ("192.168.1.100", 9035, "192.168.1.52", 9034) },
+                    { _missileService.GetAllMissiles()[3], ( "192.168.1.100", 9045, "192.168.1.53", 9044) }
                 };
 
             }
