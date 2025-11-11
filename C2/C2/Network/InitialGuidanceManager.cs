@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -558,7 +559,9 @@ namespace C2.Network
 
             public override async Task EnterAsync(CancellationToken token)
             {
+                _launchingMissile.flightTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.Launching, MissileState.InitialGuidance); // 발사중 -> 초기유도로 전환
+          
                 if (missileId != null)
 
                 {
@@ -606,10 +609,10 @@ namespace C2.Network
 
                 _configMap = new Dictionary<Missile, (string, int, string, int)>
                 {
-                    { _missileService.GetAllMissiles()[0], ("192.168.177.128", 9014, "192.168.0.15", 9015) },
-                    { _missileService.GetAllMissiles()[1], ("192.168.1.100", 9025, "192.168.1.51", 9024) },
-                    { _missileService.GetAllMissiles()[2], ("192.168.1.100", 9035, "192.168.1.52", 9034) },
-                    { _missileService.GetAllMissiles()[3], ( "192.168.1.100", 9045, "192.168.1.53", 9044) }
+                    { _missileService.GetAllMissiles()[0], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
+                    { _missileService.GetAllMissiles()[1], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
+                    { _missileService.GetAllMissiles()[2], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
+                    { _missileService.GetAllMissiles()[3], ("192.168.206.129", 9016, "192.168.2.239", 7005) }
                 };
 
             }
