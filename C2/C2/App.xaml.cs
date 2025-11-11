@@ -1,4 +1,5 @@
-﻿using C2.Services;
+﻿using C2.Network;
+using C2.Services;
 using System.Configuration;
 using System.Data;
 using System.Windows;
@@ -10,7 +11,7 @@ namespace C2
     /// </summary>
     public partial class App : Application
     {
-        
+        MissileService missileService = MissileService.Instance;
     }
 
 }

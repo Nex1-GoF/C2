@@ -1,22 +1,12 @@
 ﻿using C2.Models;
 using C2.ViewModels;
-using C2.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
 namespace C2.Views
 {
     public partial class MissilePanel : UserControl
@@ -28,7 +18,14 @@ namespace C2.Views
             InitializeComponent();
         }
 
-        private void CollapseButton_Click(object sender, RoutedEventArgs e)
+        // 🔹 내부 버튼 (기존과 동일)
+        public void CollapseButton_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleCollapse();
+        }
+
+        // 🔹 외부(MainWindow)에서도 동일 동작하도록 공개 메서드로 분리
+        public void ToggleCollapse()
         {
             if (DataContext is MissileViewModel vm)
             {
@@ -41,7 +38,6 @@ namespace C2.Views
                     (MissileTemplateSelector)FindResource("MissileTemplateSelector");
             }
         }
-
     }
 
     // 템플릿 선택자
@@ -62,7 +58,7 @@ namespace C2.Views
         }
     }
 
-    // 접기/펼치기 텍스트
+    // 텍스트 변환기
     public class BooleanToTextConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -75,6 +71,7 @@ namespace C2.Views
             }
             return value?.ToString() ?? "";
         }
+
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => Binding.DoNothing;
     }
@@ -89,7 +86,7 @@ namespace C2.Views
                 return state switch
                 {
                     MissileState.LaunchReady => "대기",
-                    MissileState.Launching => "발사 중",        // ✅ 추가
+                    MissileState.Launching => "발사 중",
                     MissileState.InitialGuidance => "초기유도",
                     MissileState.MidGuidance => "중기유도",
                     MissileState.TerminalGuidance => "종말유도",
@@ -104,7 +101,6 @@ namespace C2.Views
             => Binding.DoNothing;
     }
 
-
     // 상태 → 색상
     public class StateToColorConverter : IValueConverter
     {
@@ -115,7 +111,7 @@ namespace C2.Views
                 return state switch
                 {
                     MissileState.LaunchReady => Brushes.SkyBlue,
-                    MissileState.Launching => new SolidColorBrush(Color.FromRgb(0x66, 0xCC, 0xFF)), // ✅ 발사 중 (밝은 파랑)
+                    MissileState.Launching => new SolidColorBrush(Color.FromRgb(0x66, 0xCC, 0xFF)),
                     MissileState.InitialGuidance => Brushes.Yellow,
                     MissileState.MidGuidance => Brushes.Orange,
                     MissileState.TerminalGuidance => Brushes.Red,
@@ -130,13 +126,12 @@ namespace C2.Views
             => Binding.DoNothing;
     }
 
-
     public class StateToEnabledConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is MissileState state)
-                return state == MissileState.MidGuidance; // 중기유도 상태일 때만 버튼 활성화
+                return state == MissileState.MidGuidance;
 
             return false;
         }
