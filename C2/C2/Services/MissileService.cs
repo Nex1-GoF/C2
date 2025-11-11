@@ -1,5 +1,6 @@
 ﻿using C2.Messages;
 using C2.Models;
+using C2.Network;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
@@ -24,9 +25,13 @@ namespace C2.Services
         public List<Missile> SelectedMissiles { get; private set; } = new();
 
         private readonly object _lock = new();
+
+        private readonly AbortManager _abortManager;
+
         private MissileService()
         {
             _logService = LogService.Instance;
+            _abortManager = AbortManager.Instance;
             // 초기 미사일 4기 등록
             for (int i = -2; i <= 1; i++)
             {
@@ -144,9 +149,9 @@ namespace C2.Services
                         if (!existing.IsAbort)
                         {
                             //자폭인지 판별
-                            if (!existing.IsSelfabort)//자폭이 아니면
+                            if (!string.IsNullOrEmpty(existing.TargetId))
                             {
-                                //sendto 표적 터트리기
+                                _abortManager.AbortTarget(existing.TargetId[0]);
                             }
                             //폭파처리
                             existing.IsAbort = true;
