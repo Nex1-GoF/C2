@@ -22,6 +22,18 @@ namespace C2.Messages
         public LaunchEndMessage(bool value) : base(value) { }
     }
 
+    public class EngagementAssignedMessage : ValueChangedMessage<(string MissileId, string TargetId)>
+    {
+        public EngagementAssignedMessage(string missileId, string targetId)
+            : base((missileId, targetId)) { }
+    }
+
+    public class PipCalculatedMessage : ValueChangedMessage<(string MissileId, double Lat, double Lon, short Alt)>
+    {
+        public PipCalculatedMessage(string missileId, double lat, double lon, short alt)
+            : base((missileId, lat, lon, alt)) { }
+    }
+
     public class LaunchProgressMessage
     {
         public double Progress { get; }

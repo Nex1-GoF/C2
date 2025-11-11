@@ -49,14 +49,6 @@ namespace C2.ViewModels
             //}
 
             _updateDispatcher.Register(UpdateTargets);
-
-            WeakReferenceMessenger.Default.Register<TargetSelectedMessage>(this, (r, msg) =>
-            {
-                if (msg.Value != null)
-                    _selectedTarget = Targets.FirstOrDefault(t => t.Id == msg.Value);
-                else
-                    _selectedTarget = null;
-            });
         }
 
         private void UpdateTargets()
