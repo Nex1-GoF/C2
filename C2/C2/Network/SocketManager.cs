@@ -1,4 +1,5 @@
 ﻿using C2.Network;
+using C2.Services;
 using System.Net;
 using System.Net.Sockets;
 
@@ -8,10 +9,13 @@ public class SocketManager
     private Socket targetSocket;
     private Socket txSocket;
 
+    private static SocketManager _instance;
+    public static SocketManager Instance => _instance ??= new SocketManager();
+
     // 이벤트 정의
     public event Action<MslInfoPacket>? MissileReceived;
     public event Action<TgtInfoInputPacket>? TargetReceived;
-
+    private SocketManager() { }
     public void Initialize()
     {
         missileSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);

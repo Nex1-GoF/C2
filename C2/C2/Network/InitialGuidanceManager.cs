@@ -28,6 +28,7 @@ namespace C2.Network
         {
             { typeof(PowerOnState), 17 },
             { typeof(BitCheckState), 33 },
+            { typeof(AlignState), 50 },
             { typeof(KeyState), 50 },
             { typeof(IgnitionState), 67 },
             { typeof(PipCalculationState), 83 },
@@ -205,7 +206,7 @@ namespace C2.Network
             {
                 await base.EnterAsync(token);
 
-                byte[] key = GenerateSessionKey();
+                //byte[] key = GenerateSessionKey();
 
                 // --------------------------------------------------------------------------------------
 
@@ -225,11 +226,10 @@ namespace C2.Network
             {
                 await base.EnterAsync(token);
 
-                byte[] key = GenerateSessionKey();
+                //byte[] key = GenerateSessionKey();
 
 
                         // TODO: 세션키 메세지 송신  
-                        //TODO: NetworkMessages에서 Msg_II0012 클래스 이용 (항법장치 정렬에 필요한 인자가 없고, 세션 키 전달이랑 같이 할 경우)
 
                 await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
             }

@@ -141,40 +141,27 @@ namespace C2.Network
         }
     }
 
-    // MslCmdPacket
     public class MslCmdPacket : BasePacket
     {
-        public HeaderPacket Header { get; set; }
-        public char CommandType { get; set; }
-
-        public MslCmdPacket(HeaderPacket header, char commandType)
-        {
-            Header = header;
-            CommandType = commandType;
-        }
-
-        public override byte[] Serialize()
-        {
-            var buffer = new List<byte>(Header.Serialize());
-            buffer.Add((byte)CommandType);
-            return buffer.ToArray();
-        }
-
         public override void Deserialize(byte[] buffer)
         {
-            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + 1)
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE)
                 throw new ArgumentException("Buffer too small for MslCmdPacket");
 
             var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
             Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
             Header = HeaderPacket.Deserialize(hdrBuffer);
-
-            CommandType = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE];
         }
 
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+            return buffer.ToArray();
+        }
+            
         public override string ToString()
         {
-            return $"{Header}, MslCmdPacket(commandType={CommandType})";
+            return $"[MslCmdPacket]\n{Header}";
         }
     }
 
@@ -331,5 +318,39 @@ namespace C2.Network
         }
     }
 
+    public class TgtFinPacket : BasePacket
+    {
+        public const int TGT_FIN_PACKET_SIZE = 14;
+        public char DetectedId { get; set; }// 탐지 아이디 (1 byte)
+
+        public override void Deserialize(byte[] buffer)
+        {
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + TGT_FIN_PACKET_SIZE)
+                throw new ArgumentException("Buffer too small for TgtInfoOutputPacket");
+
+            var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
+            Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
+            Header = HeaderPacket.Deserialize(hdrBuffer);
+
+            DetectedId = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 1];
+        }
+
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+
+            var body = new List<byte>();
+            body.AddRange(BitConverter.GetBytes(DetectedId));
+
+            buffer.AddRange(body);
+            return buffer.ToArray();
+        }
+
+        public override string ToString()
+        {
+            return $"[TgtFinPacket]\n{Header}\n" +
+                   $"Detection(id={DetectedId})";
+        }
+    }
 
 }
