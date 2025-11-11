@@ -138,6 +138,20 @@ namespace C2.Services
                 if (_missiles.TryGetValue(newData.Id, out var existing))
                 {
                     existing.Update(newData);
+                    //Abort처리
+                    if (newData.State == MissileState.Abort)
+                    {   //Abort처리
+                        if (!existing.IsAbort)
+                        {
+                            //자폭인지 판별
+                            if (!existing.IsSelfabort)//자폭이 아니면
+                            {
+                                //sendto 표적 터트리기
+                            }
+                            //폭파처리
+                            existing.IsAbort = true;
+                        }
+                    }
                 }
                 else
                 {
