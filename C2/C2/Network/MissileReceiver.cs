@@ -10,6 +10,9 @@ public class MissileReceiver
     private readonly string _unrealIp;
     private readonly int _unrealPort;
 
+    private const double ReferenceLat = 37.5665; // 기준 위도
+    private const double ReferenceLon = 126.9780; // 기준 경도 
+
     public MissileReceiver(SocketManager socketManager, string unrealIp = "192.168.0.50", int unrealPort = 52000)
     {
         _service = MissileService.Instance;
@@ -25,7 +28,7 @@ public class MissileReceiver
         Console.WriteLine(mslInfo.ToString());
         var missile = ToMissile(mslInfo);
         _service.ReceiveMissileData(missile);
-        SendToUnreal(missile);
+        //SendToUnreal(missile);
     }
 
     private void SendToUnreal(Missile missile)
@@ -45,30 +48,67 @@ public class MissileReceiver
         }
     }
 
-    private static Missile ToMissile(MslInfoPacket packet)
+    private Missile ToMissile(MslInfoPacket mslInfo)
     {
-        if (packet == null) throw new ArgumentNullException(nameof(packet));
+        var (lat, lon) = XYToLatLon(mslInfo.X / 1e3, mslInfo.Y / 1e3, ReferenceLat, ReferenceLon);
+        var (yawDeg, pitchDeg) = CalcYawPitch(mslInfo.Vx / 1e3, mslInfo.Vy / 1e3, mslInfo.Vz);
 
-        MissileState state = packet.FlightStatus switch
+        MissileState state = mslInfo.FlightStatus switch
         {
-            '1' => MissileState.LaunchReady,
-            '2' => MissileState.Launching,
-            '3' => MissileState.InitialGuidance,
-            '4' => MissileState.MidGuidance,
-            '5' => MissileState.TerminalGuidance,
-            '6' => MissileState.Abort,
+            1 => MissileState.LaunchReady,
+            2 => MissileState.Launching,
+            3 => MissileState.InitialGuidance,
+            4 => MissileState.MidGuidance,
+            5 => MissileState.TerminalGuidance,
+            6 => MissileState.Abort,
             _ => MissileState.LaunchReady
         };
 
         return new Missile(
-            id: packet.Header?.SrcId ?? Guid.NewGuid().ToString(),
-            latitudeRaw: packet.Latitude,
-            longitudeRaw: packet.Longitude,
-            altitude: packet.Altitude,
-            yawRaw: packet.Yaw,
-            pitchRaw: packet.Pitch,
-            flightTime: packet.FlightTime,
+            id: mslInfo.Header?.SrcId ?? Guid.NewGuid().ToString(),
+            latitudeRaw: (int)(lat * 1e7),
+            longitudeRaw: (int)(lon * 1e7),
+            altitude: (short)mslInfo.Z,
+            yawRaw: (short)(yawDeg*100),
+            pitchRaw: (short)(pitchDeg*100),
+            flightTime: mslInfo.FlightTime,
             state: state
         );
+    }
+
+    /// <summary>
+    /// 시뮬레이션 좌표(x,y) → 위도/경도 변환
+    /// </summary>
+    private (double lat, double lon) XYToLatLon(double x, double y, double lat0, double lon0)
+    {
+        const double R = 6_378_137.0;
+        double lat0Rad = lat0 * Math.PI / 180.0;
+
+        double newLat = lat0 + (y / R) * (180.0 / Math.PI);
+        double newLon = lon0 + (x / (R * Math.Cos(lat0Rad))) * (180.0 / Math.PI);
+
+        return (newLat, newLon);
+    }
+
+    public (double yawDeg, double pitchDeg) CalcYawPitch(double dx, double dy, double dz)
+    {
+        const double Rad2Deg = 180.0 / Math.PI;
+
+        // 수평거리
+        double horizontal = Math.Sqrt(dx * dx + dy * dy);
+
+        // pitch: 위(+), 아래(-)
+        double pitchRad = Math.Atan2(dz, horizontal);
+        double pitchDeg = pitchRad * Rad2Deg;
+
+        // yaw: atan2(동, 북)
+        double yawRad = Math.Atan2(dx, dy);
+        double yawDeg = yawRad * Rad2Deg;
+
+        // 남쪽이 0°가 되도록 보정
+        yawDeg = (yawDeg + 180.0);
+        if (yawDeg >= 360.0) yawDeg -= 360.0;
+
+        return (yawDeg, pitchDeg);
     }
 }
