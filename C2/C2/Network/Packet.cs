@@ -67,41 +67,25 @@ namespace C2.Network
         public abstract void Deserialize(byte[] buffer);
     }
 
-    // MslInfoPacket
     public class MslInfoPacket : BasePacket
     {
-        public int X { get; set; }                 // int32_t 전방 좌표
-        public int Y { get; set; }                 // int32_t 좌방 좌표
-        public short Z { get; set; }               // int16_t 천방 좌표
+        public const int MSL_INFO_PACKET_SIZE = 36;
 
-        public int Vx { get; set; }                // int32_t 전방 속도
-        public int Vy { get; set; }                // int32_t 좌방 속도
-        public short Vz { get; set; }              // int16_t 천방 속도
+        public int X { get; set; }
+        public int Y { get; set; }
+        public short Z { get; set; }
 
-        public int PipX { get; set; }              // int32_t PIP 좌표 X
-        public int PipY { get; set; }              // int32_t PIP 좌표 Y
-        public short PipZ { get; set; }            // int16_t PIP 좌표 Z
+        public int Vx { get; set; }
+        public int Vy { get; set; }
+        public short Vz { get; set; }
 
-        public uint FlightTime { get; set; }       // uint32_t 비행시간(ms)
-        public char FlightStatus { get; set; }     // char (1~5)
-        public byte TelemetryStatus { get; set; }  // byte (1~3)
+        public int PipX { get; set; }
+        public int PipY { get; set; }
+        public short PipZ { get; set; }
 
-        public MslInfoPacket() { }
-
-        public MslInfoPacket(HeaderPacket header,
-                             int x, int y, short z,
-                             int vx, int vy, short vz,
-                             int pipX, int pipY, short pipZ,
-                             uint flightTime, char flightStatus, byte telemetryStatus)
-        {
-            Header = header;
-            X = x; Y = y; Z = z;
-            Vx = vx; Vy = vy; Vz = vz;
-            PipX = pipX; PipY = pipY; PipZ = pipZ;
-            FlightTime = flightTime;
-            FlightStatus = flightStatus;
-            TelemetryStatus = telemetryStatus;
-        }
+        public uint FlightTime { get; set; }
+        public char FlightStatus { get; set; }     // char → byte
+        public byte TelemetryStatus { get; set; }  // 그대로 byte
 
         public override byte[] Serialize()
         {
@@ -122,33 +106,35 @@ namespace C2.Network
             buffer.AddRange(BitConverter.GetBytes(FlightTime));
             buffer.Add((byte)FlightStatus);
             buffer.Add(TelemetryStatus);
-
             return buffer.ToArray();
         }
 
         public override void Deserialize(byte[] buffer)
         {
-            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + MSL_INFO_PACKET_SIZE)
+                throw new ArgumentException("Buffer too small for MslInfoPacket");
 
             var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
             Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
             Header = HeaderPacket.Deserialize(hdrBuffer);
 
-            X = BitConverter.ToInt32(buffer, offset); offset += 4;
-            Y = BitConverter.ToInt32(buffer, offset); offset += 4;
-            Z = BitConverter.ToInt16(buffer, offset); offset += 2;
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
 
-            Vx = BitConverter.ToInt32(buffer, offset); offset += 4;
-            Vy = BitConverter.ToInt32(buffer, offset); offset += 4;
-            Vz = BitConverter.ToInt16(buffer, offset); offset += 2;
+            X = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE);
+            Y = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 4);
+            Z = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 8);
 
-            PipX = BitConverter.ToInt32(buffer, offset); offset += 4;
-            PipY = BitConverter.ToInt32(buffer, offset); offset += 4;
-            PipZ = BitConverter.ToInt16(buffer, offset); offset += 2;
+            Vx = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 10);
+            Vy = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 14);
+            Vz = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 18);
 
-            FlightTime = BitConverter.ToUInt32(buffer, offset); offset += 4;
-            FlightStatus = (char)buffer[offset]; offset += 1;
-            TelemetryStatus = buffer[offset]; offset += 1;
+            PipX = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 20);
+            PipY = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 24);
+            PipZ = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 28);
+
+            FlightTime = BitConverter.ToUInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 30);
+            FlightStatus = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 34];
+            TelemetryStatus = buffer[HeaderPacket.HEADER_PACKET_SIZE + 35];
         }
 
         public override string ToString()
@@ -157,7 +143,8 @@ namespace C2.Network
                    $"Position(X={X}, Y={Y}, Z={Z})\n" +
                    $"Velocity(Vx={Vx}, Vy={Vy}, Vz={Vz})\n" +
                    $"PIP(X={PipX}, Y={PipY}, Z={PipZ})\n" +
-                   $"FlightTime={FlightTime} ms, Status={FlightStatus}, Telemetry={TelemetryStatus}";
+                   $"FlightTime={FlightTime} ms, " +
+                   $"Status={FlightStatus}, Telemetry={TelemetryStatus}"; // 숫자로 출력
         }
     }
 
