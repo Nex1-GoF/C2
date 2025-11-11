@@ -67,31 +67,39 @@ namespace C2.Network
         public abstract void Deserialize(byte[] buffer);
     }
 
-    // MslInfoPacket
     public class MslInfoPacket : BasePacket
     {
-        public int Latitude { get; set; }
-        public int Longitude { get; set; }
-        public short Altitude { get; set; }
-        public short Yaw { get; set; }
-        public short Pitch { get; set; }
+        public const int MSL_INFO_PACKET_SIZE = 36;
+
+        public int X { get; set; }
+        public int Y { get; set; }
+        public short Z { get; set; }
+
+        public int Vx { get; set; }
+        public int Vy { get; set; }
+        public short Vz { get; set; }
+
+        public int PipX { get; set; }
+        public int PipY { get; set; }
+        public short PipZ { get; set; }
+
         public uint FlightTime { get; set; }
-        public char FlightStatus { get; set; }
-        public char TelemetryStatus { get; set; }
+
+        public byte FlightStatus { get; set; }    // 문자열(1글자)
+        public byte TelemetryStatus { get; set; }   // 그대로 1바이트
 
         public MslInfoPacket() { }
 
         public MslInfoPacket(HeaderPacket header,
-                             int latitude, int longitude, short altitude,
-                             short yaw, short pitch,
-                             uint flightTime, char flightStatus, char telemetryStatus)
+                             int x, int y, short z,
+                             int vx, int vy, short vz,
+                             int pipX, int pipY, short pipZ,
+                             uint flightTime, byte flightStatus, byte telemetryStatus)
         {
             Header = header;
-            Latitude = latitude;
-            Longitude = longitude;
-            Altitude = altitude;
-            Yaw = yaw;
-            Pitch = pitch;
+            X = x; Y = y; Z = z;
+            Vx = vx; Vy = vy; Vz = vz;
+            PipX = pipX; PipY = pipY; PipZ = pipZ;
             FlightTime = flightTime;
             FlightStatus = flightStatus;
             TelemetryStatus = telemetryStatus;
@@ -101,43 +109,66 @@ namespace C2.Network
         {
             var buffer = new List<byte>(Header.Serialize());
 
-            buffer.AddRange(BitConverter.GetBytes(Latitude));
-            buffer.AddRange(BitConverter.GetBytes(Longitude));
-            buffer.AddRange(BitConverter.GetBytes(Altitude));
-            buffer.AddRange(BitConverter.GetBytes(Yaw));
-            buffer.AddRange(BitConverter.GetBytes(Pitch));
+            buffer.AddRange(BitConverter.GetBytes(X));
+            buffer.AddRange(BitConverter.GetBytes(Y));
+            buffer.AddRange(BitConverter.GetBytes(Z));
+
+            buffer.AddRange(BitConverter.GetBytes(Vx));
+            buffer.AddRange(BitConverter.GetBytes(Vy));
+            buffer.AddRange(BitConverter.GetBytes(Vz));
+
+            buffer.AddRange(BitConverter.GetBytes(PipX));
+            buffer.AddRange(BitConverter.GetBytes(PipY));
+            buffer.AddRange(BitConverter.GetBytes(PipZ));
+
             buffer.AddRange(BitConverter.GetBytes(FlightTime));
-            buffer.Add((byte)FlightStatus);
-            buffer.Add((byte)TelemetryStatus);
+            buffer.Add(FlightStatus);
+
+            // TelemetryStatus: 그대로 1바이트
+            buffer.Add(TelemetryStatus);
 
             return buffer.ToArray();
         }
 
         public override void Deserialize(byte[] buffer)
         {
-            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + 20)
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + MSL_INFO_PACKET_SIZE)
                 throw new ArgumentException("Buffer too small for MslInfoPacket");
 
             var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
             Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
             Header = HeaderPacket.Deserialize(hdrBuffer);
 
-            Latitude = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE);
-            Longitude = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 4);
-            Altitude = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 8);
-            Yaw = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 10);
-            Pitch = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 12);
-            FlightTime = BitConverter.ToUInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 14);
-            FlightStatus = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 18];
-            TelemetryStatus = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 19];
-        }
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
 
+            X = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Y = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Z = BitConverter.ToInt16(buffer, offset); offset += 2;
+
+            Vx = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vy = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vz = BitConverter.ToInt16(buffer, offset); offset += 2;
+
+            PipX = BitConverter.ToInt32(buffer, offset); offset += 4;
+            PipY = BitConverter.ToInt32(buffer, offset); offset += 4;
+            PipZ = BitConverter.ToInt16(buffer, offset); offset += 2;
+
+            FlightTime = BitConverter.ToUInt32(buffer, offset); offset += 4;
+
+            // FlightStatus: 1바이트 → string 변환
+            FlightStatus = buffer[offset]; offset += 1;
+
+            // TelemetryStatus: 1바이트 그대로
+            TelemetryStatus = buffer[offset];
+        }
         public override string ToString()
         {
             return $"[MslInfoPacket]\n{Header}\n" +
-                   $"Position(lat={Latitude}, lon={Longitude}, alt={Altitude})\n" +
-                   $"Attitude(yaw={Yaw}, pitch={Pitch})\n" +
-                   $"FlightTime={FlightTime} ms, Status={FlightStatus}, Telemetry={TelemetryStatus}";
+                   $"Position(X={X}, Y={Y}, Z={Z})\n" +
+                   $"Velocity(Vx={Vx}, Vy={Vy}, Vz={Vz})\n" +
+                   $"PIP(X={PipX}, Y={PipY}, Z={PipZ})\n" +
+                   $"FlightTime={FlightTime} ms, " +
+                   $"Status={FlightStatus}, Telemetry={TelemetryStatus}";
         }
     }
 
