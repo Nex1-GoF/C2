@@ -2,61 +2,75 @@
 using C2.Models;
 using C2.Services;
 using CommunityToolkit.Mvvm.Messaging;
+using GMap.NET;
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace C2.Network
 {
-    public class InitialGuidanceManager
+    public class InitialGuidanceManager : IInitialGuidanceManager
     {
         private static InitialGuidanceManager _instance;
         public static InitialGuidanceManager Instance => _instance ??= new InitialGuidanceManager();
 
         private readonly LogService _logService = LogService.Instance;
         private readonly MissileService _missileService = MissileService.Instance;
+        private readonly TargetService _targetService = TargetService.Instance;
 
-        private IGuidanceState? _currentState;
         private CancellationTokenSource? _cts;
+        private IGuidanceState? _currentState;
+        private int _currentSeq = 0;
+        private Missile? _currentMissile;
         private double _currentProgress = 0;
 
         private InitialGuidanceManager() { }
 
+        // ✅ 각 단계별 Progress 표시 비율
         private readonly Dictionary<Type, double> _phaseProgressMap = new()
         {
             { typeof(PowerOnState), 17 },
             { typeof(BitCheckState), 33 },
-            { typeof(AlignState), 50 },
+            { typeof(AlignState), 41 },
             { typeof(KeyState), 50 },
             { typeof(IgnitionState), 67 },
             { typeof(PipCalculationState), 83 },
             { typeof(LaunchState), 100 },
+            { typeof(InitialGuidanceState), 100 },
         };
 
-        public async Task StartAsync()
+        // ================================================================
+        // 📍 메인 실행 진입점
+        // ================================================================
+        public async Task StartAsync(Missile missile)
         {
+            if (_cts != null)
+            {
+                _logService.AddLog(MessageType.System, "이미 발사 절차가 진행 중입니다.");
+                return;
+            }
+
+            _currentMissile = missile;
             _cts = new CancellationTokenSource();
             _currentProgress = 0;
+            _logService.AddLog(MessageType.System, $"[{missile.Id}] 발사 절차 시작됨");
 
-            _currentState = new PowerOnState(this);
+            _currentState = new PowerOnState(this, missile);
             await RunStateMachineAsync(_cts.Token);
         }
 
-        public void Abort()
-        {
-            _cts?.Cancel();
-            _logService.AddLog(MessageType.System, "발사 절차 중단됨");
-        }
-
-
-         private async Task RunStateMachineAsync(CancellationToken token)
+        private async Task RunStateMachineAsync(CancellationToken token)
         {
             try
             {
                 while (_currentState != null)
                 {
+                    _currentSeq = GetSeqFromState(_currentState);
                     await _currentState.EnterAsync(token);
 
                     if (_currentState is KeyState)
@@ -85,7 +99,6 @@ namespace C2.Network
             catch (TaskCanceledException)
             {
                 _missileService.CancelLaunch();
-                _logService.AddLog(MessageType.System, "절차가 사용자에 의해 중단됨");
             }
             catch (Exception ex)
             {
@@ -94,11 +107,26 @@ namespace C2.Network
             }
             finally
             {
-                // ✅ 절차가 끝나거나 중단되었을 때 무조건 UI 복귀
+                _cts = null;
+                _currentState = null;
+                _currentMissile = null;
                 WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
             }
         }
 
+        // ================================================================
+        // 📍 Abort 및 Progress 제어
+        // ================================================================
+        public void Abort()
+        {
+            if (_cts == null || _currentMissile == null)
+            {
+                return; 
+            }
+
+            _cts.Cancel();
+            PerformAbortSequence(_currentMissile, _currentSeq, false); // 현재 seq 판단은 FSM 내부에서 처리
+        }
 
         internal async Task SmoothProgressToAsync(double target, int durationMs, CancellationToken token)
         {
@@ -112,24 +140,65 @@ namespace C2.Network
                     throw new TaskCanceledException();
 
                 _currentProgress = start + (target - start) * i / steps;
-
-                // ✅ 프로그레스만 갱신 (로그는 여기서 하지 않음)
                 WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(_currentProgress));
-
                 await Task.Delay(stepTime, token);
             }
         }
 
-        internal static byte[] GenerateSessionKey()
+        internal void PerformAbortSequence(Missile missile, int seq, bool isSystem)
         {
-            var key = new byte[32];
-            RandomNumberGenerator.Fill(key);
-            return key;
+            try
+            {
+                if (seq < 5)
+                {
+                    _logService.AddLog(MessageType.System, $"[{missile.Id}] 발사취소 절차 실행");
+
+                    string senderId = "C001";
+                    string receiverId = $"M{int.Parse(missile.Id):000}";
+                    var header = new HeaderPacket(senderId, receiverId, (uint)seq, (byte)0);
+                    var abortMsg = new UnifiedMessage(header);
+                    byte[] packet = abortMsg.Serialize();
+
+                    var linkConfig = new LauncherLinkConfig();
+                    if (linkConfig.TryGetLink(missile, out var link))
+                    {
+                        using var client = new UdpClient(link.txPort);
+                        var ep = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
+                        client.Send(packet, packet.Length, ep);
+                    }
+
+                    _missileService.UpdateMissileState(MissileState.Launching, MissileState.LaunchReady);
+                    if(isSystem == true) _logService.AddLog(MessageType.System, $"[{missile.Id}] 가역 상태 오류 -> 대기 처리");
+                    else _logService.AddLog(MessageType.System, $"사용자 입력으로 폭파 처리");
+                }
+                else
+                {
+                    _missileService.UpdateMissileState(MissileState.Launching, MissileState.Abort);
+                    if (isSystem == true) _logService.AddLog(MessageType.System, $"[{missile.Id}] 비가역 상태 오류 -> 비상폭파 처리");
+                }
+
+                _cts?.Cancel();
+                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
+            }
+            catch (Exception ex)
+            {
+                _logService.AddLog(MessageType.System, $"Abort 절차 중 오류: {ex.Message}");
+            }
         }
 
-        // =====================================================
-        // 📍 State Pattern 내부 클래스들
-        // =====================================================
+        private int GetSeqFromState(IGuidanceState state)
+        {
+            return state switch
+            {
+                PowerOnState => 1,
+                BitCheckState => 2,
+                AlignState => 3,
+                KeyState => 4,
+                PipCalculationState => 6,
+                LaunchState => 7,
+                _ => 0
+            };
+        }
 
         internal interface IGuidanceState
         {
@@ -140,162 +209,258 @@ namespace C2.Network
         internal abstract class BaseGuidanceState : IGuidanceState
         {
             protected readonly InitialGuidanceManager _manager;
+            protected readonly Missile _launchingMissile;
+            private readonly LauncherLinkConfig _linkConfig = new LauncherLinkConfig();
+
             public abstract string Name { get; }
             public abstract IGuidanceState? NextState { get; }
-            protected BaseGuidanceState(InitialGuidanceManager manager) => _manager = manager;
+
+            protected BaseGuidanceState(InitialGuidanceManager manager, Missile missile)
+            {
+                _manager = manager;
+                _launchingMissile = missile;
+            }
 
             public virtual async Task EnterAsync(CancellationToken token)
             {
-                // ✅ 로그는 이 시점에서 출력
-                _manager._logService.AddLog(MessageType.System, $"{Name} 수행 중...");
-
                 double targetProgress = _manager._phaseProgressMap[GetType()];
                 await _manager.SmoothProgressToAsync(targetProgress, 1500, token);
             }
-        }
 
+            protected bool SendAndWaitForAck(Missile missile, int seq, int msgSize = 0, byte[]? body = null)
+            {
+                if (!_linkConfig.TryGetLink(missile, out var link))
+                {
+                    _manager._logService.AddLog(MessageType.System, $"[{missile.Id}] 링크 설정이 없습니다.");
+                    return false;
+                }
+
+                try
+                {
+                    string senderId = "C001";
+                    string receiverId = $"M{int.Parse(missile.Id):000}";
+                    var header = new HeaderPacket(senderId, receiverId, (uint)seq, (byte)msgSize);
+                    var message = new UnifiedMessage(header);
+
+                    if (seq == 4 && body != null)
+                        message.SetEncryptionKey(body);
+                    else if (seq == 6 && body != null)
+                        message.SetPIP(BitConverter.ToInt32(body, 0),
+                                       BitConverter.ToInt32(body, 4),
+                                       BitConverter.ToInt32(body, 8));
+
+                    var packet = message.Serialize();
+                    using var client = new UdpClient(link.txPort);
+                    client.Client.ReceiveTimeout = 3000;
+
+                    var sendEp = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
+                    var recvEp = new IPEndPoint(IPAddress.Any, link.rxPort);
+
+                    _manager._logService.AddLog(MessageType.System,
+                        $"[II-{seq:D4}] 송신 시작 ({missile.Id}) → {link.txIp}:{link.txPort}");
+                    client.Send(packet, packet.Length, sendEp);
+
+                    var recvBytes = client.Receive(ref recvEp);
+                    var response = ResponseMessage.Deserialize(recvBytes);
+
+                    if (response.Header.Seq == seq)
+                    {
+                        _manager._logService.AddLog(MessageType.System,
+                            $"[II-{seq:D4}] 응답 수신 ← {recvEp.Address}:{recvEp.Port}");
+                        return true;
+                    }
+                    _manager._logService.AddLog(MessageType.System,
+                        $"[II-{seq:D4}] 응답 시퀀스 불일치");
+                    return false;
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.SocketErrorCode == SocketError.TimedOut)
+                        _manager._logService.AddLog(MessageType.System, $"[II-{seq:D4}] 응답 타임아웃");
+                    else
+                        _manager._logService.AddLog(MessageType.System, $"[II-{seq:D4}] 통신 오류: {ex.Message}");
+                    return false;
+                }
+            }
+
+            protected void HandleFailure(Missile missile, int seq)
+            {
+                _manager._logService.AddLog(MessageType.System, $"{Name} 단계 실패 — Abort 절차 실행");
+                _manager.PerformAbortSequence(missile, seq, true);
+            }
+        }
 
         private class PowerOnState : BaseGuidanceState
         {
             public override string Name => "전원 점검";
-            public override IGuidanceState NextState => new BitCheckState(_manager);
-            public PowerOnState(InitialGuidanceManager manager) : base(manager) { }
+            public override IGuidanceState NextState => new BitCheckState(_manager, _launchingMissile);
+
+            public PowerOnState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
 
             public override async Task EnterAsync(CancellationToken token)
             {
-                var missileId = _manager._missileService.UpdateMissileState(MissileState.LaunchReady, MissileState.Launching); // 발사준비완료 -> 발사시작
-                if (missileId != null)
-                {
-                    _manager._logService.AddLog(MessageType.System, $"{missileId} 발사 단계로 전환됨");
-                }
-
                 await base.EnterAsync(token);
 
-                // TODO: 실제 전원 점검 로직
-                //TODO: NetworkMessages에서 Msg_II0010 클래스 이용
-
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
-                        // TODO: BIT 메세지 송신
+                bool ok = SendAndWaitForAck(_launchingMissile, seq: 1);
+                if (!ok)
+                {
+                    HandleFailure(_launchingMissile, seq: 1);
+                    return;
+                }
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }
+
+
 
         private class BitCheckState : BaseGuidanceState
         {
             public override string Name => "BIT 검사";
-            public override IGuidanceState NextState => new AlignState(_manager);
-            public BitCheckState(InitialGuidanceManager manager) : base(manager) { }
+            public override IGuidanceState NextState => new AlignState(_manager, _launchingMissile);
+            public BitCheckState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
 
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
 
-                        // TODO: BIT 메세지 송신
-                        //TODO: NetworkMessages에서 Msg_II0010 클래스 이용
-
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
+                bool ok = SendAndWaitForAck(_launchingMissile, seq: 2);
+                if (!ok)
+                {
+                    HandleFailure(_launchingMissile, seq: 2);
+                    return;
+                }
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }
 
         private class AlignState : BaseGuidanceState
         {
             public override string Name => "항법 정렬";
-            public override IGuidanceState NextState => new KeyState(_manager);
-            public AlignState(InitialGuidanceManager manager) : base(manager) { }
+            public override IGuidanceState NextState => new KeyState(_manager, _launchingMissile);
+            public AlignState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
 
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-
-                //byte[] key = GenerateSessionKey();
-
-                // --------------------------------------------------------------------------------------
-
-                // TODO: 항법장치 메세지 송신  
-                //TODO: NetworkMessages에서 Msg_II0010 클래스 이용 (항법장치 정렬에 필요한 인자가 없고, 세션 키 전달이랑 같이 할 경우)
-
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
+                bool ok = SendAndWaitForAck(_launchingMissile, seq: 3);
+                if (!ok)
+                {
+                    HandleFailure(_launchingMissile, seq: 3);
+                    return;
+                }
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }
         private class KeyState : BaseGuidanceState
         {
-            public override string Name => "키 전달";
-            public override IGuidanceState NextState => new IgnitionState(_manager);
-            public KeyState(InitialGuidanceManager manager) : base(manager) { }
-
+            public override string Name => "KEY 전송";
+            public override IGuidanceState NextState => new IgnitionState(_manager, _launchingMissile);
+            public KeyState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            private byte[] GenerateSessionKey()
+            {
+                var key = new byte[32];
+                RandomNumberGenerator.Fill(key);
+                return key;
+            }
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
 
-                //byte[] key = GenerateSessionKey();
-
-
-                        // TODO: 세션키 메세지 송신  
-
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
+                byte[] key = GenerateSessionKey();
+                bool ok = SendAndWaitForAck(_launchingMissile, seq: 4, msgSize: 32, key);
+                if (!ok)
+                {
+                    HandleFailure(_launchingMissile, seq: 4);
+                    return;
+                }
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }
+
 
         private class IgnitionState : BaseGuidanceState
         {
             public override string Name => "점화 준비";
-            public override IGuidanceState NextState => new PipCalculationState(_manager);
-            public IgnitionState(InitialGuidanceManager manager) : base(manager) { }
+            public override IGuidanceState NextState => new PipCalculationState(_manager, _launchingMissile);
+            public IgnitionState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
 
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                        // TODO: 점화 신호 준비 로직
-                        //TODO: NetworkMessages에서 Msg_II0010 클래스 이용
-
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
+                bool ok = SendAndWaitForAck(_launchingMissile, seq: 5);
+                if (!ok)
+                {
+                    HandleFailure(_launchingMissile, seq: 5);
+                    return;
+                }
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }
 
         private class PipCalculationState : BaseGuidanceState
         {
             public override string Name => "PIP 계산";
-            public override IGuidanceState NextState => new LaunchState(_manager);
-            public PipCalculationState(InitialGuidanceManager manager) : base(manager) { }
+            public override IGuidanceState NextState => new LaunchState(_manager, _launchingMissile);
+            public PipCalculationState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+
+            private byte[] BuildPipBody(int x, int y, int z)
+            {
+                var body = new List<byte>(12);
+                body.AddRange(BitConverter.GetBytes(x));
+                body.AddRange(BitConverter.GetBytes(y));
+                body.AddRange(BitConverter.GetBytes(z));
+                return body.ToArray();
+            }
 
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
 
-                // --------------------------------------------------------------------------------------
-                        // 초기 PIP 계산: 어떤 방법으로 구현하기로 했는지 알려줘야 할듯
-                // --------------------------------------------------------------------------------------
-                        //TODO: NetworkMessages에서 Msg_II0011 클래스 이용
+                        // Todo: X Y Z 변환해서 보내야함
 
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
+                byte[] pip = BuildPipBody(10, 10, 10);
+                bool ok = SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
+                if (!ok)
+                {
+                    HandleFailure(_launchingMissile, seq: 6);
+                    return;
+                }
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }
+
 
         private class LaunchState : BaseGuidanceState
         {
             public override string Name => "발사";
-            public override IGuidanceState? NextState => new InitialGuidanceState(_manager);
-            public LaunchState(InitialGuidanceManager manager) : base(manager) { }
+            public override IGuidanceState? NextState => new InitialGuidanceState(_manager, _launchingMissile);
+            public LaunchState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
 
             public override async Task EnterAsync(CancellationToken token)
             {
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.Launching, MissileState.InitialGuidance); // 발사중 -> 초기유도로 전환
                 if (missileId != null)
+
                 {
                     _manager._logService.AddLog(MessageType.System, $"{missileId} 초기유도 단계로 전환됨");
                 }
 
                 await base.EnterAsync(token);
-                        // TODO: 발사 신호 준비 로직
-                        //TODO: NetworkMessages에서 Msg_II0010 클래스 이용
-
-                await Task.Delay(500, token); // TODO: 폴링으로 바꿔야함 마지막에
+                bool ok = SendAndWaitForAck(_launchingMissile, seq: 7);
+                if (!ok)
+                {
+                    HandleFailure(_launchingMissile, seq: 7);
+                    return;
+                }
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }
+
         private class InitialGuidanceState : BaseGuidanceState
         {
             public override string Name => "초기유도";
             public override IGuidanceState? NextState => null;
-            public InitialGuidanceState(InitialGuidanceManager manager) : base(manager) { }
+            public InitialGuidanceState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
 
             public override async Task EnterAsync(CancellationToken token)
             {
@@ -304,11 +469,33 @@ namespace C2.Network
                 {
                     _manager._logService.AddLog(MessageType.System, $"{missileId} 중기유도 단계로 전환됨");
                 }
-                await base.EnterAsync(token);
-                        // TODO: 발사 신호 준비 로직
-                        //TODO: NetworkMessages에서 Msg_II0010 클래스 이용
-
                 await Task.Delay(5000, token); // TODO: 폴링으로 바꿔야함 마지막에
+            }
+        }
+
+        private class LauncherLinkConfig
+        {
+
+            private readonly Dictionary<Missile, (string txIp, int txPort, string rxIp, int rxPort)> _configMap;
+
+            public LauncherLinkConfig()
+            {
+                // 🔸 MissileService가 먼저 생성되어 있어야 함
+                MissileService _missileService = MissileService.Instance;
+
+                _configMap = new Dictionary<Missile, (string, int, string, int)>
+                {
+                    { _missileService.GetAllMissiles()[0], ("192.168.1.50", 9014, "192.168.1.100", 9015) },
+                    { _missileService.GetAllMissiles()[1], ("192.168.1.51", 9024, "192.168.1.100", 9025) },
+                    { _missileService.GetAllMissiles()[2], ("192.168.1.52", 9034, "192.168.1.100", 9035) },
+                    { _missileService.GetAllMissiles()[3], ("192.168.1.53", 9044, "192.168.1.100", 9045) }
+                };
+
+            }
+
+            public bool TryGetLink(Missile missile, out (string txIp, int txPort, string rxIp, int rxPort) link)
+            {
+                return _configMap.TryGetValue(missile, out link);
             }
         }
     }

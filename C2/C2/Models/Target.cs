@@ -45,7 +45,7 @@ namespace C2.Models
         public (double Lat, double Lon) CurLoc
         {
             get => _curLoc;
-            set { _curLoc = value; OnPropertyChanged(); OnPropertyChanged(nameof(CurLocDisplay)); }
+            set { _curLoc = value; OnPropertyChanged(); OnPropertyChanged(nameof(CurLatDisplay)); OnPropertyChanged(nameof(CurLonDisplay)); }
         }
 
         private (double Lat, double Lon) _endLoc;
@@ -58,7 +58,8 @@ namespace C2.Models
         public DateTime DetectTime { get; set; }
 
         public string CurYawDisplay => $"{Yaw:F0}°";
-        public string CurLocDisplay => $"{CurLoc.Lat:F5}, {CurLoc.Lon:F5}";
+        public string CurLatDisplay => $"{CurLoc.Lat:F5}";
+        public string CurLonDisplay => $"{CurLoc.Lon:F5}";
         public string EndLocDisplay => $"{EndLoc.Lat:F5}, {EndLoc.Lon:F5}";
 
         public List<(double Lat, double Lon)> PathHistory { get; } = new();

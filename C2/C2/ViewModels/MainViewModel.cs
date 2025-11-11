@@ -1,5 +1,6 @@
 ﻿using C2.Messages;
 using C2.Models;
+using C2.Network;
 using C2.Services;
 using C2.Network;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,7 +16,7 @@ namespace C2.ViewModels
         private readonly TargetService _targetService = TargetService.Instance;
         private readonly MissileService _missileService = MissileService.Instance;
         private readonly UpdateDispatcher _updateDispatcher = UpdateDispatcher.Instance;
-        private readonly InitialGuidanceManager _guidanceManager = InitialGuidanceManager.Instance;
+        private readonly IInitialGuidanceManager _guidanceManager;
 
         [ObservableProperty] private bool _canAssign = true;
         [ObservableProperty] private bool _progressBarVisible = false;
@@ -25,6 +26,12 @@ namespace C2.ViewModels
 
         public MainViewModel()
         {
+            /*
+                실제 -> InitialGuidanceManager
+            기능테스트용 -> MockInitialGuidanceManager
+             */
+            _guidanceManager = MockInitialGuidanceManager.Instance;
+            
             _updateDispatcher.Register(UpdateCanLaunch);
 
             // ✅ LaunchProgressMessage 수신 → ProgressBar / 상태 동기화
@@ -91,7 +98,8 @@ namespace C2.ViewModels
                 return;
             }
 
-            if (!_missileService.CanLaunch())
+            var missile = _missileService.GetAllMissiles().FirstOrDefault(m => m.State == MissileState.LaunchReady && m.TargetId != null);
+            if (missile == null)
             {
                 _logService.AddLog(MessageType.System, "발사 가능한 미사일이 없습니다.");
                 return;
@@ -101,12 +109,7 @@ namespace C2.ViewModels
             ProgressBarVisible = true;
 
             // ✅ 전체 절차 위임
-            await _guidanceManager.StartAsync();
-
-            // ❌ 아래 로직은 GuidanceManager가 완료 시점에 메시지로 처리하므로 제거
-            // IsLaunching = false;
-            // ProgressBarVisible = false;
-            // CanLaunchOrAbort = _missileService.AnyRemaining();
+            await _guidanceManager.StartAsync(missile);
         }
 
         ~MainViewModel()

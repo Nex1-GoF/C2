@@ -21,8 +21,8 @@ namespace C2
 {
     public partial class MainWindow : Window
     {
-        private const double MapExpandRatio = 0.85;
-        private const double MapDefaultRatio = 0.7;
+        private const double MapExpandRatio = 0.9;
+        private const double MapDefaultRatio = 0.75;
 
         private readonly MainViewModel _vm;
         private TargetReceiver _targetReceiver;
@@ -54,6 +54,11 @@ namespace C2
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool AllocConsole();
         }
+        private void GlobalCollapseButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 🔹 MissilePanel의 동일 로직 실행
+            MissilePanelRef.ToggleCollapse();
+        }
 
         protected override void OnClosed(EventArgs e)
         {
@@ -70,31 +75,36 @@ namespace C2
             var mapRow = LeftGrid.RowDefinitions[0];
             var missileRow = LeftGrid.RowDefinitions[1];
 
-            double fromMap = mapRow.ActualHeight;
-            double total = LeftGrid.ActualHeight;
-            if (total == 0) return;
+            // 🔹 고정 비율 정의
+            const double MapDefaultRatio = 0.75;
+            const double MapExpandRatio = 0.9;
+
+            double currentMapStar = mapRow.Height.Value;
+            double currentMissileStar = missileRow.Height.Value;
 
             double toMapRatio = isCollapsed ? MapExpandRatio : MapDefaultRatio;
             double toMissileRatio = 1 - toMapRatio;
 
-            // GridLengthAnimation 기반 비율 조정
+            // 🔹 Star 단위 그대로 보간하도록 설정
             var animMap = new GridLengthAnimation
             {
-                From = mapRow.Height,
+                From = new GridLength(currentMapStar, GridUnitType.Star),
                 To = new GridLength(toMapRatio, GridUnitType.Star),
                 Duration = TimeSpan.FromMilliseconds(300)
             };
+
             var animMissile = new GridLengthAnimation
             {
-                From = missileRow.Height,
+                From = new GridLength(currentMissileStar, GridUnitType.Star),
                 To = new GridLength(toMissileRatio, GridUnitType.Star),
                 Duration = TimeSpan.FromMilliseconds(300)
             };
 
             mapRow.BeginAnimation(RowDefinition.HeightProperty, animMap);
             missileRow.BeginAnimation(RowDefinition.HeightProperty, animMissile);
-            DataContext = new MainViewModel(); // ✅ ViewModel 연결
 
+            // ❌ DataContext 재설정 금지
+            // DataContext = new MainViewModel(); (삭제)
         }
 
         private void TargetPanel_Loaded(object sender, RoutedEventArgs e)
@@ -123,12 +133,13 @@ namespace C2
         public static readonly DependencyProperty ToProperty =
             DependencyProperty.Register(nameof(To), typeof(GridLength), typeof(GridLengthAnimation));
 
-        public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock animationClock)
+        public override object GetCurrentValue(object defaultOriginValue, object defaultDestinationValue, AnimationClock clock)
         {
-            double fromVal = ((GridLength)From).Value;
-            double toVal = ((GridLength)To).Value;
-            double progress = animationClock.CurrentProgress ?? 0;
+            double fromVal = From.Value;
+            double toVal = To.Value;
+            double progress = clock.CurrentProgress ?? 0;
 
+            // 🔹 항상 비율 단위 기준으로 보간
             double currentVal = fromVal + (toVal - fromVal) * progress;
             return new GridLength(currentVal, GridUnitType.Star);
         }
@@ -154,4 +165,17 @@ namespace C2
             => throw new NotImplementedException();
     }
 
+    public class CollapseIconConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool collapsed = value is bool b && b;
+            return Application.Current.MainWindow.FindResource(
+    collapsed ? "IconExpand" : "IconCollapse"
+);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => Binding.DoNothing;
+    }
 }
