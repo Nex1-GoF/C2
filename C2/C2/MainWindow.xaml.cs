@@ -4,6 +4,7 @@ using C2.Services;
 using C2.ViewModels;
 using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,16 +27,32 @@ namespace C2
         private readonly MainViewModel _vm;
         private TargetReceiver _targetReceiver;
         private MissileReceiver _missileReceiver;
+        private AbortManager _abortManager;
+        private SocketManager _socketManager;
+
         public MainWindow()
         {
             InitializeComponent();
             MissilePanelRef.CollapseToggled += OnMissileCollapseChanged;
             _vm = new MainViewModel();
             DataContext = _vm;
-            _targetReceiver = new TargetReceiver(50000);
-            _targetReceiver.Start();
-            _missileReceiver = new MissileReceiver(51000);
-            _missileReceiver.Start();
+
+            NativeMethods.AllocConsole();
+
+            _socketManager = SocketManager.Instance;
+            _socketManager.Initialize();
+
+            _targetReceiver = new TargetReceiver(_socketManager);
+            _missileReceiver = new MissileReceiver(_socketManager);
+            _abortManager = AbortManager.Instance;
+        }
+
+        // 로그 확인용 - 콘솔 창 열기
+        static class NativeMethods
+        {
+            [DllImport("kernel32.dll", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool AllocConsole();
         }
         private void GlobalCollapseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -45,7 +62,6 @@ namespace C2
 
         protected override void OnClosed(EventArgs e)
         {
-            _targetReceiver.Stop();
             base.OnClosed(e);
         }
 

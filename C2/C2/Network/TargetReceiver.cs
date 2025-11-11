@@ -1,112 +1,133 @@
 ﻿using C2.Models;
+using C2.Network;
 using C2.Services;
-using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
+using GMap.NET;
+using System.Windows.Controls;
 
-namespace C2.Network
+public class TargetReceiver
 {
-    public class TargetReceiver
+    private readonly TargetService _targetService;
+    private readonly MissileService _missileService;
+
+    private readonly SocketManager _socketManager;
+
+    private const double ReferenceLat = 37.5665; // 기준 위도
+    private const double ReferenceLon = 126.9780; // 기준 경도 
+
+    public TargetReceiver(SocketManager socketManager)
     {
-        private readonly TargetService _service;
-        private readonly UdpClient _udp;
-        private bool _running = true;
-        private readonly int _listenPort;
+        _targetService = TargetService.Instance;
+        _missileService = MissileService.Instance;
+        _socketManager = socketManager;
 
+        // 이벤트 구독
+        _socketManager.TargetReceived += HandlePacket;
+    }
 
-        public TargetReceiver(int port = 50000)
+    private void HandlePacket(TgtInfoInputPacket tgtInfo)
+    {
+        Console.WriteLine(tgtInfo.ToString());
+
+        var target = ToTarget(tgtInfo);
+        _targetService.ReceiveTargetData(target);
+
+        var missile = _missileService.GetAllMissiles().FirstOrDefault(m => m.TargetId != null && m.TargetId.Equals(target.Id.ToString()));
+        if(missile == null)
         {
-            _listenPort = port;
-            _service = TargetService.Instance;
-            _udp = new UdpClient(_listenPort);
+            //TODO: 예외처리
+            return;
         }
+        var mslId = $"M{int.Parse(missile.Id):000}";
+        var tgtInfoOutput = ToTgtInfoOutput(tgtInfo, mslId);
+        Console.WriteLine(tgtInfoOutput.ToString());
+        SendToRadar(tgtInfoOutput);
+    }
 
-        public void Start()
+    private void SendToRadar(TgtInfoOutputPacket tgtInfo)
+    {
+        try
         {
-            _running = true;
-            Console.WriteLine($"[TargetReceiver] Listening (event-based) on port {_listenPort}");
-            BeginReceiveLoop();
+            _socketManager.Send(tgtInfo.Serialize(), "192.168.206.129", 8003);
         }
-
-        public void Stop()
+        catch (Exception ex)
         {
-            _running = false;
-            _udp.Close();
+            Console.WriteLine($"[RadarSend] Error: {ex.Message}");
         }
+    }
 
-        /// <summary>
-        /// 비동기 수신 루프 시작
-        /// </summary>
-        private async void BeginReceiveLoop()
+    public static Target ToTarget(TgtInfoInputPacket packet)
+    {
+        int speed = packet.Speed;
+
+        int altitude = packet.Altitude;
+        int yaw = packet.Yaw;
+        var curLoc = (Lat: packet.Latitude / 1e7, Lon: packet.Longtitude/ 1e7);
+        var detectTime = DateTimeOffset.FromUnixTimeMilliseconds((long)packet.DetectedTime).DateTime;
+
+        var target = new Target(
+            id: packet.DetectedId,
+            speed: speed,
+            altitude: altitude,
+            yaw: yaw,
+            endLoc: curLoc,
+            detectTime: detectTime,
+            curLoc: curLoc
+        );
+
+        return target;
+    }
+
+    private TgtInfoOutputPacket ToTgtInfoOutput(TgtInfoInputPacket tgtInfoInput, String mslId)
+    {
+        var (x, y) = LatLonToXY(tgtInfoInput.Latitude / 1e7, tgtInfoInput.Longtitude / 1e7, ReferenceLat, ReferenceLon);
+
+        double headingRad = (tgtInfoInput.Yaw / 100.0) * Math.PI / 180.0;
+        double vx = Math.Sin(headingRad) * tgtInfoInput.Speed;   // 동
+        double vy = Math.Cos(headingRad) * tgtInfoInput.Speed;   // 북
+
+        // Updated to use the constructor with required parameters
+        HeaderPacket headerPacket = new("C001", mslId, tgtInfoInput.Header.Seq, tgtInfoInput.Header.MsgSize);
+
+        TgtInfoOutputPacket tgtInfoOutput = new()
         {
-            while (_running)
-            {
-                try
-                {
-                    // 데이터가 수신될 때까지 비동기 대기 (polling 아님)
-                    UdpReceiveResult result = await _udp.ReceiveAsync();
+            Header = headerPacket,
+            X = (int)(x * 1e3),
+            Y = (int)(y * 1e3),
+            Z = tgtInfoInput.Altitude,
+            Vx = (int)(vx * 1e3),
+            Vy = (int)(vy * 1e3),
+            Vz = 0,
+            DetectedMslTime = (uint)(tgtInfoInput.DetectedTime - 1000)
+        };
 
-                    if (!_running)
-                        break;
+        return tgtInfoOutput;
+    }
 
-                    byte[] data = result.Buffer;
+    private (double x, double y) LatLonToXY(double lat, double lon, double lat0, double lon0)
+    {
+        const double R = 6_378_137.0; // 지구 반경
+        double lat0Rad = lat0 * Math.PI / 180.0;
 
-                    // 변환 함수 호출
-                    Target ReceiveTarget = Parse(data);
-                    if (ReceiveTarget != null)
-                    {
-                        _service.ReceiveTargetData(ReceiveTarget);
-                        SendToRadar(ReceiveTarget);
-                    }
-                }
-                catch (ObjectDisposedException)
-                {
-                    // 소켓이 닫힐 때 발생하는 정상 종료 예외
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[TargetReceiver] Error: {ex.Message}");
-                    await Task.Delay(50);
-                }
-            }
-        }
+        double dLat = (lat - lat0) * Math.PI / 180.0;
+        double dLon = (lon - lon0) * Math.PI / 180.0;
 
-        /// <summary>
-        /// 표적 정보를 레이더로 재전송 (선택)
-        /// </summary>
-        private void SendToRadar(Target target)
-        {
-            /*
-                작성해주세요
+        double x = dLon * R * Math.Cos(lat0Rad);  // 동쪽
+        double y = dLat * R;                      // 북쪽
 
+        return (x, y);
+    }
 
-            */
-            //참고용
-            //try
-            //{
-            //    using var radarClient = new UdpClient();
-            //    string msg = $"ID={target.Id}, Lat={target.CurLoc.Lat:F5}, Lon={target.CurLoc.Lon:F5}, Alt={target.Altitude}";
-            //    byte[] bytes = System.Text.Encoding.UTF8.GetBytes(msg);
-            //    radarClient.Send(bytes, bytes.Length, "127.0.0.1", 51000);
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine($"[RadarSend] {ex.Message}");
-            //}
-        }
+    /// <summary>
+    /// 시뮬레이션 좌표(x,y) → 위도/경도 변환
+    /// </summary>
+    private (double lat, double lon) XYToLatLon(double x, double y, double lat0, double lon0)
+    {
+        const double R = 6_378_137.0;
+        double lat0Rad = lat0 * Math.PI / 180.0;
 
-        private Target Parse(byte[] data)
-        {
-            Target target = null;
-            /*
-                작성해주세요
+        double newLat = lat0 + (y / R) * (180.0 / Math.PI);
+        double newLon = lon0 + (x / (R * Math.Cos(lat0Rad))) * (180.0 / Math.PI);
 
-
-            */
-            return target;
-        }
-
+        return (newLat, newLon);
     }
 }

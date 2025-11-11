@@ -1,108 +1,74 @@
 ﻿using C2.Models;
+using C2.Network;
 using C2.Services;
-using System.Net.Sockets;
 using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-using C2.Models;
-using C2.Services;
 
-namespace C2.Network
+public class MissileReceiver
 {
-    public class MissileReceiver
+    private readonly MissileService _service;
+    private readonly SocketManager _socketManager;   // 그대로 SocketManager 참조
+    private readonly string _unrealIp;
+    private readonly int _unrealPort;
+
+    public MissileReceiver(SocketManager socketManager, string unrealIp = "192.168.0.50", int unrealPort = 52000)
     {
-        private readonly MissileService _service;
-        private readonly UdpClient _udp;
-        private bool _running = true;
-        private readonly int _listenPort;
-        private readonly int _unrealPort;
-        private readonly string _unrealIp;
+        _service = MissileService.Instance;
+        _socketManager = socketManager;
+        _unrealIp = unrealIp;
+        _unrealPort = unrealPort;
 
-        // 외부에서 연결할 파서 함수 (byte[] → Missile)
-        public Func<byte[], Missile>? ParseMissileData { get; set; }
+        _socketManager.MissileReceived += HandlePacket;
+    }
 
-        public MissileReceiver(int listenPort = 51000, string unrealIp = "192.168.0.50", int unrealPort = 52000)
+    private void HandlePacket(MslInfoPacket mslInfo)
+    {
+        Console.WriteLine(mslInfo.ToString());
+        var missile = ToMissile(mslInfo);
+        _service.ReceiveMissileData(missile);
+        SendToUnreal(missile);
+    }
+
+    private void SendToUnreal(Missile missile)
+    {
+        try
         {
-            _listenPort = listenPort;
-            _unrealIp = unrealIp;
-            _unrealPort = unrealPort;
+            string msg = $"{missile.Id},{missile.Latitude:F6},{missile.Longitude:F6},{missile.Altitude},{missile.Yaw},{missile.Pitch},{missile.Speed},{missile.State}";
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(msg);
 
-            _service = MissileService.Instance;
-            _udp = new UdpClient(_listenPort);
+            _socketManager.Send(bytes, _unrealIp, _unrealPort);
+
+            Console.WriteLine($"[SendToUnreal] {msg}");
         }
-
-        public void Start()
+        catch (Exception ex)
         {
-            _running = true;
-            Console.WriteLine($"[MissileReceiver] Listening on port {_listenPort}");
-            BeginReceiveLoop();
+            Console.WriteLine($"[SendToUnreal] Error: {ex.Message}");
         }
+    }
 
-        public void Stop()
+    private static Missile ToMissile(MslInfoPacket packet)
+    {
+        if (packet == null) throw new ArgumentNullException(nameof(packet));
+
+        MissileState state = packet.FlightStatus switch
         {
-            _running = false;
-            _udp.Close();
-        }
+            '1' => MissileState.LaunchReady,
+            '2' => MissileState.Launching,
+            '3' => MissileState.InitialGuidance,
+            '4' => MissileState.MidGuidance,
+            '5' => MissileState.TerminalGuidance,
+            '6' => MissileState.Abort,
+            _ => MissileState.LaunchReady
+        };
 
-        private async void BeginReceiveLoop()
-        {
-            while (_running)
-            {
-                try
-                {
-                    UdpReceiveResult result = await _udp.ReceiveAsync();
-                    
-                    if (!_running) break;
-
-                    byte[] data = result.Buffer;
-
-                    Missile ReceiveMissile = Parse(data);
-                    // ✅ 외부 파서 연결 (byte[] → Missile)
-                    if (ReceiveMissile != null)
-                    {       // 업데이트만 수행
-                        _service.ReceiveMissileData(ReceiveMissile);
-                            // 언리얼 노트북으로 전송
-                        SendToUnreal(ReceiveMissile);
-                    }
-                }
-                catch (ObjectDisposedException)
-                {
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[MissileReceiver] Error: {ex.Message}");
-                    await Task.Delay(10);
-                }
-            }
-        }
-
-        private void SendToUnreal(Missile missile)
-        {
-            try
-            {
-                using var client = new UdpClient();
-                string msg = $"{missile.Id},{missile.Latitude:F6},{missile.Longitude:F6},{missile.Altitude},{missile.Yaw},{missile.Pitch},{missile.Speed},{missile.State}";
-                byte[] bytes = System.Text.Encoding.UTF8.GetBytes(msg);
-                client.Send(bytes, bytes.Length, _unrealIp, _unrealPort);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[SendToUnreal] {ex.Message}");
-            }
-        }
-
-        private Missile Parse(byte[] data)
-        {
-            Missile missile = null;
-            /*
-                작성해주세요
-
-
-            */
-            return missile;
-        }
-
+        return new Missile(
+            id: packet.Header?.SrcId ?? Guid.NewGuid().ToString(),
+            latitudeRaw: packet.Latitude,
+            longitudeRaw: packet.Longitude,
+            altitude: packet.Altitude,
+            yawRaw: packet.Yaw,
+            pitchRaw: packet.Pitch,
+            flightTime: packet.FlightTime,
+            state: state
+        );
     }
 }
