@@ -35,6 +35,7 @@ public class TargetReceiver
         var missile = _missileService.GetAllMissiles().FirstOrDefault(m => m.TargetId != null && m.TargetId.Equals(target.Id.ToString()));
         if(missile == null)
         {
+            Console.WriteLine("[미사일 없음]");
             //TODO: 예외처리
             return;
         }

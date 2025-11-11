@@ -28,7 +28,7 @@ public class MissileReceiver
         Console.WriteLine(mslInfo.ToString());
         var missile = ToMissile(mslInfo);
         _service.ReceiveMissileData(missile);
-        SendToUnreal(missile);
+        //SendToUnreal(missile);
     }
 
     private void SendToUnreal(Missile missile)
@@ -55,17 +55,17 @@ public class MissileReceiver
 
         MissileState state = mslInfo.FlightStatus switch
         {
-            '1' => MissileState.LaunchReady,
-            '2' => MissileState.Launching,
-            '3' => MissileState.InitialGuidance,
-            '4' => MissileState.MidGuidance,
-            '5' => MissileState.TerminalGuidance,
-            '6' => MissileState.Abort,
+            1 => MissileState.LaunchReady,
+            2 => MissileState.Launching,
+            3 => MissileState.InitialGuidance,
+            4 => MissileState.MidGuidance,
+            5 => MissileState.TerminalGuidance,
+            6 => MissileState.Abort,
             _ => MissileState.LaunchReady
         };
 
         return new Missile(
-            id: (mslInfo.Header.SrcId[3]).ToString(),
+            id: mslInfo.Header?.SrcId ?? Guid.NewGuid().ToString(),
             latitudeRaw: (int)(lat * 1e7),
             longitudeRaw: (int)(lon * 1e7),
             altitude: (short)mslInfo.Z,

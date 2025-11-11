@@ -84,8 +84,26 @@ namespace C2.Network
         public short PipZ { get; set; }
 
         public uint FlightTime { get; set; }
-        public char FlightStatus { get; set; }     // char → byte
-        public byte TelemetryStatus { get; set; }  // 그대로 byte
+
+        public byte FlightStatus { get; set; }    // 문자열(1글자)
+        public byte TelemetryStatus { get; set; }   // 그대로 1바이트
+
+        public MslInfoPacket() { }
+
+        public MslInfoPacket(HeaderPacket header,
+                             int x, int y, short z,
+                             int vx, int vy, short vz,
+                             int pipX, int pipY, short pipZ,
+                             uint flightTime, byte flightStatus, byte telemetryStatus)
+        {
+            Header = header;
+            X = x; Y = y; Z = z;
+            Vx = vx; Vy = vy; Vz = vz;
+            PipX = pipX; PipY = pipY; PipZ = pipZ;
+            FlightTime = flightTime;
+            FlightStatus = flightStatus;
+            TelemetryStatus = telemetryStatus;
+        }
 
         public override byte[] Serialize()
         {
@@ -104,8 +122,11 @@ namespace C2.Network
             buffer.AddRange(BitConverter.GetBytes(PipZ));
 
             buffer.AddRange(BitConverter.GetBytes(FlightTime));
-            buffer.Add((byte)FlightStatus);
+            buffer.Add(FlightStatus);
+
+            // TelemetryStatus: 그대로 1바이트
             buffer.Add(TelemetryStatus);
+
             return buffer.ToArray();
         }
 
@@ -120,23 +141,26 @@ namespace C2.Network
 
             int offset = HeaderPacket.HEADER_PACKET_SIZE;
 
-            X = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE);
-            Y = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 4);
-            Z = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 8);
+            X = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Y = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Z = BitConverter.ToInt16(buffer, offset); offset += 2;
 
-            Vx = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 10);
-            Vy = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 14);
-            Vz = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 18);
+            Vx = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vy = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vz = BitConverter.ToInt16(buffer, offset); offset += 2;
 
-            PipX = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 20);
-            PipY = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 24);
-            PipZ = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 28);
+            PipX = BitConverter.ToInt32(buffer, offset); offset += 4;
+            PipY = BitConverter.ToInt32(buffer, offset); offset += 4;
+            PipZ = BitConverter.ToInt16(buffer, offset); offset += 2;
 
-            FlightTime = BitConverter.ToUInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 30);
-            FlightStatus = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 34];
-            TelemetryStatus = buffer[HeaderPacket.HEADER_PACKET_SIZE + 35];
+            FlightTime = BitConverter.ToUInt32(buffer, offset); offset += 4;
+
+            // FlightStatus: 1바이트 → string 변환
+            FlightStatus = buffer[offset]; offset += 1;
+
+            // TelemetryStatus: 1바이트 그대로
+            TelemetryStatus = buffer[offset];
         }
-
         public override string ToString()
         {
             return $"[MslInfoPacket]\n{Header}\n" +
@@ -144,7 +168,7 @@ namespace C2.Network
                    $"Velocity(Vx={Vx}, Vy={Vy}, Vz={Vz})\n" +
                    $"PIP(X={PipX}, Y={PipY}, Z={PipZ})\n" +
                    $"FlightTime={FlightTime} ms, " +
-                   $"Status={FlightStatus}, Telemetry={TelemetryStatus}"; // 숫자로 출력
+                   $"Status={FlightStatus}, Telemetry={TelemetryStatus}";
         }
     }
 
