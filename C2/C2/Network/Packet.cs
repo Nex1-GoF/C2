@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -141,73 +141,58 @@ namespace C2.Network
         }
     }
 
-    // MslCmdPacket
     public class MslCmdPacket : BasePacket
     {
-        public HeaderPacket Header { get; set; }
-        public char CommandType { get; set; }
-
-        public MslCmdPacket(HeaderPacket header, char commandType)
-        {
-            Header = header;
-            CommandType = commandType;
-        }
-
-        public override byte[] Serialize()
-        {
-            var buffer = new List<byte>(Header.Serialize());
-            buffer.Add((byte)CommandType);
-            return buffer.ToArray();
-        }
-
         public override void Deserialize(byte[] buffer)
         {
-            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + 1)
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE)
                 throw new ArgumentException("Buffer too small for MslCmdPacket");
 
             var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
             Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
             Header = HeaderPacket.Deserialize(hdrBuffer);
-
-            CommandType = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE];
         }
 
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+            return buffer.ToArray();
+        }
+            
         public override string ToString()
         {
-            return $"{Header}, MslCmdPacket(commandType={CommandType})";
+            return $"[MslCmdPacket]\n{Header}";
         }
     }
 
-    // TgtInfoPacket
-    public class TgtInfoPacket : BasePacket
+    public class TgtInfoInputPacket : BasePacket
     {
-        public string Id { get; set; }        // 4 bytes 문자열
-        public char Type { get; set; }        // 1 byte
-        public int X { get; set; }            // int32_t (4 bytes)
-        public int Y { get; set; }            // int32_t (4 bytes)
-        public int Z { get; set; }            // int32_t (4 bytes)
-        public short Vx { get; set; }         // int16_t (2 bytes)
-        public short Vy { get; set; }         // int16_t (2 bytes)
-        public short Vz { get; set; }         // int16_t (2 bytes)
-        public uint Timestamp { get; set; }   // uint32_t (4 bytes)
+        public const int TGT_INFO_INPUT_PACKET_SIZE = 24;
+        public char DetectedId { get; set; }       // 탐지 아이디 (1 byte)
+        public Int32 Latitude { get; set; }        // 위도 (4 bytes, ×1e7)
+        public Int32 Longtitude { get; set; }      // 경도 (4 bytes, ×1e7)
+        public Int16 Altitude { get; set; }        // 고도 (2 bytes)
+        public Int16 Yaw { get; set; }             // 요 (2 bytes)
+        public UInt64 DetectedTime { get; set; }   // 탐지 시간 (8 bytes)
+        public UInt16 Speed { get; set; }          // 속도 (2 bytes)
+        public char DetectedType { get; set; }     // 탐지체 구분 (1 byte)
 
-        public TgtInfoPacket() { }
+        public TgtInfoInputPacket() { }
 
-        public TgtInfoPacket(HeaderPacket header, string id,
-                             int x, int y, int z,
-                             short vx, short vy, short vz,
-                             char type, uint timestamp)
+        public TgtInfoInputPacket(HeaderPacket header,
+                                  char detectedId, Int32 latitude, Int32 longtitude,
+                                  Int16 altitude, Int16 yaw,
+                                  UInt64 detectedTime, UInt16 speed, char detectedType)
         {
             Header = header;
-            Id = id.Length == 4 ? id : id.PadRight(4).Substring(0, 4);
-            X = x;
-            Y = y;
-            Z = z;
-            Vx = vx;
-            Vy = vy;
-            Vz = vz;
-            Type = type;
-            Timestamp = timestamp;
+            DetectedId = detectedId;
+            Latitude = latitude;
+            Longtitude = longtitude;
+            Altitude = altitude;
+            Yaw = yaw;
+            DetectedTime = detectedTime;
+            Speed = speed;
+            DetectedType = detectedType;
         }
 
         public override byte[] Serialize()
@@ -215,15 +200,14 @@ namespace C2.Network
             var buffer = new List<byte>(Header.Serialize());
 
             var body = new List<byte>();
-            body.AddRange(Encoding.ASCII.GetBytes(Id.Substring(0, 4)));
-            body.Add((byte)Type);
-            body.AddRange(BitConverter.GetBytes(X));
-            body.AddRange(BitConverter.GetBytes(Y));
-            body.AddRange(BitConverter.GetBytes(Z));
-            body.AddRange(BitConverter.GetBytes(Vx));
-            body.AddRange(BitConverter.GetBytes(Vy));
-            body.AddRange(BitConverter.GetBytes(Vz));
-            body.AddRange(BitConverter.GetBytes(Timestamp));
+            body.Add((byte)DetectedId);
+            body.AddRange(BitConverter.GetBytes(Latitude));
+            body.AddRange(BitConverter.GetBytes(Longtitude));
+            body.AddRange(BitConverter.GetBytes(Altitude));
+            body.AddRange(BitConverter.GetBytes(Yaw));
+            body.AddRange(BitConverter.GetBytes(DetectedTime));
+            body.AddRange(BitConverter.GetBytes(Speed));
+            body.Add((byte)DetectedType);
 
             buffer.AddRange(body);
             return buffer.ToArray();
@@ -231,31 +215,141 @@ namespace C2.Network
 
         public override void Deserialize(byte[] buffer)
         {
-            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + 27)
-                throw new ArgumentException("Buffer too small for TgtInfoPacket");
+           
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + TGT_INFO_INPUT_PACKET_SIZE)
+                throw new ArgumentException("Buffer too small for TgtInfoInputPacket");
 
             var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
             Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
             Header = HeaderPacket.Deserialize(hdrBuffer);
 
-            Id = Encoding.ASCII.GetString(buffer, HeaderPacket.HEADER_PACKET_SIZE, 4);
-            Type = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 4];
-            X = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 5);
-            Y = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 9);
-            Z = BitConverter.ToInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 13);
-            Vx = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 17);
-            Vy = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 19);
-            Vz = BitConverter.ToInt16(buffer, HeaderPacket.HEADER_PACKET_SIZE + 21);
-            Timestamp = BitConverter.ToUInt32(buffer, HeaderPacket.HEADER_PACKET_SIZE + 23);
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+            DetectedId = (char)buffer[offset]; offset += 1;
+            Latitude = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Longtitude = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Altitude = BitConverter.ToInt16(buffer, offset); offset += 2;
+            Yaw = BitConverter.ToInt16(buffer, offset); offset += 2;
+            DetectedTime = BitConverter.ToUInt64(buffer, offset); offset += 8;
+            Speed = BitConverter.ToUInt16(buffer, offset); offset += 2;
+            DetectedType = (char)buffer[offset]; offset += 1;
         }
 
         public override string ToString()
         {
-            return $"[TgtInfoPacket]\n{Header}\n" +
-                   $"Detection(id={Id}, type={Type}, " +
-                   $"x={X}, y={Y}, z={Z}, " +
-                   $"vx={Vx}, vy={Vy}, vz={Vz}, " +
-                   $"timestamp={Timestamp} ms)";
+            return $"[TgtInfoInputPacket]\n{Header}\n" +
+                   $"Detection(id={DetectedId}, type={DetectedType}, " +
+                   $"lat={Latitude}, lon={Longtitude}, alt={Altitude}, yaw={Yaw}, " +
+                   $"time={DetectedTime}, speed={Speed})";
+        }
+    }
+
+    // TgtInfoOutPutPacket
+    public class TgtInfoOutputPacket : BasePacket
+    {
+        public const int TGT_INFO_OUTPUT_PACKET_SIZE = 24;
+
+        public int X { get; set; }            // int32_t (4 bytes)
+        public int Y { get; set; }            // int32_t (4 bytes)
+        public short Z { get; set; }            // int32_t (4 bytes)
+        public int Vx { get; set; }         // int16_t (2 bytes)
+        public int Vy { get; set; }         // int16_t (2 bytes)
+        public short Vz { get; set; }         // int16_t (2 bytes)
+        public uint DetectedMslTime { get; set; }   // uint32_t (4 bytes)
+
+        public TgtInfoOutputPacket() { }
+
+        public TgtInfoOutputPacket(HeaderPacket header,
+                                   int x, int y, short z,
+                                   int vx, int vy, short vz,
+                                   uint detectedMslTime)
+        {
+            Header = header;
+            X = x;
+            Y = y;
+            Z = z;
+            Vx = vx;
+            Vy = vy;
+            Vz = vz;
+            DetectedMslTime = detectedMslTime;
+        }
+
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+
+            var body = new List<byte>();
+            body.AddRange(BitConverter.GetBytes(X));
+            body.AddRange(BitConverter.GetBytes(Y));
+            body.AddRange(BitConverter.GetBytes(Z));
+            body.AddRange(BitConverter.GetBytes(Vx));
+            body.AddRange(BitConverter.GetBytes(Vy));
+            body.AddRange(BitConverter.GetBytes(Vz));
+            body.AddRange(BitConverter.GetBytes(DetectedMslTime));
+
+            buffer.AddRange(body);
+            return buffer.ToArray();
+        }
+
+        public override void Deserialize(byte[] buffer)
+        {
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + TGT_INFO_OUTPUT_PACKET_SIZE)
+                throw new ArgumentException("Buffer too small for TgtInfoOutputPacket");
+
+            var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
+            Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
+            Header = HeaderPacket.Deserialize(hdrBuffer);
+
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+            X = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Y = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Z = BitConverter.ToInt16(buffer, offset); offset += 2;
+            Vx = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vy = BitConverter.ToInt32(buffer, offset); offset += 4;
+            Vz = BitConverter.ToInt16(buffer, offset); offset += 2;
+            DetectedMslTime = BitConverter.ToUInt32(buffer, offset); offset += 4;
+        }
+
+        public override string ToString()
+        {
+            return $"[TgtInfoOutputPacket]\n{Header}\n" +
+                   $"Position(x={X}, y={Y}, z={Z}, " +
+                   $"velocity(vx={Vx}, vy={Vy}, vz={Vz}), " +
+                   $"DetectedMslTime={DetectedMslTime} ms)";
+        }
+    }
+
+    public class TgtFinPacket : BasePacket
+    {
+        public const int TGT_FIN_PACKET_SIZE = 14;
+        public char DetectedId { get; set; }// 탐지 아이디 (1 byte)
+
+        public override void Deserialize(byte[] buffer)
+        {
+            if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + TGT_FIN_PACKET_SIZE)
+                throw new ArgumentException("Buffer too small for TgtInfoOutputPacket");
+
+            var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
+            Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
+            Header = HeaderPacket.Deserialize(hdrBuffer);
+
+            DetectedId = (char)buffer[HeaderPacket.HEADER_PACKET_SIZE + 1];
+        }
+
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+
+            var body = new List<byte>();
+            body.AddRange(BitConverter.GetBytes(DetectedId));
+
+            buffer.AddRange(body);
+            return buffer.ToArray();
+        }
+
+        public override string ToString()
+        {
+            return $"[TgtFinPacket]\n{Header}\n" +
+                   $"Detection(id={DetectedId})";
         }
     }
 

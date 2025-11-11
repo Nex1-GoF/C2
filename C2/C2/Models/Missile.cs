@@ -76,7 +76,7 @@ namespace C2.Models
                 }
             }
         }
-
+        public int IdNumber => int.Parse(Id);
         public double Latitude => LatitudeRaw / 1e7;
         public double Longitude => LongitudeRaw / 1e7;
         public double Yaw => YawRaw / 100.0;

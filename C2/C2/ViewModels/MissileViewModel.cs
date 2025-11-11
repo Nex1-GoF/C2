@@ -1,5 +1,6 @@
 ﻿using C2.Messages;
 using C2.Models;
+using C2.Network;
 using C2.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,6 +8,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Input;
 
 namespace C2.ViewModels
 {
@@ -19,14 +21,15 @@ namespace C2.ViewModels
         private ObservableCollection<Missile> missiles = new();
 
         private readonly MissileService _service;
+        private readonly AbortManager _abortManager;
 
         // ✅ 여러 미사일 선택 가능하도록 리스트화
         private readonly List<Missile> _selectedMissiles = new();
         public IReadOnlyList<Missile> SelectedMissiles => _selectedMissiles;
-
         public MissileViewModel()
         {
             _service = MissileService.Instance;
+            _abortManager = AbortManager.Instance;
 
             // ✅ 초기 1회만 미사일 4기 채움
             foreach (var m in _service.GetAllMissiles())
@@ -46,6 +49,10 @@ namespace C2.ViewModels
         private void Abort(Missile missile)
         {
             missile.State = MissileState.Abort;
+
+            var mslId = $"M{int.Parse(missile.Id):000}";
+            _abortManager.AbortMissile(mslId);
+
             // TODO: 폭파 로직 추가
             // TODO: DatalinkService의 비상폭파 로직 실행
         }
