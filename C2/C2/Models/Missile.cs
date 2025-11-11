@@ -20,6 +20,8 @@ namespace C2.Models
         public double Longitude { get; set; }
         public short Altitude { get; set; }
 
+        
+
         public PIP (double  lat, double lon, short alt)
         {
             Latitude = lat;
@@ -36,6 +38,8 @@ namespace C2.Models
 
         public int LatitudeRaw { get; set; }
         public int LongitudeRaw { get; set; }
+        public bool IsAbort { get; set; }
+        public bool IsSelfabort { get; set; }
         public int Maxspeed = 200;
         private int _speed = 0;
         public int Speed
@@ -108,19 +112,19 @@ namespace C2.Models
             flightTime = 0;
         }
 
-        public Missile() { }
+        //public Missile() { }
 
-        public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, MissileState state, string? targetId = null)
-        {
-            Id = id;
-            LatitudeRaw = latitudeRaw;
-            LongitudeRaw = longitudeRaw;
-            Altitude = altitude;
-            Speed = 0;
+        //public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, MissileState state, string? targetId = null)
+        //{
+        //    Id = id;
+        //    LatitudeRaw = latitudeRaw;
+        //    LongitudeRaw = longitudeRaw;
+        //    Altitude = altitude;
+        //    Speed = 0;
             
-            State = state;
-            TargetId = targetId;
-        }
+        //    State = state;
+        //    TargetId = targetId;
+        //}
 
         public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude)
         {
@@ -130,6 +134,8 @@ namespace C2.Models
             Altitude = altitude;
             Speed = 0;
             State = MissileState.LaunchReady;
+            IsAbort = false;
+            IsSelfabort = false;
         }
 
         public void Update(Missile src)
@@ -142,7 +148,7 @@ namespace C2.Models
             Speed = src.Speed;
             FlightTime = src.FlightTime;
             State = src.State;
-            TargetId = src.TargetId;
+            //TargetId = src.TargetId;
         }
     }
 }
