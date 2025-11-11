@@ -468,7 +468,7 @@ namespace C2.Network
 
                 // 2️⃣ Yaw (1e7으로 스케일 보정)
                 //double yawDeg = target.Yaw / 1e7;
-                double yawDeg = 175.0;
+                double yawDeg = (target.Yaw / 100.0);
                 double theta = yawDeg * Math.PI / 180.0;
 
                 // 3️⃣ 타겟 진행 방향 단위벡터 * 속도(m/s)
@@ -526,7 +526,7 @@ namespace C2.Network
                      target: target,
                      missileLat: _launchingMissile.Latitude,
                      missileLon: _launchingMissile.Longitude,
-                     missileSpeed: 1000,
+                     missileSpeed: 6000,
                      lat0: _launchingMissile.Latitude,
                      lon0: _launchingMissile.Longitude
 
