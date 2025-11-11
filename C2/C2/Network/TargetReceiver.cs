@@ -119,17 +119,5 @@ public class TargetReceiver
         return (x, y);
     }
 
-    /// <summary>
-    /// 시뮬레이션 좌표(x,y) → 위도/경도 변환
-    /// </summary>
-    private (double lat, double lon) XYToLatLon(double x, double y, double lat0, double lon0)
-    {
-        const double R = 6_378_137.0;
-        double lat0Rad = lat0 * Math.PI / 180.0;
-
-        double newLat = lat0 + (y / R) * (180.0 / Math.PI);
-        double newLon = lon0 + (x / (R * Math.Cos(lat0Rad))) * (180.0 / Math.PI);
-
-        return (newLat, newLon);
-    }
+    
 }
