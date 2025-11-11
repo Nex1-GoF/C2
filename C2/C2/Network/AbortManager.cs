@@ -26,6 +26,25 @@ namespace C2.Network
             SendToRadar(mslCmd);
         }
 
+        public void AbortTarget(char tgtId)
+        {
+            var tgtFin = ToTgtFinPacket(tgtId);
+            Console.WriteLine(tgtFin.ToString());
+            SendToTgt(tgtFin);
+        }
+
+        private TgtFinPacket ToTgtFinPacket(char tgtId)
+        {
+            HeaderPacket headerPacket = new("C001", "T001", 0, HeaderPacket.HEADER_PACKET_SIZE);
+            TgtFinPacket tgtFin = new TgtFinPacket
+            {
+                Header = headerPacket,
+                DetectedId = tgtId
+            };
+
+            return tgtFin;
+        }
+
         private MslCmdPacket ToMslCmdPacket(String mslId)
         {
             HeaderPacket headerPacket = new("C001", mslId, 0, HeaderPacket.HEADER_PACKET_SIZE);
@@ -43,6 +62,19 @@ namespace C2.Network
             try
             {
                 _socketManager.Send(mslCmd.Serialize(), "192.168.206.129", 8002);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[RadarSend] Error: {ex.Message}");
+            }
+        }
+
+        private void SendToTgt(TgtFinPacket tgtFin
+            )
+        {
+            try
+            {
+                _socketManager.Send(tgtFin.Serialize(), "127.0.0.1", 6004);
             }
             catch (Exception ex)
             {
