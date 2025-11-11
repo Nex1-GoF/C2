@@ -149,4 +149,17 @@ namespace C2
             => throw new NotImplementedException();
     }
 
+    public class CollapseIconConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool collapsed = value is bool b && b;
+            return Application.Current.MainWindow.FindResource(
+    collapsed ? "IconExpand" : "IconCollapse"
+);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => Binding.DoNothing;
+    }
 }

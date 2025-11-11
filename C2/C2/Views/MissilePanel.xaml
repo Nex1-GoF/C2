@@ -26,12 +26,17 @@
         <Style x:Key="AbortButtonStyle" TargetType="Button">
             <Setter Property="Foreground" Value="Gray"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="10"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Background" Value="Red"/>
             <Style.Triggers>
                 <Trigger Property="IsEnabled" Value="True">
                     <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5"/>
+                    <Setter Property="Background" Value="Red"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -39,9 +44,8 @@
         <!-- 카드 템플릿: Width 고정 제거, Stretch + MinWidth만 -->
         <DataTemplate x:Key="ExpandedCardTemplate">
             <Border Background="#1E2A3A"
-                    Margin="6"
+                    Margin="3,6,3,6"
                     Padding="10"
-                    CornerRadius="10"
                     HorizontalAlignment="Stretch"
                     MinWidth="160">
                 <Grid>
@@ -60,7 +64,7 @@
 
                         <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
            Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}" FontSize="20" Margin="20,0,0,0"/>
-                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="LightBlue" FontSize="16" Margin="10,20,0,0"/>
+                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="Red" FontSize="16" Margin="10,20,0,0"/>
                         
                         <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}, StringFormat='상태: {0}'}"
 Foreground="LightGray" FontSize="16"  Margin="10,0,0,0"/>
@@ -70,11 +74,11 @@ Foreground="LightGray" FontSize="16"  Margin="10,0,0,0"/>
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding Id}"
+                        <TextBlock Text="{Binding IdNumber, StringFormat='LSAM-{0:000}'}"
             Foreground="LightGray"
            FontWeight="Bold"
-           FontSize="25"
-           Margin="4,0,0,20" HorizontalAlignment="Center"/>
+           FontSize="20"
+           Margin="4,10,0,20" HorizontalAlignment="Center"/>
                         <TextBlock Text="{Binding Latitude, StringFormat='위도: {0}°'}" Foreground="LightGray" FontSize="16"/>
                         <TextBlock Text="{Binding Longitude, StringFormat='경도: {0}° '}" Foreground="LightGray" FontSize="16"/>
                         <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}" Foreground="LightGray" FontSize="16"/>
@@ -95,9 +99,8 @@ Foreground="LightGray" FontSize="16"  Margin="10,0,0,0"/>
 
         <DataTemplate x:Key="CompactCardTemplate">
             <Border Background="#1A2535"
-                    Margin="3"
+                    Margin="3,6,3,6"
                     Padding="8"
-                    CornerRadius="8"
                     HorizontalAlignment="Stretch"
                     BorderBrush="#2E3C4F"
                     BorderThickness="1"
@@ -125,13 +128,13 @@ FontSize="15"
 Margin="0,0,10,0" HorizontalAlignment="Right"/>
                     </Grid>
                     <Grid>
-                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="LightGray" FontSize="16" Margin="10,0,0,0"/>
+                        <TextBlock Text="{Binding TargetId, StringFormat='표적: {0}'}" Foreground="Red" FontSize="16" Margin="10,0,0,0"/>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0">
                             <Button Content="비상폭파" 
 Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
 CommandParameter="{Binding}"
 IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
-Width="100" Height="30" Margin="0,0,0,0"
+Width="100" Height="20" Margin="0,0,0,0"
 Style="{StaticResource AbortButtonStyle}"/>
                         </StackPanel>
                     </Grid>
