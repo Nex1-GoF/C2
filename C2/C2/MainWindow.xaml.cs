@@ -27,6 +27,7 @@ namespace C2
         private readonly MainViewModel _vm;
         private TargetReceiver _targetReceiver;
         private MissileReceiver _missileReceiver;
+        private AbortManager _abortManager;
         private SocketManager _socketManager;
 
         public MainWindow()
@@ -38,11 +39,12 @@ namespace C2
 
             NativeMethods.AllocConsole();
 
-            _socketManager = new SocketManager();
+            _socketManager = SocketManager.Instance;
             _socketManager.Initialize();
 
             _targetReceiver = new TargetReceiver(_socketManager);
             _missileReceiver = new MissileReceiver(_socketManager);
+            _abortManager = AbortManager.Instance;
         }
 
         // 로그 확인용 - 콘솔 창 열기
