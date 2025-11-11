@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -353,4 +353,145 @@ namespace C2.Network
         }
     }
 
+
+    // --------------------------------------------------------
+      // 발사 절차 시퀀스
+    // --------------------------------------------------------
+
+    public class InitialGuidanceMessage : BasePacket
+    {
+        public InitialGuidanceMessage(HeaderPacket header)
+        {
+            Header = header;
+        }
+
+        public override byte[] Serialize() => Header.Serialize();
+
+        public override void Deserialize(byte[] buffer)
+        {
+            Header = HeaderPacket.Deserialize(buffer);
+        }
+    }
+    public class KeyExchangeMessage : BasePacket
+    {
+        public byte[] EncryptionKey { get; private set; }
+
+        public KeyExchangeMessage(HeaderPacket header)
+        {
+            Header = header;
+            EncryptionKey = Array.Empty<byte>();
+        }
+
+        public void SetEncryptionKey(byte[] keyBytes)
+        {
+            if (keyBytes == null || keyBytes.Length == 0)
+                throw new ArgumentException("키 생성 실패");
+
+            EncryptionKey = new byte[32];
+            Array.Copy(keyBytes, EncryptionKey, Math.Min(32, keyBytes.Length));
+        }
+
+        public override byte[] Serialize()
+        {
+            var headerBytes = Header.Serialize();
+            var buffer = new List<byte>(headerBytes);
+
+            if (EncryptionKey != null && EncryptionKey.Length > 0)
+                buffer.AddRange(EncryptionKey);
+
+            return buffer.ToArray();
+        }
+
+        public override void Deserialize(byte[] buffer)
+        {
+            Header = HeaderPacket.Deserialize(buffer);
+
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+            int remain = buffer.Length - offset;
+
+            if (Header.Seq == 4 && remain >= 32)
+            {
+                EncryptionKey = new byte[32];
+                Array.Copy(buffer, offset, EncryptionKey, 0, 32);
+            }
+            else
+            {
+                throw new InvalidOperationException("보낼 패킷과 페이로드가 일치하지 않습니다.");
+            }
+        }
+    }
+
+    public class InitialPipMessage : BasePacket
+    {
+        public int PIP_X { get; private set; }
+        public int PIP_Y { get; private set; }
+        public int PIP_Z { get; private set; }
+
+        public InitialPipMessage(HeaderPacket header)
+        {
+            Header = header;
+        }
+
+        public void SetPIP(int x, int y, int z)
+        {
+            PIP_X = x;
+            PIP_Y = y;
+            PIP_Z = z;
+        }
+
+        public override byte[] Serialize()
+        {
+            var headerBytes = Header.Serialize();
+            var buffer = new List<byte>(headerBytes);
+
+            buffer.AddRange(BitConverter.GetBytes(PIP_X));
+            buffer.AddRange(BitConverter.GetBytes(PIP_Y));
+            buffer.AddRange(BitConverter.GetBytes(PIP_Z));
+
+            return buffer.ToArray();
+        }
+
+        public override void Deserialize(byte[] buffer)
+        {
+            Header = HeaderPacket.Deserialize(buffer);
+
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+            int remain = buffer.Length - offset;
+
+            if (Header.Seq == 6 && remain >= 12)
+            {
+                PIP_X = System.Net.IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, offset));
+                PIP_Y = System.Net.IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, offset + 4));
+                PIP_Z = System.Net.IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, offset + 8));
+            }
+            else
+            {
+                throw new InvalidOperationException("보낼 패킷과 페이로드가 일치하지 않습니다.");
+            }
+        }
+    }
+
+
+    public class ResponseMessage : BasePacket
+    {
+        public ResponseMessage(HeaderPacket header)
+        {
+            Header = header;
+        }
+
+        public override byte[] Serialize() => Header.Serialize();
+
+        public override void Deserialize(byte[] buffer)
+        {
+            Header = HeaderPacket.Deserialize(buffer);
+        }
+
+        public static ResponseMessage FromBytes(byte[] buffer)
+        {
+            var header = HeaderPacket.Deserialize(buffer);
+            return new ResponseMessage(header);
+        }
+
+        public void Print() => Console.WriteLine(Header.ToString());
+    }
 }
