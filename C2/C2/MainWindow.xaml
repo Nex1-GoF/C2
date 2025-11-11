@@ -17,7 +17,10 @@
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:BoolToTextConverter x:Key="BoolToTextConverter"/>
         <views:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
-
+        <local:CollapseIconConverter x:Key="CollapseIconConverter"/>
+        <Geometry x:Key="IconExpand">M 0 0 L 10 10 L 20 0 Z</Geometry>
+        <Geometry x:Key="IconCollapse">M 0 10 L 10 0 L 20 10 Z</Geometry>
+        <!-- 위 화살표 -->
     </Window.Resources>
 
     <Grid x:Name="MainGrid">
@@ -41,17 +44,17 @@
             VerticalAlignment="Bottom"
             Margin="0">
                 <!--접기/펼치기-->
-                <Button
-    Content="{Binding ElementName=MissilePanelRef, Path=DataContext.IsCollapsed,
-                     Converter={StaticResource BooleanToTextConverter},
-                     ConverterParameter='접기|펼치기'}"
-    Click="GlobalCollapseButton_Click"
-    VerticalAlignment="Top"
-    Margin="0,16,16,0"
-    Panel.ZIndex="99"
-    Width="50" Height="30"
-    Background="#303030" Foreground="White" FontWeight="Bold"
-    Opacity="0.9"/>
+                <Button Width="30" Height="30"
+        Background="#303030"
+        BorderThickness="0"
+        Click="GlobalCollapseButton_Click">
+
+                    <Path Stretch="Uniform"
+          Fill="White"
+          Data="{Binding ElementName=MissilePanelRef,
+                 Path=DataContext.IsCollapsed,
+                 Converter={StaticResource CollapseIconConverter}}"/>
+                </Button>
             </StackPanel>
             <!-- 오른쪽 아래: 발사 UI -->
             <StackPanel Orientation="Vertical"
