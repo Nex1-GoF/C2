@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
 
@@ -8,11 +9,11 @@ namespace C2.Models
     public enum MissileState : byte
     {
         LaunchReady = 1,
-        Launching,
-        InitialGuidance,
-        MidGuidance,
-        TerminalGuidance,
-        Abort
+        InitialGuidance = 2,
+        MidGuidance = 3,
+        TerminalGuidance =4,
+        Launching = 5,
+        Abort =6
     }
     public class PIP
     {
@@ -166,7 +167,13 @@ namespace C2.Models
             PitchRaw = src.PitchRaw;
             Speed = src.Speed;
             FlightTime = src.FlightTime;
-            State = src.State;
+            State = src.State; 
+            OnPropertyChanged(nameof(Latitude));
+            OnPropertyChanged(nameof(Longitude));
+            OnPropertyChanged(nameof(Yaw));
+            OnPropertyChanged(nameof(Pitch));
+            OnPropertyChanged(nameof(State));
+            Console.WriteLine(State);
             //TargetId = src.TargetId;
         }
     }

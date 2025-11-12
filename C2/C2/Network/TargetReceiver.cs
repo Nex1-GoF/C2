@@ -33,14 +33,15 @@ public class TargetReceiver
         _targetService.ReceiveTargetData(target);
 
         var missile = _missileService.GetAllMissiles().FirstOrDefault(m => m.TargetId != null && m.TargetId.Equals(target.Id.ToString()));
-        if(missile == null)
+        
+        if (missile == null)
         {
             Console.WriteLine("[미사일 없음]");
             //TODO: 예외처리
             return;
         }
         //미사일 업링크상황 아니면
-        if (missile.State != MissileState.MidGuidance || missile.State != MissileState.TerminalGuidance) 
+        if (missile.State == MissileState.Abort ) 
             return;
         //업링크!
         var mslId = $"M{int.Parse(missile.Id):000}";
@@ -54,7 +55,7 @@ public class TargetReceiver
     {
         try
         {
-            _socketManager.Send(tgtInfo.Serialize(), "192.168.206.129", 8003);
+            _socketManager.Send(tgtInfo.Serialize(), "192.168.1.10", 8003);
         }
         catch (Exception ex)
         {
