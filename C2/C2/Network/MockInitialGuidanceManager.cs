@@ -178,7 +178,7 @@ namespace C2.Network
                     _manager._logService.AddLog(MessageType.System, $"{missileId} 발사 단계로 전환됨");
 
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -191,7 +191,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -204,7 +204,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -219,7 +219,7 @@ namespace C2.Network
                 await base.EnterAsync(token);
                 byte[] key = GenerateSessionKey();
                 _manager._logService.AddLog(MessageType.System, $"세션 키 생성 완료 ({key.Length} bytes)");
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -232,7 +232,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -241,39 +241,102 @@ namespace C2.Network
             public override string Name => "PIP 계산";
             public override IGuidanceState NextState => new LaunchState(_manager, _missile);
             public PipCalculationState(MockInitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            private static (double x, double y) LatLonToXY(double lat, double lon, double lat0, double lon0)
+            {
+                const double R = 6_378_137.0; // 지구 반경 (m)
+                double lat0Rad = lat0 * Math.PI / 180.0;
+                double dLat = (lat - lat0) * Math.PI / 180.0;
+                double dLon = (lon - lon0) * Math.PI / 180.0;
 
+                double x = dLon * R * Math.Cos(lat0Rad);
+                double y = dLat * R;
+                return (x, y);
+            }
+            private (double lat, double lon) XYToLatLon(double x, double y, double lat0, double lon0)
+            {
+                const double R = 6_378_137.0;
+                double lat0Rad = lat0 * Math.PI / 180.0;
+
+                double newLat = lat0 + (y / R) * (180.0 / Math.PI);
+                double newLon = lon0 + (x / (R * Math.Cos(lat0Rad))) * (180.0 / Math.PI);
+
+                return (newLat, newLon);
+            }
+
+            public static (int pipX, int pipY) ComputePIP(
+            Target target,
+            double missileLat, double missileLon,
+            int missileSpeed,            // ✅ int 단위 (m/s)
+            double lat0, double lon0)
+            {
+                // 1️⃣ 위경도 → 평면 좌표
+                var (tx, ty) = LatLonToXY(target.CurLoc.Lat, target.CurLoc.Lon, lat0, lon0);
+                var (mx, my) = LatLonToXY(missileLat, missileLon, lat0, lon0);
+
+                // 2️⃣ Yaw (1e7으로 스케일 보정)
+                //double yawDeg = target.Yaw / 1e7;
+                double yawDeg = 175.0;
+                double theta = yawDeg * Math.PI / 180.0;
+
+                // 3️⃣ 타겟 진행 방향 단위벡터 * 속도(m/s)
+                double dx = target.Speed * Math.Sin(theta);
+                double dy = target.Speed * Math.Cos(theta);
+
+                // 4️⃣ 교차 시간 t 탐색 (선형 탐색)
+                double t = 0.0;
+                double left = 0, right = 2000; // 최대 1000초 탐색
+                for (int i = 0; i < 100; i++)
+                {
+                    t = (left + right) / 2.0;
+                    double tx_t = tx + dx * t;
+                    double ty_t = ty + dy * t;
+                    double dist = Math.Sqrt(Math.Pow(tx_t - mx, 2) + Math.Pow(ty_t - my, 2));
+
+                    if (dist > missileSpeed * t)
+                        left = t;
+                    else
+                        right = t;
+                }
+
+                // 5️⃣ 최종 PIP 계산 (1e7 스케일 적용 후 정수 변환)
+                int pipX = (int)Math.Round((tx + dx * t));
+                int pipY = (int)Math.Round((ty + dy * t));
+
+                return (pipX, pipY);
+            }
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
 
-                var targetId = _missile.TargetId?.FirstOrDefault();
-                if (targetId == null)
-                {
-                    return;
-                }
+                // Todo: X Y Z 변환해서 보내야함
+                char targetId = _missile.TargetId[0];
+                // 1. PIP를 구한다. (현재 표적 위 경 고도
+                var target = _manager._targetService.GetTarget(targetId);
 
-                var target = _manager._targetService.GetTarget(targetId ?? '\0');
                 if (target == null)
                 {
+                    //NextState = null;
                     return;
                 }
 
-                double mLat = _missile.Latitude;
-                double mLon = _missile.Longitude;
-                double tLat = target.CurLoc.Lat;
-                double tLon = target.CurLoc.Lon;
+                (int x, int y) targetXY = ComputePIP(
+                     target: target,
+                     missileLat: _missile.Latitude,
+                     missileLon: _missile.Longitude,
+                     missileSpeed: 6000,
+                     lat0: _missile.Latitude,
+                     lon0: _missile.Longitude
 
-                double pipLat = (mLat + tLat) / 2.0;
-                double pipLon = (mLon + tLon) / 2.0;
-
-                _missile.PIP = new PIP(pipLat, pipLon, 0);
-
-                _manager._logService.AddLog(
-                    MessageType.System,
-                    $"[{_missile.Id}] PIP 계산 완료: ({pipLat:F6}, {pipLon:F6})"
                 );
 
-                await Task.Delay(500, token);
+               // byte[] pip = BuildPipBody(targetXY.x, targetXY.y, 10);
+
+                (double lat, double lon) targetLatLon = XYToLatLon(targetXY.x, targetXY.y, _missile.Latitude, _missile.Longitude);
+
+                _missile.PIP = new PIP(targetLatLon.lat, targetLatLon.lon, 10);
+                WeakReferenceMessenger.Default.Send(new PipCalculatedMessage(_missile.Id, targetLatLon.lat, targetLatLon.lon, 10));
+
+                await Task.Delay(10, token);
             }
         }
 
