@@ -232,7 +232,7 @@ namespace C2.Network
                 await _manager.SmoothProgressToAsync(targetProgress, 1500, token);
             }
 
-            protected bool SendAndWaitForAck(Missile missile, int seq, int msgSize = 0, byte[]? body = null)
+            protected async Task<bool> SendAndWaitForAck(Missile missile, int seq, int? msgSize = 0, byte[]? body = null)
             {
                 if (!_linkConfig.TryGetLink(missile, out var link))
                 {
@@ -253,7 +253,7 @@ namespace C2.Network
                         _ => new InitialGuidanceMessage(header)
                     };
 
-                    if (message is KeyExchangeMessage keyMsg && body  != null)
+                    if (message is KeyExchangeMessage keyMsg && body != null)
                     {
                         keyMsg.SetEncryptionKey(body);
                     }
@@ -268,43 +268,44 @@ namespace C2.Network
 
                     using var client = new UdpClient(link.rxPort);
                     var packet = message.Serialize();
-                    client.Client.ReceiveTimeout = 10000;
 
-                    var sendEp = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort); 
-                    var recvEp = new IPEndPoint(IPAddress.Parse(link.rxIp), link.rxPort);
+                    var sendEp = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
 
                     _manager._logService.AddLog(MessageType.System,
                         $"[II-{seq:D4}] 송신 시작 ({missile.Id}) → {link.txIp}:{link.txPort}");
-                    client.Send(packet, packet.Length, sendEp);
+                    await client.SendAsync(packet, packet.Length, sendEp);
 
-                    var recvBytes = client.Receive(ref recvEp);
-                    var response = ResponseMessage.FromBytes(recvBytes); 
-                    if (response.Header.Seq == seq)
+                    // 30초 타임아웃 설정
+                    var recvTask = client.ReceiveAsync();
+                    if (await Task.WhenAny(recvTask, Task.Delay(30000)) == recvTask)
                     {
-                        _manager._logService.AddLog(MessageType.System,
-                            $"[II-{seq:D4}] 응답 수신 ← {recvEp.Address}:{recvEp.Port}");
-                        return true;
-                    }
+                        var recvResult = recvTask.Result;
+                        var response = ResponseMessage.FromBytes(recvResult.Buffer);
 
-                    if (response.Header.Seq == seq)
-                    {
+                        if (response.Header.Seq == seq)
+                        {
+                            _manager._logService.AddLog(MessageType.System,
+                                $"[II-{seq:D4}] 응답 수신 ← {recvResult.RemoteEndPoint.Address}:{recvResult.RemoteEndPoint.Port}");
+                            return true;
+                        }
+
                         _manager._logService.AddLog(MessageType.System,
-                            $"[II-{seq:D4}] 응답 수신 ← {recvEp.Address}:{recvEp.Port}");
-                        return true;
+                            $"[II-{seq:D4}] 응답 시퀀스 불일치");
+                        return false;
                     }
-                    _manager._logService.AddLog(MessageType.System,
-                        $"[II-{seq:D4}] 응답 시퀀스 불일치");
-                    return false;
+                    else
+                    {
+                        _manager._logService.AddLog(MessageType.System, $"[II-{seq:D4}] 응답 타임아웃");
+                        return false;
+                    }
                 }
                 catch (SocketException ex)
                 {
-                    if (ex.SocketErrorCode == SocketError.TimedOut)
-                        _manager._logService.AddLog(MessageType.System, $"[II-{seq:D4}] 응답 타임아웃");
-                    else
-                        _manager._logService.AddLog(MessageType.System, $"[II-{seq:D4}] 통신 오류: {ex.Message}");
+                    _manager._logService.AddLog(MessageType.System, $"[II-{seq:D4}] 통신 오류: {ex.Message}");
                     return false;
                 }
             }
+
 
             protected void HandleFailure(Missile missile, int seq)
             {
@@ -326,7 +327,7 @@ namespace C2.Network
                 await base.EnterAsync(token);
                 _manager._missileService.UpdateMissileState(MissileState.LaunchReady, MissileState.Launching);
 
-                bool ok = SendAndWaitForAck(_launchingMissile, seq: 1);
+                bool ok = await SendAndWaitForAck(_launchingMissile, seq: 1);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 1);
@@ -349,7 +350,7 @@ namespace C2.Network
             {
                 await base.EnterAsync(token);
 
-                bool ok = SendAndWaitForAck(_launchingMissile, seq: 2);
+                bool ok = await SendAndWaitForAck(_launchingMissile, seq: 2);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 2);
@@ -369,7 +370,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                bool ok = SendAndWaitForAck(_launchingMissile, seq: 3);
+                bool ok = await SendAndWaitForAck(_launchingMissile, seq: 3);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 3);
@@ -395,7 +396,7 @@ namespace C2.Network
                 await base.EnterAsync(token);
 
                 byte[] key = GenerateSessionKey();
-                bool ok = SendAndWaitForAck(_launchingMissile, seq: 4, msgSize: 32, key);
+                bool ok = await SendAndWaitForAck(_launchingMissile, seq: 4, msgSize: 32, key);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 4);
@@ -416,7 +417,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                bool ok = SendAndWaitForAck(_launchingMissile, seq: 5);
+                bool ok = await SendAndWaitForAck(_launchingMissile, seq: 5);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 5);
@@ -540,7 +541,7 @@ namespace C2.Network
 
 
 
-                bool ok = SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
+                bool ok = await SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 6);
@@ -569,7 +570,7 @@ namespace C2.Network
                 }
 
                 await base.EnterAsync(token);
-                bool ok = SendAndWaitForAck(_launchingMissile, seq: 7);
+                bool ok = await SendAndWaitForAck(_launchingMissile, seq: 7);
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 7);
