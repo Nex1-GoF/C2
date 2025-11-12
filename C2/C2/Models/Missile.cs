@@ -117,6 +117,7 @@ namespace C2.Models
             short pitchRaw,
             uint flightTime,
             MissileState state,
+            int speed = 0,
             string? targetId = null)
         {
             Id = id;
@@ -128,7 +129,7 @@ namespace C2.Models
             FlightTime = flightTime;
             State = state;
             TargetId = targetId;
-            Speed = 0;
+            Speed = speed;
             flightTime = 0;
         }
 
