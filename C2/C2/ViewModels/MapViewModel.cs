@@ -116,7 +116,7 @@ namespace C2.ViewModels
                                 Stroke = Brushes.Red,
                                 StrokeThickness = 1.8,
                                 Opacity = 0.8,
-                                Visibility = Visibility.Hidden
+                                Visibility = Visibility.Visible
                             }
                         };
 
@@ -324,10 +324,23 @@ namespace C2.ViewModels
             foreach (var tgtVM in tgtVMs)
             {
                 var targetId = tgtVM.DefaultID.ToString();
+                PointLatLng before = new PointLatLng(tgtVM.Latitude, tgtVM.Longitude);  
                 tgtVM.UpdateTargetInfo();
-
+                PointLatLng after = new PointLatLng(tgtVM.Latitude, tgtVM.Longitude);
                 var targetEngagement = tgt_set.GetValueOrDefault(targetId);
                 targetEngagement?.Paths?.Points.Add(new PointLatLng(tgtVM.Latitude, tgtVM.Longitude));
+
+                var targetPath = new GMapRoute(new List<PointLatLng> { before, after})
+                {
+                    Shape = new Path
+                    {
+                        Stroke = Brushes.Red,
+                        StrokeThickness = 1.8,
+                        Opacity = 0.8,
+                        Visibility = Visibility.Visible
+                    }
+                };
+                _map.Markers.Add(targetPath!);
             }
 
             // 3️⃣ 미사일 위치 + 경로 + 라인 갱신
@@ -367,6 +380,7 @@ namespace C2.ViewModels
                     Colors.Black,
                     pipVM.IsVisible
                 );
+
 
                 // 맵 및 구조체에 반영
                 _map.Markers.Add(newLine);
