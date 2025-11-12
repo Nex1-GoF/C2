@@ -22,7 +22,7 @@
               RenderTransformOrigin="0.5,0.5">
             <Grid.RenderTransform>
                 <!-- 0도 = 북쪽, 90도 = 동쪽 -->
-                <RotateTransform Angle="{Binding Yaw}" />
+                <RotateTransform Angle="{Binding Yaw1}" />
             </Grid.RenderTransform>
 
             <!-- 삼각형 -->

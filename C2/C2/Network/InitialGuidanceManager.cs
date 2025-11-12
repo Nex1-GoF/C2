@@ -86,11 +86,6 @@ namespace C2.Network
                     {
                         _logService.AddLog(MessageType.System, "발사 절차 완료");
 
-                        var launchedId = _missileService.UpdateMissileState(
-                            MissileState.InitialGuidance, MissileState.MidGuidance);
-                        if (launchedId != null)
-                            _logService.AddLog(MessageType.System, $"{launchedId} 중기유도 단계로 전환됨");
-
                         WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(100));
                     }
 
@@ -468,8 +463,7 @@ namespace C2.Network
                 var (mx, my) = LatLonToXY(missileLat, missileLon, lat0, lon0);
 
                 // 2️⃣ Yaw (1e7으로 스케일 보정)
-                //double yawDeg = target.Yaw / 1e7;
-                double yawDeg = 175.0;
+                double yawDeg = (target.Yaw) / 100.0;
                 double theta = yawDeg * Math.PI / 180.0;
 
                 // 3️⃣ 타겟 진행 방향 단위벡터 * 속도(m/s)
@@ -560,7 +554,7 @@ namespace C2.Network
 
             public override async Task EnterAsync(CancellationToken token)
             {
-                _launchingMissile.flightTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.Launching, MissileState.InitialGuidance); // 발사중 -> 초기유도로 전환
                 WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_launchingMissile.Id));
 
@@ -578,6 +572,7 @@ namespace C2.Network
                     NextState = null;
                     return;
                 }
+                _launchingMissile.flightTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
             }
         }

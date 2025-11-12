@@ -104,7 +104,7 @@ namespace C2.ViewModels
                 double yaw = CalculateYaw(local.Latitude, local.Longitude, latest.Latitude, latest.Longitude);
 
                 // 미사일 모델의 Yaw 갱신
-                local.YawRaw = (short)(yaw * 1e7);
+                local.YawRaw = (short)(yaw * 1e3);
             }
             // Todo: 미사일 비상폭파 기능 제한 걸기
         }
