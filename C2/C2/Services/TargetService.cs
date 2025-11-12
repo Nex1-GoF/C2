@@ -17,6 +17,7 @@ namespace C2.Services
 
         private readonly Dictionary<char, Target> _targets = new();
         private readonly CancellationTokenSource _cts = new();
+        private LogService _logService = LogService.Instance;
         public Target? SelectedTarget {get; private set;}
 
         private readonly TimeSpan _removeThreshold = TimeSpan.FromSeconds(2.0);  // 2초동안 타겟 정보가 변경되지않으면 타겟 소실 처리함
@@ -97,6 +98,7 @@ namespace C2.Services
         {
             lock (_lock)
             {
+                _logService.AddLog(MessageType.System, "표적 소실이 발생했습니다.");
                 _targets.Remove(id);
                 WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
 
