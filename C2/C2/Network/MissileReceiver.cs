@@ -71,7 +71,8 @@ public class MissileReceiver
             yawRaw: (short)(yawDeg*100),
             pitchRaw: (short)(pitchDeg*100),
             flightTime: mslInfo.FlightTime,
-            state: state
+            state: state,
+            speed : (int)Math.Sqrt((mslInfo.Vx/1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3))
         );
     }
 
