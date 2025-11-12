@@ -149,10 +149,15 @@ namespace C2.Services
                         if (!existing.IsAbort)
                         {
                             //자폭인지 판별
-                            if (!string.IsNullOrEmpty(existing.TargetId))
+                            if(!existing.IsSelfabort)//자폭이 아니라면 타겟요격임
                             {
-                                _abortManager.AbortTarget(existing.TargetId[0]);
+                                if (!string.IsNullOrEmpty(existing.TargetId))
+                                    _abortManager.AbortTarget(existing.TargetId[0]);
                             }
+                            //if (!string.IsNullOrEmpty(existing.TargetId))
+                            //{
+                            //    _abortManager.AbortTarget(existing.TargetId[0]);
+                            //}
                             //폭파처리
                             existing.IsAbort = true;
                         }
