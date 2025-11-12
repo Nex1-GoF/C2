@@ -3,7 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="150" Height="40">
 
-    <Grid>
+    <UserControl.Resources>
+        <!-- bool → Visibility 변환기 -->
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <!-- 전체 컨트롤의 표시 여부를 바인딩 -->
+    <Grid Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="40"/>
             <ColumnDefinition Width="*" />
@@ -19,15 +25,12 @@
                 <RotateTransform Angle="{Binding Yaw}" />
             </Grid.RenderTransform>
 
-            <!-- 기본 초록 삼각형 -->
-            <!-- 🔺 빨간 삼각형 -->
+            <!-- 삼각형 -->
             <Polygon 
                     Points="0,-15 12,10 -12,10"
                     Fill="{Binding FillBrush}"
                     Stroke="{Binding StrokeBrush}"
                     StrokeThickness="1.5"/>
-
-
         </Grid>
 
         <!-- 🔸 Missile ID -->

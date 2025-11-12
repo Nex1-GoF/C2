@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -303,6 +304,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.InitialGuidance, MissileState.MidGuidance);
+                WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_missile.Id));
                 if (missileId != null)
                     _manager._logService.AddLog(MessageType.System, $"{missileId} 중기유도 단계로 전환됨");
 
