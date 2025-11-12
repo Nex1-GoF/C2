@@ -8,6 +8,7 @@ using GMap.NET.MapProviders;
 using GMap.NET.WindowsPresentation;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Drawing;
 using System.Linq;
 using System.Windows;
@@ -73,9 +74,11 @@ namespace C2.ViewModels
                     };
                     vm.BindMarker(marker);
                     _map.Markers.Add(marker);
+
+
                     // msl_set 등록
-                    if (!msl_set.ContainsKey(vm.Id))
-                        msl_set[vm.Id] = new MissileEngagement(vm);
+                    msl_set[vm.Id] = new MissileEngagement(vm, marker);
+
                 });
             }
 
@@ -107,21 +110,6 @@ namespace C2.ViewModels
                     {
                         var engagement = new TargetEngagement(vm);
                         tgt_set[targetId] = engagement;
-
-                        // ✅ Target 자체 궤적 Path 생성 (빨간 실선)
-                        var targetPath = new GMapRoute(new List<PointLatLng> { new PointLatLng(vm.Latitude, vm.Longitude) })
-                        {
-                            Shape = new Path
-                            {
-                                Stroke = Brushes.Red,
-                                StrokeThickness = 1.8,
-                                Opacity = 0.8,
-                                Visibility = Visibility.Visible
-                            }
-                        };
-
-                        // 🔗 지도에 Path 추가 및 관리 구조 등록
-                        _map.Markers.Add(targetPath);
                     }
 
                 });
@@ -130,108 +118,74 @@ namespace C2.ViewModels
             // 1️⃣ 미사일 선택 메시지
             WeakReferenceMessenger.Default.Register<MissileSelectedMessage>(this, (r, m) =>
             {
-               
                 foreach (var msl_set_value in msl_set.Values)
                 {
-                    // 미사일 업데이트포커스
+                    msl_set_value.IsFocused = false;
                     msl_set_value.MslVM.UpdateFocus(false);
-
-                    // 타겟 업데이트포커스
-                    if(msl_set_value.TgtVM != null)
-                        msl_set_value.TgtVM.UpdateFocus(false);
-
-                    // 라인 보여주기
-                    if (msl_set_value.Line != null) 
-                        msl_set_value.Line.Shape.Visibility = Visibility.Hidden;
-
-                    // 경로 보여주기
-                    if (msl_set_value.Path != null)
-                        msl_set_value.Path.Shape.Visibility = Visibility.Hidden;
-
-                    // PIP
-                    if(msl_set_value.PipVM != null)
-                        msl_set_value.PipVM.UpdateVisible(false);
                 }
 
-                string? id = m.Value;
-                if (id == null) return;
+                var currentMissileSet = msl_set.GetValueOrDefault(m.Value??"");
+                if (currentMissileSet == null) return;
 
-                var selected = id!;
-                var currentMissileSet = msl_set[selected];
-
+                currentMissileSet.IsFocused = true;
+                _map.Markers.Remove(currentMissileSet.MSLRef);
                 currentMissileSet.MslVM.UpdateFocus(true);
-
-                // 표적 보여주기
-                if (currentMissileSet.TgtVM != null)
-                    currentMissileSet.TgtVM.UpdateFocus(true);
-
-                // 라인 보여주기
-                if (currentMissileSet.Line != null)
-                    currentMissileSet.Line.Shape.Visibility = Visibility.Visible;
-
-                // 경로 보여주기
-                if (currentMissileSet.Path != null)
-                    currentMissileSet.Path.Shape.Visibility = Visibility.Visible;
-
-                // PIP
-                if (currentMissileSet.PipVM != null)
-                    currentMissileSet.PipVM.UpdateVisible(true);
-
+                _map.Markers.Add(currentMissileSet.MSLRef);
 
             });
 
             WeakReferenceMessenger.Default.Register<TargetSelectedMessage>(this, (r, m) =>
             {
 
-                // 전체 포커스 해제
-                foreach (var tgt_set_value in tgt_set.Values)
-                {
-                    // 경로
-                    if(tgt_set_value.Paths!= null)
-                        tgt_set_value.Paths.Shape.Visibility = Visibility.Hidden;
-                    // 라인
-                    foreach (var line in tgt_set_value.Line.Values)
-                        line.Shape.Visibility = Visibility.Hidden;
-                    // pip
-                    foreach (var pip in tgt_set_value.PipVMs)
-                        pip.UpdateVisible(false);
-                    // 미사일
-                    foreach (var msl in tgt_set_value.MslVMs)
-                        msl.UpdateFocus(false);
+                //// 전체 포커스 해제
+                //foreach (var tgt_set_value in tgt_set.Values)
+                //{
+                //    // 경로
+                //    if(tgt_set_value.Paths!= null)
+                //        tgt_set_value.Paths.Shape.Visibility = Visibility.Hidden;
+                //    // 라인
+                //    foreach (var line in tgt_set_value.Line.Values)
+                //        line.Shape.Visibility = Visibility.Hidden;
+                //    // pip
+                //    foreach (var pip in tgt_set_value.PipVMs)
+                //        pip.UpdateVisible(false);
+                //    // 미사일
+                //    foreach (var msl in tgt_set_value.MslVMs)
+                //        msl.UpdateFocus(false);
 
-                    // 표적
-                    tgt_set_value.TgtVM.UpdateFocus(false);
-                }
+                //    // 표적
+                //    tgt_set_value.TgtVM.UpdateFocus(false);
+                //}
                 
 
-                char? selectedTargetId = m.Value;
+                //char? selectedTargetId = m.Value;
 
-                if (selectedTargetId == null) {
-                    // 새로 지정할게 없으면 포커스 해제만
-                    return;
-                }
+                //if (selectedTargetId == null) {
+                //    // 새로 지정할게 없으면 포커스 해제만
+                //    return;
+                //}
 
-                var selected = selectedTargetId.ToString();
+                //var selected = selectedTargetId.ToString();
 
-                // 타겟 포커스
-                var currentTargetSet = tgt_set[selected!];
-                currentTargetSet.TgtVM.UpdateFocus(true);
+                //// 타겟 포커스
+                //var currentTargetSet = tgt_set[selected!];
+                //currentTargetSet.TgtVM.UpdateFocus(true);
 
-                // 표적 경로 보여주기
-                if(currentTargetSet.Paths != null)
-                    currentTargetSet.Paths.Shape.Visibility = Visibility.Visible;
+                //// 표적 경로 보여주기
+                //if(currentTargetSet.Paths != null)
+                //    currentTargetSet.Paths.Shape.Visibility = Visibility.Visible;
 
-                // 관련 미사일 포커스, 연결 라인 보여주기
-                foreach(var mslVM in currentTargetSet.MslVMs){
-                    mslVM.UpdateFocus(true);
-                    if(currentTargetSet.Line.ContainsKey(mslVM.Id))
-                        currentTargetSet.Line[mslVM.Id].Shape.Visibility = Visibility.Visible;
-                }
+                //// 관련 미사일 포커스, 연결 라인 보여주기
+                //foreach(var mslVM in currentTargetSet.MslVMs){
+                //    mslVM.UpdateFocus(true);
+                //    if(currentTargetSet.Line.ContainsKey(mslVM.Id))
+                //        currentTargetSet.Line[mslVM.Id].Shape.Visibility = Visibility.Visible;
+                //}
 
-                // PIP 보여주기
-                foreach (var pipVM in currentTargetSet.PipVMs) { 
-                    pipVM.UpdateVisible(true);
-                }
+                //// PIP 보여주기
+                //foreach (var pipVM in currentTargetSet.PipVMs) { 
+                //    pipVM.UpdateVisible(true);
+                //}
             });
 
 
@@ -253,8 +207,8 @@ namespace C2.ViewModels
 
                 msl_set[missileId].MslVM = mslVM;
                 msl_set[missileId].TgtVM = tgtVM;
-                tgt_set[targetId].TgtVM = tgtVM;
-                tgt_set[targetId].MslVMs.Add(mslVM);
+                //tgt_set[targetId].TgtVM = tgtVM;
+                //tgt_set[targetId].MslVMs.Add(mslVM);
             });
 
             // 3️⃣ PIP 계산 메시지
@@ -300,14 +254,6 @@ namespace C2.ViewModels
                 mEntry.Line = dashedLine;       // 하나의 라인으로 통합
 
 
-                var tEntry = tgt_set[targetId];
-                if (!tEntry.PipVMs.Contains(pipVM))
-                    tEntry.PipVMs.Add(pipVM);
-                if (!tEntry.MslVMs.Contains(mslVM))
-                    tEntry.MslVMs.Add(mslVM);
-
-                // TargetEngagement에도 동일 라인 저장
-                tEntry.Line[missileId] = dashedLine;
             });
         }
 
@@ -347,21 +293,26 @@ namespace C2.ViewModels
             foreach (var mslVM in mslVMs)
             {
                 string missileId = mslVM.Id;
+                PointLatLng prev = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
                 mslVM.UpdateMissileInfo();
+                PointLatLng next = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
 
                 var engagement = msl_set.GetValueOrDefault(missileId);
                 if (engagement == null) continue;
 
                 // ✅ Path 누적
-                engagement.Path?.Points.Add(new PointLatLng(mslVM.Latitude, mslVM.Longitude));
-
-                // ✅ Line 재생성 로직
-                if (engagement.Line != null)
+                var mslPath = new GMapRoute(new List<PointLatLng> { prev, next })
                 {
-                    // 기존 라인 제거
-                    if (_map.Markers.Contains(engagement.Line))
-                        _map.Markers.Remove(engagement.Line);
-                }
+                    Shape = new Path
+                    {
+                        Stroke = Brushes.Red,
+                        StrokeThickness = 1.8,
+                        Opacity = 0.8,
+                        Visibility = mslVM.IsFocused ? Visibility.Visible : Visibility.Hidden
+                    }
+                };
+                engagement.Path.Add(mslPath);
+                _map.Markers.Add(mslPath);
 
                 // 새 좌표 계산
                 var mslPoint = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
@@ -375,16 +326,23 @@ namespace C2.ViewModels
                 var tgtPoint = new PointLatLng(tgtVM.Latitude, tgtVM.Longitude);
 
                 // 새 라인 생성
-                var newLine = CreateDashedRoute(
+                if (mslVM.IsFocused)
+                {
+                    // 기존 라인 제거
+                    if (_map.Markers.Contains(engagement.Line))
+                        _map.Markers.Remove(engagement.Line);
+
+                    var newLine = CreateDashedRoute(
                     new List<PointLatLng> { mslPoint, pipPoint, tgtPoint },
                     Colors.Black,
                     pipVM.IsVisible
-                );
+                    );
 
 
-                // 맵 및 구조체에 반영
-                _map.Markers.Add(newLine);
-                engagement.Line = newLine;
+                    // 맵 및 구조체에 반영
+                    _map.Markers.Add(newLine);
+                    engagement.Line = newLine;
+                }
             }
         }
 
@@ -449,29 +407,46 @@ namespace C2.ViewModels
 
     public class MissileEngagement
     {
-        public GMapRoute? Path { get; set; }
+        public List<GMapRoute> Path { get; set; } = new();
         public GMapRoute? Line { get; set; }             // 미사일 → PIP
         public PIPMarkerViewModel? PipVM { get; set; }
         public MissileMarkerViewModel MslVM { get; set; } = null!;
         public TargetMarkerViewModel? TgtVM { get; set; }
+        public GMapMarker? PIPRef { get; set; }
+        public GMapMarker MSLRef { get; set; }
+        public GMapMarker? TGTRef { get; set; }
 
-        public MissileEngagement(MissileMarkerViewModel mslVM)
+        public bool IsFocused { get; set; } = false;
+
+        public MissileEngagement(MissileMarkerViewModel mslVM, GMapMarker mslRef)
         {
             MslVM = mslVM;
+            MSLRef = mslRef;
         }
     }
 
     public class TargetEngagement
     {
         public GMapRoute? Paths { get; set; }
-        public Dictionary<string, GMapRoute> Line { get; } = new();
-        public List<PIPMarkerViewModel> PipVMs { get; } = new();
-        public List<MissileMarkerViewModel> MslVMs { get; } = new();
-        public TargetMarkerViewModel TgtVM { get; set; }
+        public TargetMarkerViewModel? TgtVM { get; set; }
+        public Dictionary<string, MissileEngagement> MissileEngagements { get; set; } = new();
 
-        public TargetEngagement(TargetMarkerViewModel tgtVM)
+        public TargetEngagement(TargetMarkerViewModel tgtMV)
         {
-            TgtVM = tgtVM;
+            TgtVM = tgtMV;
+        }
+
+        public void AddEngagement(MissileEngagement mslEg)
+        {
+            MissileEngagements.Add(mslEg.MslVM.Id, mslEg);
+        }
+        public void RemoveEngagement(MissileEngagement mslEg)
+        {
+            MissileEngagements.Remove(mslEg.MslVM.Id);
+        }
+
+        ~TargetEngagement(){
+
         }
     }
 }
