@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging.Messages;
 using Newtonsoft.Json.Linq;
+using System.Security.Policy;
 
 namespace C2.Messages
 {
@@ -20,6 +21,14 @@ namespace C2.Messages
     public class LaunchEndMessage : ValueChangedMessage<bool>
     {
         public LaunchEndMessage(bool value) : base(value) { }
+    }
+    public class MissileLaunchMessage
+    {
+        public string Value {  get; set; }
+        public MissileLaunchMessage(string value)
+        {
+            Value = value;
+        }
     }
 
     public class LaunchProgressMessage
