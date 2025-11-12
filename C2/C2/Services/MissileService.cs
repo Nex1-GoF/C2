@@ -71,7 +71,7 @@ namespace C2.Services
 
                 _missiles[missile.Id].TargetId = targetId;
 
-
+                WeakReferenceMessenger.Default.Send(new EngagementAssignedMessage(missile.Id, targetId));
 
                 return missile.Id;
             

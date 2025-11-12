@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging.Messages;
 using Newtonsoft.Json.Linq;
+using C2.Models;
 
 namespace C2.Messages
 {
@@ -33,6 +34,12 @@ namespace C2.Messages
         public PipCalculatedMessage(string missileId, double lat, double lon, short alt)
             : base((missileId, lat, lon, alt)) { }
     }
+    public class TargetCreatedMessage : ValueChangedMessage<Target target>
+    {
+        public TargetCreatedMessage(char targetId) : base(targetId) { }
+    }
+
+
 
     public class LaunchProgressMessage
     {

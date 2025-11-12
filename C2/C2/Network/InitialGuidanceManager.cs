@@ -538,7 +538,7 @@ namespace C2.Network
                 (double lat, double lon) targetLatLon = XYToLatLon(targetXY.x, targetXY.y, _launchingMissile.Latitude, _launchingMissile.Longitude);
 
                 _launchingMissile.PIP = new PIP(targetLatLon.lat, targetLatLon.lon, 10);
-
+                WeakReferenceMessenger.Default.Send(new PipCalculatedMessage(_launchingMissile.Id, targetLatLon.lat, targetLatLon.lon, 10));
 
 
                 bool ok = await SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);

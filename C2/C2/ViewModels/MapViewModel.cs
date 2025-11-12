@@ -28,26 +28,18 @@ namespace C2.ViewModels
         private readonly List<TargetMarkerViewModel> tgtVMs = new();
         private readonly List<PIPMarkerViewModel> pipVMs = new();
 
-        private readonly Dictionary<string, List<GMapPolygon>> msl_paths = new();
-        private readonly Dictionary<string, List<GMapPolygon>> tgt_paths = new();
+        private readonly Dictionary<string, List<GMapRoute>> msl_paths = new();
+        private readonly Dictionary<string, List<GMapRoute>> tgt_paths = new();
 
-        private readonly Dictionary<string, (List<GMapPolygon> routes,
-                                             PIPMarkerViewModel? pipVM,
-                                             MissileMarkerViewModel mslVM,
-                                             TargetMarkerViewModel tgtVM)> msl_set = new();
-
-        private readonly Dictionary<string, (List<GMapPolygon> routes,
-                                             List<PIPMarkerViewModel> pipVMs,
-                                             List<MissileMarkerViewModel> mslVMs,
-                                             TargetMarkerViewModel tgtVM)> tgt_set = new();
-
-
+        // 교전 관계
+        private readonly Dictionary<string, MissileEngagement> msl_set = new();
+        private readonly Dictionary<string, TargetEngagement> tgt_set = new();
 
         public MapViewModel(GMapControl mapControl)
         {
             _map = mapControl;
 
-            // 지도 초기화 (뷰모델 책임)
+            // 지도 초기화
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
             _map.MapProvider = GMap.NET.MapProviders.OpenStreetMapProvider.Instance;
             _map.MinZoom = 2;
@@ -55,7 +47,7 @@ namespace C2.ViewModels
             _map.Zoom = 7;
             _map.Position = new PointLatLng(36.5, 127.5);
             _map.CanDragMap = true;
-            _map.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
+            _map.MouseWheelZoomType = MouseWheelZoomType.MousePositionAndCenter;
             _map.IgnoreMarkerOnMouseWheel = true;
             _map.MouseWheelZoomEnabled = true;
 
@@ -63,9 +55,14 @@ namespace C2.ViewModels
             _circle = DrawDetectionCircle(_mapService.Center, _mapService.Distance);
             _map.Markers.Add(_circle);
 
-            // 주기 갱신 등록
+            // 주기 갱신
             UpdateDispatcher.Instance.Register(UpdatePosition);
 
+            // ================================
+            // 메시지 수신 등록
+            // ================================
+
+            // 1️⃣ 미사일 선택 메시지
             WeakReferenceMessenger.Default.Register<MissileSelectedMessage>(this, (r, m) =>
             {
                 string? id = m.Value;
@@ -103,60 +100,53 @@ namespace C2.ViewModels
                     }
                 }
             });
+
+            // 2️⃣ 교전 할당 메시지
             WeakReferenceMessenger.Default.Register<EngagementAssignedMessage>(this, (r, m) =>
             {
                 string missileId = m.Value.MissileId;
                 string targetId = m.Value.TargetId;
 
-                // ===== 1️ mslVM / tgtVM 탐색 =====
                 var mslVM = mslVMs.FirstOrDefault(v => v.Id == missileId);
                 var tgtVM = tgtVMs.FirstOrDefault(v => v.DefaultID.ToString() == targetId);
-                var pipVM = pipVMs.FirstOrDefault(v => v.MissileId == missileId);
 
                 if (mslVM == null || tgtVM == null)
                     return;
 
-                // ===== 2️ msl_set 갱신 =====
+                // msl_set 등록
                 if (!msl_set.ContainsKey(missileId))
-                {
-                    msl_set[missileId] = (new List<GMapPolygon>(), pipVM, mslVM, tgtVM);
-                }
-                else
-                {
-                    var current = msl_set[missileId];
-                    current.mslVM = mslVM;
-                    current.tgtVM = tgtVM;
-                    current.pipVM = pipVM;
-                    msl_set[missileId] = current;
-                }
+                    msl_set[missileId] = new MissileEngagement(mslVM);
 
-                // ===== 3️ tgt_set 갱신 =====
+                // tgt_set 등록
                 if (!tgt_set.ContainsKey(targetId))
-                {
-                    tgt_set[targetId] = (new List<GMapPolygon>(),
-                                         new List<PIPMarkerViewModel>(),
-                                         new List<MissileMarkerViewModel>(),
-                                         tgtVM);
-                }
+                    tgt_set[targetId] = new TargetEngagement(tgtVM);
 
-                // 중복 방지 후 추가
-                if (!tgt_set[targetId].mslVMs.Contains(mslVM))
-                    tgt_set[targetId].mslVMs.Add(mslVM);
-                if (pipVM != null && !tgt_set[targetId].pipVMs.Contains(pipVM))
-                    tgt_set[targetId].pipVMs.Add(pipVM);
+                msl_set[missileId].MslVM = mslVM;
+                msl_set[missileId].TgtVM = tgtVM;
+                tgt_set[targetId].TgtVM = tgtVM;
+                tgt_set[targetId].MslVMs.Add(mslVM);
             });
+
+            // 3️⃣ PIP 계산 메시지
             WeakReferenceMessenger.Default.Register<PipCalculatedMessage>(this, (r, m) =>
             {
                 string missileId = m.Value.MissileId;
                 double pipLat = m.Value.Lat;
                 double pipLon = m.Value.Lon;
                 short pipAlt = m.Value.Alt;
+                
 
-                // ✅ 1️⃣ 미사일 VM 찾기
                 var mslVM = mslVMs.FirstOrDefault(v => v.Id == missileId);
                 if (mslVM == null) return;
 
-                // ✅ 2️⃣ 기존 PIP 있으면 갱신, 없으면 생성
+                var missile = _mapService.GetMissiles().FirstOrDefault(x => x.Id == missileId);
+                if (missile == null || string.IsNullOrEmpty(missile.TargetId)) return;
+
+                string targetId = missile.TargetId;
+                var tgtVM = tgtVMs.FirstOrDefault(v => v.DefaultID == targetId[0]);
+                if (tgtVM == null) return;
+
+                // PIP VM 생성 또는 갱신
                 var pipVM = pipVMs.FirstOrDefault(p => p.MissileId == missileId);
                 if (pipVM == null)
                 {
@@ -165,66 +155,107 @@ namespace C2.ViewModels
                 }
                 else
                 {
-                    pipVM.UpdatePIP(new PIP(pipLat, pipLon, pipAlt));
+                    pipVM.UpdatePIP();
                 }
 
-                // ✅ 3️⃣ PIP 마커 추가
+                // PIP 마커 추가
                 var pipMarker = new GMapMarker(new PointLatLng(pipLat, pipLon))
                 {
                     Shape = new PIPMarker { DataContext = pipVM }
                 };
                 _map.Markers.Add(pipMarker);
 
-                // ✅ 4️⃣ 미사일 ↔ PIP 점선(Route) 추가
-                PointLatLng from = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
-                PointLatLng to = new PointLatLng(pipLat, pipLon);
-                var route = CreateDashedRoute(from, to, Colors.SkyBlue);
-                _map.Markers.Add(route);
+                // 점선 생성 (미사일→PIP, PIP→타겟)
+                PointLatLng fromMsl = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
+                PointLatLng pip = new PointLatLng(pipLat, pipLon);
+                PointLatLng toTgt = new PointLatLng(tgtVM.Latitude, tgtVM.Longitude);
 
-                // ✅ 5️⃣ msl_set 갱신
+                var routeMslToPip = CreateDashedRoute(fromMsl, pip, Colors.SkyBlue);
+                var routePipToTgt = CreateDashedRoute(pip, toTgt, Colors.Yellow);
+                _map.Markers.Add(routeMslToPip);
+                _map.Markers.Add(routePipToTgt);
+
+                // msl_set 갱신
                 if (!msl_set.ContainsKey(missileId))
-                {
-                    // 타겟은 나중에 EngagementAssignedMessage로 연결될 수 있음
-                    msl_set[missileId] = (new List<GMapPolygon>(), pipVM, mslVM, null!);
-                }
-                msl_set[missileId].routes.Add(route);
+                    msl_set[missileId] = new MissileEngagement(mslVM);
+
+                var mEntry = msl_set[missileId];
+                mEntry.PipVM = pipVM;
+                mEntry.TgtVM = tgtVM;
+                mEntry.Routes.Add(routeMslToPip);
+                mEntry.Routes.Add(routePipToTgt);
+
+                // tgt_set 갱신
+                if (!tgt_set.ContainsKey(targetId))
+                    tgt_set[targetId] = new TargetEngagement(tgtVM);
+
+                var tEntry = tgt_set[targetId];
+                if (!tEntry.PipVMs.Contains(pipVM))
+                    tEntry.PipVMs.Add(pipVM);
+                if (!tEntry.MslVMs.Contains(mslVM))
+                    tEntry.MslVMs.Add(mslVM);
+
+                tEntry.Routes.Add(missileId, new List<GMapRoute>());
+                tEntry.Routes[missileId].Add(routeMslToPip);
+                tEntry.Routes[missileId].Add(routePipToTgt);
+                
+
             });
         }
 
+        // ======================
+        // Update
+        // ======================
         public void UpdatePosition()
         {
-            // Circle 유지
             if (!_map.Markers.Contains(_circle))
                 _map.Markers.Insert(0, _circle);
 
-            // -------------------------
-            // 1️⃣ 미사일 경로 갱신
-            // -------------------------
+            foreach (var vm in pipVMs)
+                vm.UpdatePIP();
+            // 미사일 위치
             foreach (var vm in mslVMs)
             {
                 PointLatLng prev = new PointLatLng(vm.Latitude, vm.Longitude);
                 vm.UpdateMissileInfo();
                 PointLatLng next = new PointLatLng(vm.Latitude, vm.Longitude);
 
-                // 위치가 변했을 때만 추가
                 if (prev.Lat != next.Lat || prev.Lng != next.Lng)
                 {
-                    var line = CreatePathSegment(prev, next, Colors.LimeGreen, visible: false);
-
-                    if (!msl_paths.TryGetValue(vm.Id, out var list))
+                    if (msl_set.TryGetValue(vm.Id, out var engagement) && engagement.PipVM != null)
                     {
-                        list = new List<GMapPolygon>();
-                        msl_paths[vm.Id] = list;
-                    }
+                        var pip = engagement.PipVM;
 
+                        // PIP 현재 좌표
+                        PointLatLng pipPoint = new PointLatLng(pip.Latitude, pip.Longitude);
+
+                        if (msl_set[vm.Id].Routes.Count >= 2)
+                        {
+                            var pipRoute = msl_set[vm.Id].Routes[0];
+                            var tgtRoute = msl_set[vm.Id].Routes[1];
+                            pipRoute.Points[0] = next;
+                            pipRoute.Points[1] = pipPoint;
+
+                            var targetId = vm.TargetId;
+
+                            if (tgt_set[targetId!].Routes[vm.Id] == null) tgt_set[targetId!].Routes[vm.Id] = new List<GMapRoute>();
+
+                            tgt_set[targetId!].Routes[vm.Id][0] = pipRoute;
+                            tgt_set[targetId!].Routes[vm.Id][1] = tgtRoute;
+
+                        }
+                    }
+                        
+
+                    var line = CreatePathSegment(prev, next, Colors.LimeGreen, visible: false);
+                    if (!msl_paths.TryGetValue(vm.Id, out var list))
+                        msl_paths[vm.Id] = list = new List<GMapRoute>();
                     list.Add(line);
                     _map.Markers.Add(line);
                 }
             }
 
-            // -------------------------
-            // 2️⃣ 표적 경로 갱신
-            // -------------------------
+            // 표적 위치
             foreach (var vm in tgtVMs)
             {
                 PointLatLng prev = new PointLatLng(vm.Latitude, vm.Longitude);
@@ -234,130 +265,18 @@ namespace C2.ViewModels
                 if (prev.Lat != next.Lat || prev.Lng != next.Lng)
                 {
                     var line = CreatePathSegment(prev, next, Colors.Red, visible: false);
-
                     if (!tgt_paths.TryGetValue(vm.Id, out var list))
-                    {
-                        list = new List<GMapPolygon>();
-                        tgt_paths[vm.Id] = list;
-                    }
-
+                        tgt_paths[vm.Id] = list = new List<GMapRoute>();
                     list.Add(line);
                     _map.Markers.Add(line);
                 }
             }
 
-            // -------------------------
-            // 3️⃣ PIP 위치 갱신
-            // -------------------------
-            foreach (var vm in pipVMs)
-                vm.UpdatePIP();
-        }
-
-        private GMapPolygon CreatePathSegment(PointLatLng from, PointLatLng to, Color color, bool visible)
-        {
-            var pts = new List<PointLatLng> { from, to };
-
-            var polygon = new GMapPolygon(pts)
-            {
-                Shape = new Path
-                {
-                    Stroke = new SolidColorBrush(color),
-                    StrokeThickness = 1.5,
-                    Opacity = visible ? 0.9 : 0.3,
-                    Visibility = visible ? Visibility.Visible : Visibility.Hidden
-                }
-            };
-
-            return polygon;
-        }
-
-
-        // 뷰에서 클릭 시 호출
-        public void OnMissileClicked(string missileId)
-        {
-            _mapService.OnMissileClicked(missileId);
-        }
-        public void OnTargetClicked(char targetId)
-        {
-            _mapService.OnTargetClicked(targetId);
-        }
-
-        ~MapViewModel()
-        {
-            UpdateDispatcher.Instance.Unregister(UpdatePosition);
+  
         }
 
         // ======================
-        // Draw (스펙을 그리기만)
-        // ======================
-        //private void RedrawAll()
-        //{
-        //    _map.Markers.Clear();
-        //    if (_circle != null) _map.Markers.Add(_circle);
-
-        //    // 1) 마커
-        //    foreach (var mk in _mapService.GetMarkerSpecs())
-        //    {
-        //        FrameworkElement shape;
-
-        //        if (mk.Kind == "Missile")
-        //        {
-        //            if (!_missileVMs.TryGetValue(mk.Id, out var vm))
-        //            {
-        //                var m = _mapService.GetMissiles().First(x => x.Id == mk.Id);
-        //                _missileVMs[mk.Id] = vm = new MissileMarkerViewModel(m);
-        //            }
-        //            vm.UpdateFocus(mk.Focused);
-        //            shape = new MissileMarker { DataContext = vm };
-        //        }
-        //        else if (mk.Kind == "Target")
-        //        {
-        //            char tid = mk.Id[0];
-        //            if (!_targetVMs.TryGetValue(tid, out var vm))
-        //            {
-        //                var t = _mapService.GetTargets().First(x => x.Id == tid);
-        //                _targetVMs[tid] = vm = new TargetMarkerViewModel(t);
-        //            }
-        //            vm.UpdateFocus(mk.Focused);
-        //            shape = new TargetMarker { DataContext = vm };
-        //        }
-        //        else // "PIP"
-        //        {
-        //            var missileId = mk.Id.Replace("PIP::", "");
-        //            if (!_pipVMs.TryGetValue(missileId, out var vm))
-        //            {
-        //                var m = _mapService.GetMissiles().First(x => x.Id == missileId);
-        //                if (m.PIP == null) continue;
-        //                _pipVMs[missileId] = vm = new PIPMarkerViewModel(m.PIP, missileId);
-        //            }
-        //            vm.UpdateVisible(mk.Visible);
-        //            shape = new PIPMarker { DataContext = vm };
-        //        }
-
-        //        var marker = new GMapMarker(new PointLatLng(mk.Lat, mk.Lon))
-        //        {
-        //            Shape = shape,
-        //            Offset = (mk.Kind == "PIP") ? new Point(0, 0) : new Point(-25, -25)
-        //        };
-        //        _map.Markers.Add(marker);
-        //    }
-
-        //    // 2) 라인
-        //    foreach (var ln in _mapService.GetLineSpecs())
-        //    {
-        //        var pts = new List<PointLatLng> { ln.From, ln.To };
-        //        _map.Markers.Add(CreateDashed(pts)); // "DashedBlack" 스타일만 사용
-        //    }
-
-        //    // 3) 경로
-        //    foreach (var rt in _mapService.GetRouteSpecs())
-        //    {
-        //        _map.Markers.Add(CreatePath(rt.Points, rt.Color));
-        //    }
-        //}
-
-        // ======================
-        // Helpers (뷰모델 전용)
+        // Helpers
         // ======================
         private GMapPolygon DrawDetectionCircle(PointLatLng center, double radiusMeters)
         {
@@ -379,7 +298,7 @@ namespace C2.ViewModels
 
             return new GMapPolygon(pts)
             {
-                Shape = new System.Windows.Shapes.Path
+                Shape = new Path
                 {
                     Stroke = Brushes.LimeGreen,
                     StrokeThickness = 2,
@@ -388,28 +307,68 @@ namespace C2.ViewModels
             };
         }
 
+        private GMapRoute CreateDashedRoute(PointLatLng from, PointLatLng to, Color color)
+        {
+            return new GMapRoute(new List<PointLatLng> { from, to })
+            {
+                Shape = new Path
+                {
+                    Stroke = new SolidColorBrush(color),
+                    StrokeThickness = 2,
+                    StrokeDashArray = new DoubleCollection { 3, 3 },
+                    Opacity = 0.8
+                }
+            };
+        }
+
+        private GMapRoute CreatePathSegment(PointLatLng from, PointLatLng to, Color color, bool visible)
+        {
+            var route = new GMapRoute(new List<PointLatLng> { from, to })
+            {
+                Shape = new Path
+                {
+                    Stroke = new SolidColorBrush(color),
+                    StrokeThickness = 1.5,
+                    Opacity = visible ? 0.9 : 0.3,
+                    Visibility = visible ? Visibility.Visible : Visibility.Hidden
+                }
+            };
+            return route;
+        }
+
         private static double Deg2Rad(double d) => d * System.Math.PI / 180.0;
         private static double Rad2Deg(double r) => r * 180.0 / System.Math.PI;
 
-        private static GMapRoute CreateDashed(List<PointLatLng> pts) => new(pts)
-        {
-            Shape = new System.Windows.Shapes.Path
-            {
-                Stroke = new SolidColorBrush(Colors.Black),
-                StrokeThickness = 2,
-                StrokeDashArray = new System.Windows.Media.DoubleCollection { 3, 3 },
-                Opacity = 0.8
-            }
-        };
+        // 클릭 이벤트
+        public void OnMissileClicked(string missileId) => _mapService.OnMissileClicked(missileId);
+        public void OnTargetClicked(char targetId) => _mapService.OnTargetClicked(targetId);
 
-        private static GMapRoute CreatePath(List<PointLatLng> pts, Color color) => new(pts)
+        ~MapViewModel() => UpdateDispatcher.Instance.Unregister(UpdatePosition);
+    }
+
+    public class MissileEngagement
+    {
+        public List<GMapRoute> Routes { get; } = new();
+        public PIPMarkerViewModel? PipVM { get; set; }
+        public MissileMarkerViewModel MslVM { get; set; } = null!;
+        public TargetMarkerViewModel? TgtVM { get; set; }
+
+        public MissileEngagement(MissileMarkerViewModel mslVM)
         {
-            Shape = new System.Windows.Shapes.Path
-            {
-                Stroke = new SolidColorBrush(color),
-                StrokeThickness = 1.8,
-                Opacity = 0.8
-            }
-        };
+            MslVM = mslVM;
+        }
+    }
+
+    public class TargetEngagement
+    {
+        public Dictionary<string, List<GMapRoute>> Routes { get; } = new();
+        public List<PIPMarkerViewModel> PipVMs { get; } = new();
+        public List<MissileMarkerViewModel> MslVMs { get; } = new();
+        public TargetMarkerViewModel TgtVM { get; set; }
+
+        public TargetEngagement(TargetMarkerViewModel tgtVM)
+        {
+            TgtVM = tgtVM;
+        }
     }
 }
