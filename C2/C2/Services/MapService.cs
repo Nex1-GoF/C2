@@ -1,10 +1,12 @@
 ﻿using C2.Messages;
 using C2.Models;
+using C2.Network;
 using CommunityToolkit.Mvvm.Messaging;
 using GMap.NET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Interop;
 using System.Windows.Media; // Color
 
@@ -26,6 +28,7 @@ namespace C2.Services
         // ==============================
         private readonly MissileService _missileService = MissileService.Instance;
         private readonly TargetService _targetService = TargetService.Instance;
+        private readonly AbortManager _abortManager = AbortManager.Instance;
 
         // 선택 상태(ID만 공개)
         public IReadOnlyList<string> SelectedMissileIds => _missileService.SelectedMissiles.Select(m => m.Id).ToList();
@@ -39,6 +42,11 @@ namespace C2.Services
         {
             WeakReferenceMessenger.Default.Register<MissileSelectedMessage>(this, (_, __) => FocusChanged?.Invoke());
             WeakReferenceMessenger.Default.Register<TargetSelectedMessage>(this, (_, __) => FocusChanged?.Invoke());
+            WeakReferenceMessenger.Default.Register<TargetRemovedMessage>(this, (r, msg) =>
+            {
+                char removedId = msg.Value;
+                OnTargetRemoved(removedId);
+            });
         }
 
         // ==============================
@@ -46,6 +54,31 @@ namespace C2.Services
         // ==============================
         public IEnumerable<Missile> GetMissiles() => _missileService.GetAllMissiles();
         public IEnumerable<Target> GetTargets() => _targetService.GetAllTargets();
+
+        // ============================
+        // 타겟 제거 트리깅
+        // ============================
+        private void OnTargetRemoved(char removedId)
+        {
+            // 타겟 제거 시 해당 타겟과 연결된 미사일 전부 Abort
+            var relatedMissiles = _missileService.GetAllMissiles()
+                .Where(m => m.TargetId != null && m.TargetId.Length > 0 && m.TargetId[0] == removedId)
+                .ToList();
+
+            foreach (var missile in relatedMissiles)
+            {
+                missile.State = MissileState.Abort;
+                missile.IsSelfabort = true;
+                var mslId = $"M{int.Parse(missile.Id):000}";
+                _abortManager.AbortMissile(mslId);
+            }
+
+            // 선택 초기화 및 지도 갱신
+            _missileService.ClearMissiles();
+            _targetService.ClearTarget();
+            FocusChanged?.Invoke();
+            SnapshotUpdated?.Invoke();
+        }
 
         // ==============================
         // 클릭/선택 로직

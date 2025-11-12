@@ -14,7 +14,6 @@ namespace C2.ViewModels
         public string Id { get; private set; }
         public string? TargetId { get; private set; }
         public double Yaw { get; private set; }
-        public double Yaw1 { get; private set; } = 90.0;
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }
         public short Altitude { get; private set; }
