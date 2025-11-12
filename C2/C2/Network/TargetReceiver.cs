@@ -39,10 +39,15 @@ public class TargetReceiver
             //TODO: 예외처리
             return;
         }
+        //미사일 업링크상황 아니면
+        if (missile.State != MissileState.MidGuidance || missile.State != MissileState.TerminalGuidance) 
+            return;
+        //업링크!
         var mslId = $"M{int.Parse(missile.Id):000}";
         var tgtInfoOutput = ToTgtInfoOutput(tgtInfo, mslId);
         Console.WriteLine(tgtInfoOutput.ToString());
         SendToRadar(tgtInfoOutput);
+        
     }
 
     private void SendToRadar(TgtInfoOutputPacket tgtInfo)
