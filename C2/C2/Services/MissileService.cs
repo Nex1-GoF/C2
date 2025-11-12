@@ -93,7 +93,6 @@ namespace C2.Services
                 return null;
 
             missile.State = toState;
-            Console.WriteLine("??" + missile.Id + "??");
             return missile.Id;
         }
         
@@ -142,7 +141,6 @@ namespace C2.Services
             {
                 if (_missiles.TryGetValue(newData.Id, out var existing))
                 {
-                    Console.WriteLine("what"+existing.Id);
                     existing.Update(newData);
                     //Abort처리
                     if (newData.State == MissileState.Abort)
