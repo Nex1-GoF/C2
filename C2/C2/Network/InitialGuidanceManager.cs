@@ -527,7 +527,7 @@ namespace C2.Network
                      target: target,
                      missileLat: _launchingMissile.Latitude,
                      missileLon: _launchingMissile.Longitude,
-                     missileSpeed: 1000,
+                     missileSpeed: 6000,
                      lat0: _launchingMissile.Latitude,
                      lon0: _launchingMissile.Longitude
 
@@ -610,7 +610,8 @@ namespace C2.Network
 
                 _configMap = new Dictionary<Missile, (string, int, string, int)>
                 {
-                    { _missileService.GetAllMissiles()[0], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
+                    //{ _missileService.GetAllMissiles()[0], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
+                    { _missileService.GetAllMissiles()[0], ("192.168.177.128", 9016, "192.168.0.15", 7005) },
                     { _missileService.GetAllMissiles()[1], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
                     { _missileService.GetAllMissiles()[2], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
                     { _missileService.GetAllMissiles()[3], ("192.168.206.129", 9016, "192.168.2.239", 7005) }

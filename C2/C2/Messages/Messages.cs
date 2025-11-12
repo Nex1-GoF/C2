@@ -34,12 +34,14 @@ namespace C2.Messages
         public PipCalculatedMessage(string missileId, double lat, double lon, short alt)
             : base((missileId, lat, lon, alt)) { }
     }
-    public class TargetCreatedMessage : ValueChangedMessage<Target target>
+    public class TargetCreatedMessage
     {
-        public TargetCreatedMessage(char targetId) : base(targetId) { }
+        public Target Target { get; set; }
+        public TargetCreatedMessage(Target target)
+        {
+            Target = target;
+        }
     }
-
-
 
     public class LaunchProgressMessage
     {

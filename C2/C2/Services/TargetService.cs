@@ -47,7 +47,7 @@ namespace C2.Services
                 else
                 {
                     _targets[newTarget.Id] = newTarget;
-                    WeakReferenceMessenger.Default.Send(new TargetCreatedMessage(newTarget.Id));
+                    WeakReferenceMessenger.Default.Send(new TargetCreatedMessage(newTarget));
 
                 }
             }

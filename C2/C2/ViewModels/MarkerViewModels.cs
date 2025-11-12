@@ -2,6 +2,9 @@
 using C2.Models;
 using C2.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
+using GMap.NET.WindowsPresentation;
+using System.Windows;
+using System.Windows.Ink;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
@@ -26,6 +29,7 @@ namespace C2.ViewModels
         private readonly Brush _focusedBrush = new SolidColorBrush(Colors.SkyBlue);
         private readonly Brush _focusedFill = new SolidColorBrush(Colors.LightSkyBlue);
 
+        private WeakReference<GMapMarker>? _markerRef;
 
         public MissileMarkerViewModel(Missile missile)
         {
@@ -38,6 +42,10 @@ namespace C2.ViewModels
             Altitude = _missile.Altitude;
             StrokeBrush = _unFocusedBrush;
             FillBrush = _unFocusedFill;
+        }
+        public void BindMarker(GMapMarker marker)
+        {
+            _markerRef = new WeakReference<GMapMarker>(marker);
         }
 
         public void UpdateFocus(bool isFocused)
@@ -63,6 +71,12 @@ namespace C2.ViewModels
             Longitude = _missile.Longitude;
             Latitude = _missile.Latitude;
             Altitude = _missile.Altitude;
+
+            if (_markerRef != null && _markerRef.TryGetTarget(out var marker))
+            {
+                marker.Position = new GMap.NET.PointLatLng(Latitude, Longitude);
+            }
+
         }
 
     }
@@ -75,18 +89,28 @@ namespace C2.ViewModels
         public string MissileId { get; private set; }
         public bool IsVisible { get; private set; } = false;
 
-
+        private WeakReference<GMapMarker>? _markerRef;
 
         public PIPMarkerViewModel(PIP pip, string missileId)
         {
             _pip = pip;
             MissileId = missileId;
         }
-
+        public void BindMarker(GMapMarker marker)
+        {
+            _markerRef = new WeakReference<GMapMarker>(marker);
+        }
         public void UpdatePIP()
         {
             Latitude = _pip.Latitude;
             Longitude = _pip.Longitude;
+
+            if (_markerRef != null && _markerRef.TryGetTarget(out var marker))
+            {
+                marker.Position = new GMap.NET.PointLatLng(Latitude, Longitude);
+                marker.Shape.Visibility = IsVisible ? Visibility.Visible : Visibility.Hidden;
+            }
+
         }
 
 
@@ -115,13 +139,18 @@ namespace C2.ViewModels
         private readonly Brush _focusedBrush = new SolidColorBrush(Colors.Yellow);
         private readonly Brush _focusedFill = new SolidColorBrush(Colors.LightYellow);
 
+
+        private WeakReference<GMapMarker>? _markerRef;
+        public void BindMarker(GMapMarker marker)
+        {
+            _markerRef = new WeakReference<GMapMarker>(marker);
+        }
         public TargetMarkerViewModel(Target target)
         {
             Target = target;
-
             Id = $"TARGET-{(Target.Id):D3}";
             DefaultID = Target.Id;
-            Yaw = Target.Yaw;
+            Yaw = (double)Target.Yaw/100.0;
             Latitude = Target.CurLoc.Lat;
             Longitude = Target.CurLoc.Lon;
             Altitude = Target.Altitude;
@@ -150,10 +179,16 @@ namespace C2.ViewModels
         {
             Id = $"TARGET-{Target.Id:D3}";
             DefaultID = Target.Id;
-            Yaw = Target.Yaw;
+            Yaw = (double)(Target.Yaw)/100.0;
             Latitude = Target.CurLoc.Lat;
             Longitude = Target.CurLoc.Lon;
             Altitude = Target.Altitude;
+
+            if (_markerRef != null && _markerRef.TryGetTarget(out var marker))
+            {
+                marker.Position = new GMap.NET.PointLatLng(Latitude, Longitude);
+
+            }
         }
     }
 

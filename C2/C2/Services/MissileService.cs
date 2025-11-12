@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace C2.Services
 {
@@ -118,7 +119,12 @@ namespace C2.Services
             foreach (var id in ids)
             {
                 if (_missiles.TryGetValue(id, out var missile))
+                {
                     SelectedMissiles.Add(missile);
+                    WeakReferenceMessenger.Default.Send(new MissileSelectedMessage(missile.Id));
+                    return true;
+                }
+                    
             }
 
             WeakReferenceMessenger.Default.Send(new MissileSelectedMessage(null)); // or multiple msg
