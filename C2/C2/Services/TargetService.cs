@@ -16,12 +16,53 @@ namespace C2.Services
         public static TargetService Instance => _instance ??= new TargetService();
 
         private readonly Dictionary<char, Target> _targets = new();
+        private readonly CancellationTokenSource _cts = new();
+        public Target? SelectedTarget {get; private set;}
 
-        public Target? SelectedTarget {get; private set;}  
+        private readonly TimeSpan _removeThreshold = TimeSpan.FromSeconds(2.0);  // 2초동안 타겟 정보가 변경되지않으면 타겟 소실 처리함
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMilliseconds(500);
 
         private readonly object _lock = new();
 
-        public TargetService() { 
+        public TargetService() {
+            Task.Run(() => MonitorTargetsAsync(_cts.Token));
+        }
+        private async Task MonitorTargetsAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    List<char> toRemove = new();
+
+                    lock (_lock)
+                    {
+                        var now = DateTime.UtcNow;
+                        foreach (var kvp in _targets)
+                        {
+                            var t = kvp.Value;
+                            if ((now - t.DetectTime) > _removeThreshold)
+                                toRemove.Add(kvp.Key);
+                        }
+
+                        foreach (var id in toRemove)
+                        {
+                            RemoveTarget(id);
+                            WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
+                        }
+
+                        // 선택된 타겟이 사라졌다면 초기화
+                        if (SelectedTarget != null && !_targets.ContainsKey(SelectedTarget.Id))
+                            SelectedTarget = null;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[TargetService] 표적 감시 모니터 오류: {ex.Message}");
+                }
+
+                await Task.Delay(_checkInterval, token);
+            }
         }
 
         // 0.1초마다 UI 갱신 시 이 리스트를 가져감
@@ -57,6 +98,10 @@ namespace C2.Services
             lock (_lock)
             {
                 _targets.Remove(id);
+                WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
+
+                if (SelectedTarget?.Id == id)
+                    SelectedTarget = null;
             }
         }
 

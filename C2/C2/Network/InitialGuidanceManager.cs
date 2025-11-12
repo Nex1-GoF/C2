@@ -606,6 +606,10 @@ namespace C2.Network
 
                 _configMap = new Dictionary<Missile, (string, int, string, int)>
                 {
+                    //{ _missileService.GetAllMissiles()[0], ("192.168.177.128", 9016, "192.168.1.100", 7005) },
+                    //{ _missileService.GetAllMissiles()[1], ("192.168.177.128", 9016, "192.168.1.100", 7005) },
+                    //{ _missileService.GetAllMissiles()[2], ("192.168.177.128", 9016, "192.168.1.100", 7005) },
+                    //{ _missileService.GetAllMissiles()[3], ("192.168.177.128", 9016, "192.168.1.100", 7005) }
                     { _missileService.GetAllMissiles()[0], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
                     { _missileService.GetAllMissiles()[1], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
                     { _missileService.GetAllMissiles()[2], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
