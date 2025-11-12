@@ -1,6 +1,8 @@
-﻿using C2.Models;
+﻿using C2.Messages;
+using C2.Models;
 using C2.Services;
 using C2.Views.Markers;
+using CommunityToolkit.Mvvm.Messaging;
 using GMap.NET;
 using GMap.NET.WindowsPresentation;
 using System.Collections.Generic;
@@ -48,6 +50,11 @@ namespace C2.ViewModels
 
             // 주기 갱신 등록
             UpdateDispatcher.Instance.Register(_mapService.Tick);
+
+            WeakReferenceMessenger.Default.Register<MissileLaunchMessage>(this, (r,msg) => {
+                string missileId = msg.Value;
+                _missileVMs[missileId].UpdateVisible(true);
+            });
         }
 
         // 뷰에서 클릭 시 호출

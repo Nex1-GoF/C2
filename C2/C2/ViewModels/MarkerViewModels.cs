@@ -20,6 +20,7 @@ namespace C2.ViewModels
         public Brush FillBrush { get; private set; }
         public Brush StrokeBrush { get; private set; }
         public bool IsFocused { get; private set; } = false;
+        public bool IsVisible { get; private set; } = false;
 
         private readonly Brush _unFocusedBrush = new SolidColorBrush(Colors.LimeGreen);
         private readonly Brush _unFocusedFill = new SolidColorBrush(Colors.LightGreen);
@@ -38,6 +39,7 @@ namespace C2.ViewModels
             Altitude = _missile.Altitude;
             StrokeBrush = _unFocusedBrush;
             FillBrush = _unFocusedFill;
+            
         }
 
         public void UpdateFocus(bool isFocused)
@@ -54,6 +56,10 @@ namespace C2.ViewModels
                 StrokeBrush = _unFocusedBrush;
                 FillBrush = _unFocusedFill;
             }
+        }
+        public void UpdateVisible(bool isVisible)
+        {
+            IsVisible = isVisible;
         }
 
         public void UpdateMissileInfo(Missile missile)
@@ -121,7 +127,7 @@ namespace C2.ViewModels
 
             Id = $"TARGET-{(Target.Id):D3}";
             DefaultID = Target.Id;
-            Yaw = Target.Yaw;
+            Yaw = (double)(Target.Yaw)/100.0;
             Latitude = Target.CurLoc.Lat;
             Longitude = Target.CurLoc.Lon;
             Altitude = Target.Altitude;
