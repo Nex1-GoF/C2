@@ -36,8 +36,27 @@ namespace C2.Models
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        public int LatitudeRaw { get; set; }
-        public int LongitudeRaw { get; set; }
+        private int _latitudeRaw;
+        public int LatitudeRaw
+        {
+            get => _latitudeRaw;
+            set
+            {
+                _latitudeRaw = value;
+                OnPropertyChanged(nameof(Latitude)); // Latitude도 알림
+            }
+        }
+
+        private int _longitudeRaw;
+        public int LongitudeRaw
+        {
+            get => _longitudeRaw;
+            set
+            {
+                _longitudeRaw = value;
+                OnPropertyChanged(nameof(Longitude));
+            }
+        }
         public bool IsAbort { get; set; }
         public bool IsSelfabort { get; set; }
         public int Maxspeed = 200;
