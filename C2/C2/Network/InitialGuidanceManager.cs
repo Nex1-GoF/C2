@@ -589,11 +589,11 @@ namespace C2.Network
 
             public override async Task EnterAsync(CancellationToken token)
             {
-                var missileId = _manager._missileService.UpdateMissileState(MissileState.InitialGuidance, MissileState.MidGuidance); // 발사중 -> 초기유도로 전환
-                if (missileId != null)
-                {
-                    _manager._logService.AddLog(MessageType.System, $"{missileId} 중기유도 단계로 전환됨");
-                }
+                //var missileId = _manager._missileService.UpdateMissileState(MissileState.InitialGuidance, MissileState.MidGuidance); // 발사중 -> 초기유도로 전환
+                //if (missileId != null)
+                //{
+                //    _manager._logService.AddLog(MessageType.System, $"{missileId} 중기유도 단계로 전환됨");
+                //}
                 await Task.Delay(5000, token); // TODO: 폴링으로 바꿔야함 마지막에
             }
         }
@@ -610,10 +610,10 @@ namespace C2.Network
 
                 _configMap = new Dictionary<Missile, (string, int, string, int)>
                 {
-                    { _missileService.GetAllMissiles()[0], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
-                    { _missileService.GetAllMissiles()[1], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
-                    { _missileService.GetAllMissiles()[2], ("192.168.206.129", 9016, "192.168.2.239", 7005) },
-                    { _missileService.GetAllMissiles()[3], ("192.168.206.129", 9016, "192.168.2.239", 7005) }
+                    { _missileService.GetAllMissiles()[0], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
+                    { _missileService.GetAllMissiles()[1], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
+                    { _missileService.GetAllMissiles()[2], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
+                    { _missileService.GetAllMissiles()[3], ("192.168.1.51", 9016, "192.168.1.100", 7005) }
                 };
 
             }

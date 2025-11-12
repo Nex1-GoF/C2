@@ -56,16 +56,16 @@ public class MissileReceiver
         MissileState state = mslInfo.FlightStatus switch
         {
             1 => MissileState.LaunchReady,
-            2 => MissileState.Launching,
-            3 => MissileState.InitialGuidance,
-            4 => MissileState.MidGuidance,
-            5 => MissileState.TerminalGuidance,
+            2 => MissileState.InitialGuidance,
+            3 => MissileState.MidGuidance,
+            4 => MissileState.TerminalGuidance,
+            5 => MissileState.Launching,
             6 => MissileState.Abort,
             _ => MissileState.LaunchReady
         };
 
         return new Missile(
-            id: mslInfo.Header?.SrcId ?? Guid.NewGuid().ToString(),
+            id: mslInfo.Header?.SrcId ?? Guid.NewGuid().ToString()[3].ToString(),
             latitudeRaw: (int)(lat * 1e7),
             longitudeRaw: (int)(lon * 1e7),
             altitude: (short)mslInfo.Z,
