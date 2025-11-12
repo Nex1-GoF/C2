@@ -65,20 +65,8 @@ namespace C2.ViewModels
                 {
                     var vm = new MissileMarkerViewModel(missile);
                     mslVMs.Add(vm);
-
-                    // 지도에 마커 추가
-                    var marker = new GMapMarker(new PointLatLng(vm.Latitude, vm.Longitude))
-                    {
-                        Shape = new MissileMarker { DataContext = vm },
-                        Offset = new System.Windows.Point(-25, -25)
-                    };
-                    vm.BindMarker(marker);
-                    _map.Markers.Add(marker);
-
-
-                    // msl_set 등록
-                    msl_set[vm.Id] = new MissileEngagement(vm, marker);
-
+                    msl_set[vm.Id] = new MissileEngagement(vm);
+                    _map.Markers.Add(msl_set[vm.Id].MSLRef);
                 });
             }
 
@@ -120,17 +108,18 @@ namespace C2.ViewModels
             {
                 foreach (var msl_set_value in msl_set.Values)
                 {
-                    msl_set_value.IsFocused = false;
-                    msl_set_value.MslVM.UpdateFocus(false);
+                    if (msl_set_value.IsFocused)
+                    {
+                        msl_set_value.UpdateFoucses(false, _map);
+                    }
+                    
                 }
 
                 var currentMissileSet = msl_set.GetValueOrDefault(m.Value??"");
                 if (currentMissileSet == null) return;
 
                 currentMissileSet.IsFocused = true;
-                _map.Markers.Remove(currentMissileSet.MSLRef);
-                currentMissileSet.MslVM.UpdateFocus(true);
-                _map.Markers.Add(currentMissileSet.MSLRef);
+                currentMissileSet.UpdateFoucses(true, _map);
 
             });
 
@@ -276,24 +265,23 @@ namespace C2.ViewModels
                 var targetEngagement = tgt_set.GetValueOrDefault(targetId);
                 targetEngagement?.Paths?.Points.Add(new PointLatLng(tgtVM.Latitude, tgtVM.Longitude));
 
-                var targetPath = new GMapRoute(new List<PointLatLng> { before, after})
-                {
-                    Shape = new Path
-                    {
-                        Stroke = Brushes.Red,
-                        StrokeThickness = 1.8,
-                        Opacity = 0.8,
-                        Visibility = Visibility.Visible
-                    }
-                };
-                _map.Markers.Add(targetPath!);
+                //var targetPath = new GMapRoute(new List<PointLatLng> { before, after})
+                //{
+                //    Shape = new Path
+                //    {
+                //        Stroke = Brushes.Red,
+                //        StrokeThickness = 1.8,
+                //        Opacity = 0.8,
+                //        Visibility = Visibility.Visible
+                //    }
+                //};
+                //_map.Markers.Add(targetPath!);
             }
 
             // 3️⃣ 미사일 위치 + 경로 + 라인 갱신
             foreach (var mslVM in mslVMs)
             {
                 string missileId = mslVM.Id;
-                PointLatLng prev = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
                 mslVM.UpdateMissileInfo();
                 PointLatLng next = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
 
@@ -301,23 +289,24 @@ namespace C2.ViewModels
                 if (engagement == null) continue;
 
                 // ✅ Path 누적
-                var mslPath = new GMapRoute(new List<PointLatLng> { prev, next })
-                {
-                    Shape = new Path
-                    {
-                        Stroke = Brushes.Red,
-                        StrokeThickness = 1.8,
-                        Opacity = 0.8,
-                        Visibility = mslVM.IsFocused ? Visibility.Visible : Visibility.Hidden
-                    }
-                };
-                engagement.Path.Add(mslPath);
-                _map.Markers.Add(mslPath);
+                //var mslPath = new GMapRoute(new List<PointLatLng> { prev, next })
+                //{
+                //    Shape = new Path
+                //    {
+                //        Stroke = Brushes.Red,
+                //        StrokeThickness = 1.8,
+                //        Opacity = 0.8,
+                //        Visibility = mslVM.IsFocused ? Visibility.Visible : Visibility.Hidden
+                //    }
+                //};
+                
+                //_map.Markers.Add(mslPath);
 
                 // 새 좌표 계산
                 var mslPoint = new PointLatLng(mslVM.Latitude, mslVM.Longitude);
                 var tgtVM = engagement.TgtVM;
                 var pipVM = engagement.PipVM;
+                engagement.Path.Add(mslPoint);
 
                 if (tgtVM == null || pipVM == null)
                     continue;
@@ -407,7 +396,7 @@ namespace C2.ViewModels
 
     public class MissileEngagement
     {
-        public List<GMapRoute> Path { get; set; } = new();
+        public List<PointLatLng> Path { get; set; } = new();
         public GMapRoute? Line { get; set; }             // 미사일 → PIP
         public PIPMarkerViewModel? PipVM { get; set; }
         public MissileMarkerViewModel MslVM { get; set; } = null!;
@@ -418,10 +407,61 @@ namespace C2.ViewModels
 
         public bool IsFocused { get; set; } = false;
 
-        public MissileEngagement(MissileMarkerViewModel mslVM, GMapMarker mslRef)
+        public MissileEngagement(MissileMarkerViewModel mslVM)
         {
             MslVM = mslVM;
-            MSLRef = mslRef;
+            MSLRef =  new GMapMarker(new PointLatLng(mslVM.Latitude, mslVM.Longitude))
+            {
+                Shape = new MissileMarker { DataContext = mslVM },
+                Offset = new System.Windows.Point(-25, -25)
+            };
+            
+        }
+        public void UpdateFoucses(bool isFocus, GMapControl _map)
+        {
+            _map.Markers.Remove(MSLRef);
+            if (TGTRef != null) _map.Markers.Remove(TGTRef);
+            if (PIPRef != null) _map.Markers.Remove(PIPRef);
+
+            MslVM.UpdateFocus(isFocus);
+            if(TgtVM != null)
+            {
+                TgtVM.UpdateFocus(isFocus);
+            }
+            if(PipVM != null)
+            {
+                PipVM.UpdateVisible(isFocus);
+            }
+            
+            Reset();
+            _map.Markers.Add(MSLRef);
+            if (TGTRef != null) _map.Markers.Add(TGTRef);
+            if (PIPRef != null) _map.Markers.Add(PIPRef);
+        }
+
+        private void Reset()
+        {
+            MSLRef = new GMapMarker(new PointLatLng(MslVM.Latitude, MslVM.Longitude))
+            {
+                Shape = new MissileMarker { DataContext = MslVM },
+                Offset = new System.Windows.Point(-25, -25)
+            };
+            if(TgtVM != null)
+            {
+                TGTRef = new GMapMarker(new PointLatLng(TgtVM.Latitude, TgtVM.Longitude))
+                {
+                    Shape = new MissileMarker { DataContext = TgtVM },
+                    Offset = new System.Windows.Point(-25, -25)
+                };
+            }
+            if(PipVM != null)
+            {
+                PIPRef = new GMapMarker(new PointLatLng(PipVM.Latitude, PipVM.Longitude))
+                {
+                    Shape = new MissileMarker { DataContext = PipVM },
+                    Offset = new System.Windows.Point(-25, -25)
+                };
+            }
         }
     }
 

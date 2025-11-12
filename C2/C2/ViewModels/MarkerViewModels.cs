@@ -28,9 +28,6 @@ namespace C2.ViewModels
         private readonly Brush _unFocusedFill = new SolidColorBrush(Colors.LightGreen);
         private readonly Brush _focusedBrush = new SolidColorBrush(Colors.SkyBlue);
         private readonly Brush _focusedFill = new SolidColorBrush(Colors.LightSkyBlue);
-
-        private WeakReference<GMapMarker>? _markerRef;
-
         public MissileMarkerViewModel(Missile missile)
         {
             _missile = missile;
@@ -42,10 +39,6 @@ namespace C2.ViewModels
             Altitude = _missile.Altitude;
             StrokeBrush = _unFocusedBrush;
             FillBrush = _unFocusedFill;
-        }
-        public void BindMarker(GMapMarker marker)
-        {
-            _markerRef = new WeakReference<GMapMarker>(marker);
         }
 
         public void UpdateFocus(bool isFocused)
@@ -71,14 +64,7 @@ namespace C2.ViewModels
             Longitude = _missile.Longitude;
             Latitude = _missile.Latitude;
             Altitude = _missile.Altitude;
-
-            if (_markerRef != null && _markerRef.TryGetTarget(out var marker))
-            {
-                marker.Position = new GMap.NET.PointLatLng(Latitude, Longitude);
-            }
-
         }
-
     }
 
     public class PIPMarkerViewModel
