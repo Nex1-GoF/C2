@@ -131,7 +131,7 @@ namespace C2.Views
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is MissileState state)
-                return state == MissileState.MidGuidance;
+                return (state == MissileState.MidGuidance || state == MissileState.TerminalGuidance);
 
             return false;
         }
