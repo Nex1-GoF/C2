@@ -63,9 +63,8 @@ public class MissileReceiver
             6 => MissileState.Abort,
             _ => MissileState.LaunchReady
         };
-
         return new Missile(
-            id: mslInfo.Header?.SrcId ?? Guid.NewGuid().ToString()[3].ToString(),
+            id: mslInfo.Header?.SrcId.Substring(3, 1) ?? Guid.NewGuid().ToString(),
             latitudeRaw: (int)(lat * 1e7),
             longitudeRaw: (int)(lon * 1e7),
             altitude: (short)mslInfo.Z,

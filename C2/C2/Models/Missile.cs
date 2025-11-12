@@ -168,12 +168,6 @@ namespace C2.Models
             Speed = src.Speed;
             FlightTime = src.FlightTime;
             State = src.State; 
-            OnPropertyChanged(nameof(Latitude));
-            OnPropertyChanged(nameof(Longitude));
-            OnPropertyChanged(nameof(Yaw));
-            OnPropertyChanged(nameof(Pitch));
-            OnPropertyChanged(nameof(State));
-            Console.WriteLine(State);
             //TargetId = src.TargetId;
         }
     }
