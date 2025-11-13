@@ -36,26 +36,23 @@ namespace C2.Services
                 {
                     List<char> toRemove = new();
 
-                    lock (_lock)
+                    var now = DateTime.UtcNow;
+                    foreach (var kvp in _targets)
                     {
-                        var now = DateTime.UtcNow;
-                        foreach (var kvp in _targets)
-                        {
-                            var t = kvp.Value;
-                            if ((now - t.DetectTime) > _removeThreshold)
-                                toRemove.Add(kvp.Key);
-                        }
-
-                        foreach (var id in toRemove)
-                        {
-                            RemoveTarget(id);
-                            WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
-                        }
-
-                        // 선택된 타겟이 사라졌다면 초기화
-                        if (SelectedTarget != null && !_targets.ContainsKey(SelectedTarget.Id))
-                            SelectedTarget = null;
+                        var t = kvp.Value;
+                        if ((now - t.DetectTime) > _removeThreshold)
+                            toRemove.Add(kvp.Key);
                     }
+
+                    foreach (var id in toRemove)
+                    {
+                        RemoveTarget(id);
+                        WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
+                    }
+
+                    // 선택된 타겟이 사라졌다면 초기화
+                    if (SelectedTarget != null && !_targets.ContainsKey(SelectedTarget.Id))
+                        SelectedTarget = null;
                 }
                 catch (Exception ex)
                 {
@@ -96,15 +93,12 @@ namespace C2.Services
         // (선택) 특정 표적 제거
         public void RemoveTarget(char id)
         {
-            lock (_lock)
-            {
-                _logService.AddLog(MessageType.System, "표적 소실이 발생했습니다.");
-                _targets.Remove(id);
-                WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
+            _logService.AddLog(MessageType.System, "표적 소실이 발생했습니다.");
+            _targets.Remove(id);
+            WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
 
-                if (SelectedTarget?.Id == id)
-                    SelectedTarget = null;
-            }
+            if (SelectedTarget?.Id == id)
+                SelectedTarget = null;
         }
 
         //public void SelectTarget(char id)
