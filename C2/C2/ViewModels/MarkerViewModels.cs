@@ -62,7 +62,7 @@ namespace C2.ViewModels
             IsVisible = isVisible;
         }
 
-        public void UpdateMissileInfo(Missile missile)
+        public void UpdateMissileInfo()
         {
             Id = _missile.Id;
             Yaw = (double)_missile.Yaw / 100.0;
@@ -75,6 +75,7 @@ namespace C2.ViewModels
 
     public class PIPMarkerViewModel
     {
+        private readonly PIP Pip;
         public double Latitude { get; private set; }
         public double Longitude { get; private set; }
         public string MissileId { get; private set; }
@@ -85,14 +86,13 @@ namespace C2.ViewModels
         public PIPMarkerViewModel(PIP pip, string missileId)
         {
             MissileId = missileId;
-            Latitude = pip.Latitude;
-            Longitude = pip.Longitude;
+            Pip = pip;
         }
 
-        public void UpdatePIP(PIP pip)
+        public void UpdatePIP()
         {
-            Latitude = pip.Latitude;
-            Longitude = pip.Longitude;
+            Latitude = Pip.Latitude;
+            Longitude = Pip.Longitude;
         }
 
 
@@ -152,7 +152,7 @@ namespace C2.ViewModels
             }
         }
 
-        public void UpdateTargetInfo(Target target)
+        public void UpdateTargetInfo()
         {
             Id = $"TARGET-{Target.Id:D3}";
             DefaultID = Target.Id;

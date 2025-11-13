@@ -88,6 +88,7 @@ namespace C2.ViewModels
                         _missileVMs[mk.Id] = vm = new MissileMarkerViewModel(m);
                     }
                     vm.UpdateFocus(mk.Focused);
+                    vm.UpdateMissileInfo();
                     shape = new MissileMarker { DataContext = vm };
                 }
                 else if (mk.Kind == "Target")
@@ -99,6 +100,7 @@ namespace C2.ViewModels
                         _targetVMs[tid] = vm = new TargetMarkerViewModel(t);
                     }
                     vm.UpdateFocus(mk.Focused);
+                    vm.UpdateTargetInfo();
                     shape = new TargetMarker { DataContext = vm };
                 }
                 else // "PIP"
@@ -111,6 +113,7 @@ namespace C2.ViewModels
                         _pipVMs[missileId] = vm = new PIPMarkerViewModel(m.PIP, missileId);
                     }
                     vm.UpdateVisible(mk.Visible);
+                    vm.UpdatePIP();
                     shape = new PIPMarker { DataContext = vm };
                 }
 
