@@ -51,7 +51,11 @@ public class MissileReceiver
     private Missile ToMissile(MslInfoPacket mslInfo)
     {
         var (lat, lon) = XYToLatLon(mslInfo.X / 1e3, mslInfo.Y / 1e3, ReferenceLat, ReferenceLon);
+        var (pipLat, pipLon) = XYToLatLon(mslInfo.PipX / 1e3, mslInfo.PipY / 1e3, ReferenceLat, ReferenceLon);
+
         var (yawDeg, pitchDeg) = CalcYawPitch(mslInfo.Vx / 1e3, mslInfo.Vy / 1e3, mslInfo.Vz);
+
+        PIP pip = new PIP(pipLat, pipLon, 0);
 
         MissileState state = mslInfo.FlightStatus switch
         {
@@ -73,6 +77,7 @@ public class MissileReceiver
             flightTime: mslInfo.FlightTime,
             state: state,
             speed : (int)Math.Sqrt((mslInfo.Vx/1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3))
+            pip: pip
         );
     }
 
