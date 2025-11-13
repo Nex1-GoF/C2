@@ -147,11 +147,17 @@ namespace C2.Services
                     {   //Abort처리
                         if (!existing.IsAbort)
                         {
+                            LogService _logService = LogService.Instance;
+                            //_logService.AddLog(MessageType.System, "기폭");
                             //자폭인지 판별
                             if(!existing.IsSelfabort)//자폭이 아니라면 타겟요격임
                             {
+                                //_logService.AddLog(MessageType.System, "폭파");
                                 if (!string.IsNullOrEmpty(existing.TargetId))
+                                {
+                                    //_logService.AddLog(MessageType.System, "폭파신호");
                                     _abortManager.AbortTarget(existing.TargetId[0]);
+                                }
                             }
                             //if (!string.IsNullOrEmpty(existing.TargetId))
                             //{

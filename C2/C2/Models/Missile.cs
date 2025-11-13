@@ -12,8 +12,8 @@ namespace C2.Models
         InitialGuidance = 2,
         MidGuidance = 3,
         TerminalGuidance =4,
-        Launching = 5,
-        Abort =6
+        Abort =5,
+        Launching = 6,
     }
     public class PIP
     {

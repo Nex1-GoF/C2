@@ -59,8 +59,8 @@ public class MissileReceiver
             2 => MissileState.InitialGuidance,
             3 => MissileState.MidGuidance,
             4 => MissileState.TerminalGuidance,
-            5 => MissileState.Launching,
-            6 => MissileState.Abort,
+            5 => MissileState.Abort,
+            6 => MissileState.Launching,
             _ => MissileState.LaunchReady
         };
         return new Missile(
