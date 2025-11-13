@@ -132,6 +132,33 @@ namespace C2.Models
             Speed = speed;
             flightTime = 0;
         }
+        public Missile(
+            string id,
+            int latitudeRaw,
+            int longitudeRaw,
+            short altitude,
+            short yawRaw,
+            short pitchRaw,
+            uint flightTime,
+            MissileState state,
+            PIP pip,
+            int speed = 0,
+            string? targetId = null)
+        {
+            Id = id;
+            LatitudeRaw = latitudeRaw;
+            LongitudeRaw = longitudeRaw;
+            Altitude = altitude;
+            YawRaw = yawRaw;
+            PitchRaw = pitchRaw;
+            FlightTime = flightTime;
+            State = state;
+            TargetId = targetId;
+            Speed = speed;
+            flightTime = 0;
+            PIP = pip;
+        }
+
 
         //public Missile() { }
 
@@ -142,7 +169,7 @@ namespace C2.Models
         //    LongitudeRaw = longitudeRaw;
         //    Altitude = altitude;
         //    Speed = 0;
-            
+
         //    State = state;
         //    TargetId = targetId;
         //}
@@ -168,7 +195,7 @@ namespace C2.Models
             PitchRaw = src.PitchRaw;
             Speed = src.Speed;
             FlightTime = src.FlightTime;
-            State = src.State; 
+            State = src.State;
             //TargetId = src.TargetId;
         }
     }
