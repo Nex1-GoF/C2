@@ -14,15 +14,15 @@ namespace C2.Services
         private static MissileService _instance;
         public static MissileService Instance => _instance ??= new MissileService();
 
-        // 📍 발사대 위치 (서울 시청 인근)
-        private readonly (int latitude, int longitude, short altitude) C2Points =
+        // 발사대 위치 (서울 시청 인근)
+        public (int latitude, int longitude, short altitude) C2Points =
             ((int)(37.5665 * 1e7), (int)(126.9780 * 1e7), (short)(38));
         private readonly LogService _logService;
 
-        // ✅ Dictionary로 변경 (Key: Missile ID)
+        // Dictionary로 변경 (Key: Missile ID)
         private readonly Dictionary<string, Missile> _missiles = new();
 
-        // ✅ 선택된 미사일 (단일)
+        // 선택된 미사일 (단일)
         public List<Missile> SelectedMissiles { get; private set; } = new();
 
         private readonly object _lock = new();
@@ -34,10 +34,10 @@ namespace C2.Services
             _logService = LogService.Instance;
             _abortManager = AbortManager.Instance;
             // 초기 미사일 4기 등록
-            for (int i = -2; i <= 1; i++)
+            for (int i = 1; i <= 4; i++)
             {
                 var missile = new Missile(
-                    id: $"{i+3:0}",
+                    id: $"{i:0}",
                     latitudeRaw: C2Points.latitude,
                     longitudeRaw: C2Points.longitude,
                     altitude: C2Points.altitude
@@ -46,26 +46,17 @@ namespace C2.Services
             }
         }
 
-        // ✅ 전체 미사일 반환 (읽기 전용 Dictionary)
+        // 전체 미사일 반환 (읽기 전용 Dictionary)
         public List<Missile> GetAllMissiles() => _missiles.Values.ToList();
 
-        // ✅ 특정 미사일 직접 가져오기
+        // 특정 미사일 직접 가져오기
         public Missile? GetMissile(string id)
         {
             _missiles.TryGetValue(id, out var missile);
             return missile;
         }
 
-        //public Missile? GetLaunchedMissile()
-        //{
-        //    return _missiles.Values.FirstOrDefault(m => m.State == MissileState.Launching);
-        //}
-        //public Missile? GetInitialGuidanceMissile()
-        //{
-        //    return _missiles.Values.FirstOrDefault(m => m.State == MissileState.InitialGuidance);
-        //}
-
-        // ✅ 교전할당 시 사용
+        // 교전할당 시 사용
         public string AssignTarget(string targetId)
         {
             foreach (var missile in GetAllMissiles()) {

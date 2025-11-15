@@ -19,12 +19,12 @@ namespace C2.ViewModels
         private bool isCollapsed = false;
 
         [ObservableProperty]
-        private ObservableCollection<Missile> missiles = new();
+        private List<Missile> missiles = new();
 
         private readonly MissileService _service;
         private readonly AbortManager _abortManager;
 
-        // ✅ 여러 미사일 선택 가능하도록 리스트화
+        // 여러 미사일 선택 가능하도록 리스트화
         private readonly List<Missile> _selectedMissiles = new();
         public IReadOnlyList<Missile> SelectedMissiles => _selectedMissiles;
         public MissileViewModel()
@@ -32,11 +32,20 @@ namespace C2.ViewModels
             _service = MissileService.Instance;
             _abortManager = AbortManager.Instance;
 
-            // ✅ 초기 1회만 미사일 4기 채움
-            foreach (var m in _service.GetAllMissiles())
-                Missiles.Add(m);
+            // 초기 1회만 미사일 4기 채움
+            // 서비스와 같은 생성자로 똑같이 미사일 객체를 생성 (서비스 레이어의 미사일 레퍼런스를 가지고올 경우, 옵저버블 컬랙션이랑 다를게 없어짐)
+            for (int i = 1; i <= 4; i++)
+            {
+                var missile = new Missile(
+                    id: $"{i:0}",
+                    latitudeRaw: _service.C2Points.latitude,
+                    longitudeRaw: _service.C2Points.longitude,
+                    altitude: _service.C2Points.altitude
+                );
+                missiles.Add(missile);
+            }
 
-           // UpdateDispatcher.Instance.Register(UpdateMissileStates);
+            // UpdateDispatcher.Instance.Register(UpdateMissileStates);
         }
         ~MissileViewModel()
         {
