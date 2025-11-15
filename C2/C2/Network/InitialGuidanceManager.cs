@@ -42,7 +42,6 @@ namespace C2.Network
             { typeof(IgnitionState), 67 },
             { typeof(PipCalculationState), 83 },
             { typeof(LaunchState), 100 },
-            { typeof(InitialGuidanceState), 100 },
         };
 
         // ================================================================
@@ -550,7 +549,7 @@ namespace C2.Network
         {
             public override string Name => "발사";
             public override IGuidanceState? NextState { get; set; }
-            public LaunchState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new InitialGuidanceState(_manager, _launchingMissile); }
+            public LaunchState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = null; }
 
             public override async Task EnterAsync(CancellationToken token)
             {
@@ -569,28 +568,10 @@ namespace C2.Network
                 if (!ok)
                 {
                     HandleFailure(_launchingMissile, seq: 7);
-                    NextState = null;
                     return;
                 }
                 _launchingMissile.flightTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
-            }
-        }
-
-        private class InitialGuidanceState : BaseGuidanceState
-        {
-            public override string Name => "초기유도";
-            public override IGuidanceState? NextState => null;
-            public InitialGuidanceState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
-
-            public override async Task EnterAsync(CancellationToken token)
-            {
-                //var missileId = _manager._missileService.UpdateMissileState(MissileState.InitialGuidance, MissileState.MidGuidance); // 발사중 -> 초기유도로 전환
-                //if (missileId != null)
-                //{
-                //    _manager._logService.AddLog(MessageType.System, $"{missileId} 중기유도 단계로 전환됨");
-                //}
-                await Task.Delay(5000, token); // TODO: 폴링으로 바꿔야함 마지막에
             }
         }
 
