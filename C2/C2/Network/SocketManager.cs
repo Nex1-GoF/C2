@@ -89,6 +89,6 @@ public class SocketManager
 
     private void OnSendCompleted(object? sender, SocketAsyncEventArgs e)
     {
-        Console.WriteLine($"[Port {((IPEndPoint)e.RemoteEndPoint!).Port}] Sent {e.BytesTransferred} bytes");
+        //Console.WriteLine($"[Port {((IPEndPoint)e.RemoteEndPoint!).Port}] Sent {e.BytesTransferred} bytes");
     }
 }

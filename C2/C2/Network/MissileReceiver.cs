@@ -2,6 +2,7 @@
 using C2.Network;
 using C2.Services;
 using System;
+using System.Diagnostics;
 
 public class MissileReceiver
 {
@@ -25,8 +26,8 @@ public class MissileReceiver
 
     private void HandlePacket(MslInfoPacket mslInfo)
     {
-        Console.WriteLine(mslInfo.ToString());
         var missile = ToMissile(mslInfo);
+       
         _service.ReceiveMissileData(missile);
         //SendToUnreal(missile);
     }
@@ -72,11 +73,11 @@ public class MissileReceiver
             latitudeRaw: (int)(lat * 1e7),
             longitudeRaw: (int)(lon * 1e7),
             altitude: (short)mslInfo.Z,
-            yawRaw: (short)(yawDeg*100),
-            pitchRaw: (short)(pitchDeg*100),
+            yawRaw: (short)(yawDeg * 100),
+            pitchRaw: (short)(pitchDeg * 100),
             flightTime: mslInfo.FlightTime,
             state: state,
-            speed : (int)Math.Sqrt((mslInfo.Vx/1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3))
+            speed: (int)Math.Sqrt((mslInfo.Vx / 1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3)),
             pip: pip
         );
     }

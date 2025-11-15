@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
@@ -44,6 +45,8 @@ namespace C2.Models
             set
             {
                 _latitudeRaw = value;
+
+               
                 OnPropertyChanged(nameof(Latitude)); // Latitude도 알림
             }
         }
@@ -81,8 +84,17 @@ namespace C2.Models
             get => _state;
             set { _state = value; OnPropertyChanged(); }
         }
-
-        public short YawRaw { get; set; }
+        private int _yawRaw;
+        public int YawRaw
+        {
+            get => _yawRaw;
+            set
+            {
+                _yawRaw = value;
+                OnPropertyChanged(nameof(Yaw)); // Latitude도 알림
+                ;
+            }
+        }
         public short PitchRaw { get; set; }
         public uint FlightTime { get; set; }
 
@@ -191,11 +203,13 @@ namespace C2.Models
             LatitudeRaw = src.LatitudeRaw;
             LongitudeRaw = src.LongitudeRaw;
             Altitude = src.Altitude;
+
             YawRaw = src.YawRaw;
             PitchRaw = src.PitchRaw;
             Speed = src.Speed;
             FlightTime = src.FlightTime;
             State = src.State;
+            PIP = src.PIP;
             //TargetId = src.TargetId;
         }
     }

@@ -120,7 +120,7 @@ namespace C2.ViewModels
                 var marker = new GMapMarker(new PointLatLng(mk.Lat, mk.Lon))
                 {
                     Shape = shape,
-                    Offset = (mk.Kind == "PIP") ? new Point(0, 0) : new Point(-25, -25)
+                    Offset = (mk.Kind == "PIP") ? new Point(-10,-10) : (mk.Kind == "Target") ?  new Point(-10, -30) : new Point(-10,-10)
                 };
                 _map.Markers.Add(marker);
             }

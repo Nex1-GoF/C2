@@ -162,9 +162,9 @@ namespace C2.Network
                     var linkConfig = new LauncherLinkConfig();
                     if (linkConfig.TryGetLink(missile, out var link))
                     {
-                        using var client = new UdpClient(link.rxPort);
-                        var ep = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
-                        client.Send(packet, packet.Length, ep);
+                        //using var client = new UdpClient(link.rxPort);
+                        //var ep = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
+                        //client.Send(packet, packet.Length, ep);
                     }
 
                     _missileService.UpdateMissileState(MissileState.Launching, MissileState.LaunchReady);
@@ -611,7 +611,7 @@ namespace C2.Network
                     //{ _missileService.GetAllMissiles()[2], ("192.168.177.128", 9016, "192.168.1.100", 7005) },
                     //{ _missileService.GetAllMissiles()[3], ("192.168.177.128", 9016, "192.168.1.100", 7005) }
                     { _missileService.GetAllMissiles()[0], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
-                    { _missileService.GetAllMissiles()[1], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
+                    { _missileService.GetAllMissiles()[1], ("192.168.1.52", 9016, "192.168.1.100", 7005) },
                     { _missileService.GetAllMissiles()[2], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
                     { _missileService.GetAllMissiles()[3], ("192.168.1.51", 9016, "192.168.1.100", 7005) }
                 };

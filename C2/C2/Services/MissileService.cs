@@ -4,6 +4,7 @@ using C2.Network;
 using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace C2.Services
@@ -142,6 +143,7 @@ namespace C2.Services
                 if (_missiles.TryGetValue(newData.Id, out var existing))
                 {
                     existing.Update(newData);
+                   
                     //Abort처리
                     if (newData.State == MissileState.Abort)
                     {   //Abort처리
