@@ -15,7 +15,7 @@ namespace C2.ViewModels
 {
     public partial class TargetViewModel : ObservableObject
     {
-        public ObservableCollection<Target> Targets { get; } = new();
+        public ObservableCollection<Target> Targets { get;} = new ();
         private readonly TargetService _targetService;
         private readonly MissileService _missileService;
         private readonly UpdateDispatcher _updateDispatcher;
@@ -62,21 +62,15 @@ namespace C2.ViewModels
         private void UpdateTargets()
         {
             var latest = _targetService.GetAllTargets();
-
+            Targets.Clear();
             foreach (var updated in latest)
             {
-                var existing = Targets.FirstOrDefault(t => t.Id == updated.Id);
-                if (existing == null)
-                    Targets.Add(updated);
-                else
-                    existing.Update(updated);
-            }
-
-            // 삭제된 표적 제거
-            for (int i = Targets.Count - 1; i >= 0; i--)
-            {
-                if (!latest.Any(t => t.Id == Targets[i].Id))
-                    Targets.RemoveAt(i);
+                //var existing = Targets.FirstOrDefault(t => t.Id == updated.Id);
+                //if (existing == null)
+                //    Targets.Add(updated);
+                //else
+                //    existing.Update(updated);
+                Targets.Add(updated);
             }
         }
 

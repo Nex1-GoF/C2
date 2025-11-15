@@ -36,8 +36,11 @@ namespace C2.ViewModels
             foreach (var m in _service.GetAllMissiles())
                 Missiles.Add(m);
 
-            // ✅ 매틱마다 Service → ViewModel 상태 갱신
-            UpdateDispatcher.Instance.Register(UpdateMissileStates);
+           // UpdateDispatcher.Instance.Register(UpdateMissileStates);
+        }
+        ~MissileViewModel()
+        {
+            //UpdateDispatcher.Instance.Unregister(UpdateMissileStates);
         }
 
         [RelayCommand]
@@ -83,7 +86,6 @@ namespace C2.ViewModels
             _service.SelectMissiles(ids);
         }
 
-        // ✅ 매틱마다 상태 갱신
         private void UpdateMissileStates()
         {
             var serviceMissiles = _service.GetAllMissiles();
@@ -99,16 +101,11 @@ namespace C2.ViewModels
                 local.LongitudeRaw = latest.LongitudeRaw;
                 local.Altitude = latest.Altitude;
                 local.TargetId = latest.TargetId;
-
-                // Yaw 계산
-                double yaw = CalculateYaw(local.Latitude, local.Longitude, latest.Latitude, latest.Longitude);
-
                 // 미사일 모델의 Yaw 갱신
-                local.YawRaw = (short)(yaw * 1e3);
+                local.YawRaw = latest.YawRaw;
             }
             // Todo: 미사일 비상폭파 기능 제한 걸기
         }
-
         private static double CalculateYaw(double lat1, double lon1, double lat2, double lon2)
         {
             double φ1 = lat1 * Math.PI / 180.0;
@@ -122,11 +119,6 @@ namespace C2.ViewModels
             double θ = Math.Atan2(y, x);
             double bearing = (θ * 180.0 / Math.PI + 360.0) % 360.0;
             return bearing;
-        }
-
-        ~MissileViewModel()
-        {
-            UpdateDispatcher.Instance.Unregister(UpdateMissileStates);
         }
     }
 }

@@ -24,7 +24,7 @@
                 <!-- 0도 = 북쪽, 90도 = 동쪽 -->
                 <RotateTransform Angle="{Binding Yaw}" />
             </Grid.RenderTransform>
-
+            
             <!-- 삼각형 -->
             <Polygon 
                     Points="0,-15 12,10 -12,10"
@@ -34,12 +34,17 @@
         </Grid>
 
         <!-- 🔸 Missile ID -->
-        <TextBlock Grid.Column="1"
+        <Grid>
+            <StackPanel>
+                <TextBlock Grid.Column="1"
                    Text="{Binding Id}"
                    Foreground="{Binding StrokeBrush}"
                    FontSize="13"
                    FontWeight="Bold"
                    VerticalAlignment="Center"
                    Margin="5,0,0,0"/>
+           
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

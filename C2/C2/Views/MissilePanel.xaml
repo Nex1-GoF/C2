@@ -55,7 +55,7 @@
              Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
              Stroke="Black" StrokeThickness="1"
              HorizontalAlignment="Center" />
-                            <TextBlock Text="L-SAM"
+                            <TextBlock Text="M-SAM"
                 Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
                FontWeight="Bold"
                FontSize="25"

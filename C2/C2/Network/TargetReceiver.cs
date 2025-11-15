@@ -27,27 +27,36 @@ public class TargetReceiver
 
     private void HandlePacket(TgtInfoInputPacket tgtInfo)
     {
-        Console.WriteLine(tgtInfo.ToString());
+        //Console.WriteLine(tgtInfo.ToString());
 
         var target = ToTarget(tgtInfo);
         _targetService.ReceiveTargetData(target);
-
-        var missile = _missileService.GetAllMissiles().FirstOrDefault(m => m.TargetId != null && m.TargetId.Equals(target.Id.ToString()));
-        
-        if (missile == null)
+        foreach(var m in _missileService.GetAllMissiles())
         {
-            Console.WriteLine("[미사일 없음]");
-            //TODO: 예외처리
-            return;
+            if(m.TargetId!=null && m.TargetId == target.Id.ToString())
+            {
+                var mslId = $"M{int.Parse(m.Id):000}";
+                var tgtInfoOutput = ToTgtInfoOutput(tgtInfo, mslId);
+                //Console.WriteLine(tgtInfoOutput.ToString());
+                SendToRadar(tgtInfoOutput);
+            }
         }
-        //미사일 업링크상황 아니면
-        if (missile.State == MissileState.Abort ) 
-            return;
-        //업링크!
-        var mslId = $"M{int.Parse(missile.Id):000}";
-        var tgtInfoOutput = ToTgtInfoOutput(tgtInfo, mslId);
-        Console.WriteLine(tgtInfoOutput.ToString());
-        SendToRadar(tgtInfoOutput);
+        //var missile = _missileService.GetAllMissiles().FirstOrDefault(m => m.TargetId != null && m.TargetId.Equals(target.Id.ToString()));
+        
+        //if (missile == null)
+        //{
+        //    //Console.WriteLine("[미사일 없음]");
+        //    //TODO: 예외처리
+        //    return;
+        //}
+        ////미사일 업링크상황 아니면
+        //if (missile.State == MissileState.Abort ) 
+        //    return;
+        ////업링크!
+        //var mslId = $"M{int.Parse(missile.Id):000}";
+        //var tgtInfoOutput = ToTgtInfoOutput(tgtInfo, mslId);
+        ////Console.WriteLine(tgtInfoOutput.ToString());
+        //SendToRadar(tgtInfoOutput);
         
     }
 
@@ -88,7 +97,7 @@ public class TargetReceiver
     private TgtInfoOutputPacket ToTgtInfoOutput(TgtInfoInputPacket tgtInfoInput, String mslId)
     {
         var (x, y) = LatLonToXY(tgtInfoInput.Latitude / 1e7, tgtInfoInput.Longtitude / 1e7, ReferenceLat, ReferenceLon);
-        Debug.WriteLine("x: " + x + ", y: " + y);
+       
         double headingRad = (tgtInfoInput.Yaw / 100.0) * Math.PI / 180.0;
         double vx = Math.Sin(headingRad) * tgtInfoInput.Speed;   // 동
         double vy = Math.Cos(headingRad) * tgtInfoInput.Speed;   // 북

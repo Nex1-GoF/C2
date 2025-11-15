@@ -24,8 +24,8 @@ namespace C2.ViewModels
 
         private readonly Brush _unFocusedBrush = new SolidColorBrush(Colors.LimeGreen);
         private readonly Brush _unFocusedFill = new SolidColorBrush(Colors.LightGreen);
-        private readonly Brush _focusedBrush = new SolidColorBrush(Colors.SkyBlue);
-        private readonly Brush _focusedFill = new SolidColorBrush(Colors.LightSkyBlue);
+        private readonly Brush _focusedBrush = new SolidColorBrush(Colors.LimeGreen);
+        private readonly Brush _focusedFill = new SolidColorBrush(Colors.LightGreen);
 
 
         public MissileMarkerViewModel(Missile missile)
@@ -33,7 +33,7 @@ namespace C2.ViewModels
             _missile = missile;
             Id = _missile.Id;
             TargetId = _missile.TargetId;
-            Yaw = _missile.Yaw;
+            Yaw = ((double)(_missile.Yaw+180.0)/360.0);
             Longitude = _missile.Longitude;
             Latitude = _missile.Latitude;
             Altitude = _missile.Altitude;
@@ -65,7 +65,7 @@ namespace C2.ViewModels
         public void UpdateMissileInfo()
         {
             Id = _missile.Id;
-            Yaw = (double)_missile.Yaw / 100.0;
+            Yaw = ((double)(_missile.Yaw + 180.0) % 360.0);
             Longitude = _missile.Longitude;
             Latitude = _missile.Latitude;
             Altitude = _missile.Altitude;
@@ -118,8 +118,8 @@ namespace C2.ViewModels
 
         private readonly Brush _unFocusedBrush = new SolidColorBrush(Colors.Red);
         private readonly Brush _unFocusedFill = new SolidColorBrush(Color.FromRgb(0xFF, 0x40, 0x40));
-        private readonly Brush _focusedBrush = new SolidColorBrush(Colors.Yellow);
-        private readonly Brush _focusedFill = new SolidColorBrush(Colors.LightYellow);
+        private readonly Brush _focusedBrush = new SolidColorBrush(Colors.Red);
+        private readonly Brush _focusedFill = new SolidColorBrush(Color.FromRgb(0xFF, 0x40, 0x40));
 
         public TargetMarkerViewModel(Target target)
         {
@@ -127,7 +127,7 @@ namespace C2.ViewModels
 
             Id = $"TARGET-{(Target.Id):D3}";
             DefaultID = Target.Id;
-            Yaw = (double)(Target.Yaw)/100.0;
+            Yaw = (double)((Target.Yaw)/100.0);
             Latitude = Target.CurLoc.Lat;
             Longitude = Target.CurLoc.Lon;
             Altitude = Target.Altitude;
@@ -156,7 +156,7 @@ namespace C2.ViewModels
         {
             Id = $"TARGET-{Target.Id:D3}";
             DefaultID = Target.Id;
-            Yaw = Target.Yaw;
+            Yaw = (double)(Target.Yaw)/100.0;
             Latitude = Target.CurLoc.Lat;
             Longitude = Target.CurLoc.Lon;
             Altitude = Target.Altitude;

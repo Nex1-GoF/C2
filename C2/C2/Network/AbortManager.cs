@@ -22,14 +22,14 @@ namespace C2.Network
         public void AbortMissile(string mslId)
         {
             var mslCmd = ToMslCmdPacket(mslId);
-            Console.WriteLine(mslCmd.ToString());
+            //Console.WriteLine(mslCmd.ToString());
             SendToRadar(mslCmd);
         }
 
         public void AbortTarget(char tgtId)
         {
             var tgtFin = ToTgtFinPacket(tgtId);
-            Console.WriteLine(tgtFin.ToString());
+            //Console.WriteLine(tgtFin.ToString());
             SendToTgt(tgtFin);
         }
 
@@ -65,7 +65,7 @@ namespace C2.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[RadarSend] Error: {ex.Message}");
+                //Console.WriteLine($"[RadarSend] Error: {ex.Message}");
             }
         }
 
@@ -78,7 +78,7 @@ namespace C2.Network
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[RadarSend] Error: {ex.Message}");
+                //Console.WriteLine($"[RadarSend] Error: {ex.Message}");
             }
         }
 
