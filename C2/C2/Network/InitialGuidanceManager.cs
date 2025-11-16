@@ -105,7 +105,6 @@ namespace C2.Network
                 _cts = null;
                 _currentState = null;
                 _currentMissile = null;
-                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
             }
         }
 
@@ -556,6 +555,7 @@ namespace C2.Network
                 
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.Launching, MissileState.InitialGuidance); // 발사중 -> 초기유도로 전환
                 WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_launchingMissile.Id));
+                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
 
                 if (missileId != null)
 

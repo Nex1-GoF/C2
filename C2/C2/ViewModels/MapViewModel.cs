@@ -85,7 +85,17 @@ namespace C2.ViewModels
 
             WeakReferenceMessenger.Default.Register<TargetRemovedMessage>(this, (r, msg) =>
             {
-                RemoveTargetMarker(msg.Value);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    RemoveTargetMarker(msg.Value);
+                });
+            });
+            WeakReferenceMessenger.Default.Register<MissileAbortMessage>(this, (r, msg) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    RemoveRoute(msg.Value);
+                });
             });
 
         }
@@ -163,56 +173,7 @@ namespace C2.ViewModels
             _routes[missile.Id] = route;
             return route;
         }
-        private Geometry BuildGeometry(List<PointLatLng> pts)
-        {
-            if (pts.Count < 2)
-                return Geometry.Empty;
 
-            var geom = new StreamGeometry();
-
-            using (var ctx = geom.Open())
-            {
-                // 첫 점
-                var p0 = _map.FromLatLngToLocal(pts[0]);
-                ctx.BeginFigure(new Point(p0.X, p0.Y), false, false);
-
-                // 나머지 점 연결
-                for (int i = 1; i < pts.Count; i++)
-                {
-                    var p = _map.FromLatLngToLocal(pts[i]);
-                    ctx.LineTo(new Point(p.X, p.Y), true, false);
-                }
-            }
-
-            geom.Freeze();
-            return geom;
-        }
-        /*private void UpdateRoute(string missileId)
-        {
-            if (!_routes.TryGetValue(missileId, out var route))
-                return;
-
-            var missile = _mapService.GetMissiles().First(m => m.Id == missileId);
-            var pip = missile.PIP;
-            if (pip == null) return;
-
-            if (missile.TargetId == null) return;
-            var target = _mapService.GetTargets().FirstOrDefault(m=>m.Id == missile.TargetId[0]);
-            if (target == null) return;
-
-            // 1) Points 갱신
-            route.Points.Clear();
-            route.Points.Add(new PointLatLng(missile.Latitude, missile.Longitude));
-            route.Points.Add(new PointLatLng(pip.Latitude, pip.Longitude));
-            route.Points.Add(new PointLatLng(target.CurLoc.Lat, target.CurLoc.Lon));
-
-            // 2) Shape(Path) 업데이트
-            if (route.Shape is Path path)
-            {
-                path.Data = BuildGeometry(route.Points.ToList());
-                //path.Visibility = _missileMarkers.GetValueOrDefault(missileId)!.Shape.IsFocused ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }*/
         private void UpdateRoute(string missileId)
         {
             // 1) 기존 라인이 있으면 먼저 제거
@@ -255,7 +216,9 @@ namespace C2.ViewModels
         }
         private void RedrawAll()
         {
-
+            var specs = _mapService.GetMarkerSpecs().ToList();
+            var aliveIds = specs.Select(s => s.Id).ToHashSet();
+            CleanUpMarkers(aliveIds);
             // 1) 마커
             foreach (var mk in _mapService.GetMarkerSpecs())
             {
@@ -311,6 +274,40 @@ namespace C2.ViewModels
            {
                _map.Markers.Add(CreatePath(rt.Points, rt.Color));
            }*/
+        }
+
+        private void CleanUpMarkers(HashSet<string> aliveIds)
+        {
+            var removeMsl = _missileMarkers.Keys
+                .Where(id => !aliveIds.Contains(id))
+                .ToList();
+
+            foreach (var id in removeMsl)
+            {
+                _map.Markers.Remove(_missileMarkers[id]);
+                _missileMarkers.Remove(id);
+            }
+
+            // ----------------------
+            var removePip = _pipMarkers.Keys
+                .Where(id => !aliveIds.Contains(id))
+                .ToList();
+
+            foreach (var id in removePip)
+            {
+                _map.Markers.Remove(_pipMarkers[id]);
+                _pipMarkers.Remove(id);
+            }
+
+            var removeTgt = _targetMarkers.Keys
+                .Where(id => !aliveIds.Contains(id.ToString()))
+                .ToList();
+
+            foreach (var id in removeTgt)
+            {
+                _map.Markers.Remove(_targetMarkers[id]);
+                _targetMarkers.Remove(id);
+            }
         }
 
         // ======================
@@ -381,25 +378,5 @@ namespace C2.ViewModels
         private static double Deg2Rad(double d) => d * System.Math.PI / 180.0;
         private static double Rad2Deg(double r) => r * 180.0 / System.Math.PI;
 
-        private static GMapRoute CreateDashed(List<PointLatLng> pts) => new(pts)
-        {
-            Shape = new System.Windows.Shapes.Path
-            {
-                Stroke = new SolidColorBrush(Colors.Black),
-                StrokeThickness = 2,
-                StrokeDashArray = new System.Windows.Media.DoubleCollection { 3, 3 },
-                Opacity = 0.8
-            }
-        };
-
-        private static GMapRoute CreatePath(List<PointLatLng> pts, Color color) => new(pts)
-        {
-            Shape = new System.Windows.Shapes.Path
-            {
-                Stroke = new SolidColorBrush(color),
-                StrokeThickness = 1.8,
-                Opacity = 0.8
-            }
-        };
     }
 }

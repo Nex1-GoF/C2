@@ -158,6 +158,7 @@ namespace C2.Services
                             //}
                             //폭파처리
                             existing.IsAbort = true;
+                            WeakReferenceMessenger.Default.Send(new MissileAbortMessage(existing.Id));
                         }
                     }
                 }

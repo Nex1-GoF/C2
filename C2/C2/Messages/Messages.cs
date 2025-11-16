@@ -22,6 +22,10 @@ namespace C2.Messages
     {
         public LaunchEndMessage(bool value) : base(value) { }
     }
+    public class MissileAbortMessage : ValueChangedMessage<string>
+    {
+        public MissileAbortMessage(string value) : base(value) { }
+    }
     public class MissileLaunchMessage
     {
         public string Value {  get; set; }

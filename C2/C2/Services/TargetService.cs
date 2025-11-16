@@ -47,7 +47,6 @@ namespace C2.Services
                     foreach (var id in toRemove)
                     {
                         RemoveTarget(id);
-                        WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
                     }
 
                     // 선택된 타겟이 사라졌다면 초기화
