@@ -1,4 +1,4 @@
-﻿using C2;
+﻿/*using C2;
 using C2.Models;
 using C2.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -164,3 +164,4 @@ namespace C2.ViewModels
     }
 
 }
+*/

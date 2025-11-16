@@ -45,6 +45,10 @@ namespace C2.Messages
             IsIrreversible = isIrreversible;
         }
     }
+    public class TargetCreatedMessage : ValueChangedMessage<char>
+    {
+        public TargetCreatedMessage(char id) : base(id) { }
+    }
 
     public sealed class TargetRemovedMessage : ValueChangedMessage<char>
     {
