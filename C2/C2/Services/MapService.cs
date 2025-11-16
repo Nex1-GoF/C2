@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media; // Color
 
@@ -45,7 +46,10 @@ namespace C2.Services
             WeakReferenceMessenger.Default.Register<TargetRemovedMessage>(this, (r, msg) =>
             {
                 char removedId = msg.Value;
-                OnTargetRemoved(removedId);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    OnTargetRemoved(removedId);
+                });
             });
         }
 
