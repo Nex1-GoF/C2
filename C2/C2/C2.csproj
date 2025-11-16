@@ -9,7 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\msl_marker.png" />
     <None Remove="Resources\target.png" />
+    <None Remove="Resources\tgt_marker.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,9 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\msl_marker.png" />
     <Resource Include="Resources\target.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
+    <Resource Include="Resources\tgt_marker.png" />
   </ItemGroup>
 
 </Project>

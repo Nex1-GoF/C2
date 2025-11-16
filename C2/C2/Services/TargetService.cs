@@ -77,7 +77,7 @@ namespace C2.Services
         // 외부 통신 모듈이 호출 (표적 데이터 수신)
         public void ReceiveTargetData(Target newTarget)
         {
-            lock (_lock)
+            //lock (_lock)
             {
                 if (_targets.TryGetValue(newTarget.Id, out var existing))
                 {
@@ -86,6 +86,8 @@ namespace C2.Services
                 else
                 {
                     _targets[newTarget.Id] = newTarget;
+                    WeakReferenceMessenger.Default.Send(new TargetCreatedMessage(newTarget.Id));
+
                 }
             }
         }

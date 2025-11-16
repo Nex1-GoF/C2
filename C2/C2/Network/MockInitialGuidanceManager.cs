@@ -18,7 +18,7 @@ namespace C2.Network
         public static MockInitialGuidanceManager Instance => _instance ??= new MockInitialGuidanceManager();
 
         private readonly LogService _logService = LogService.Instance;
-        private readonly MissileService _missileService = MissileService.Instance;
+        private MissileService _missileService = MissileService.Instance;
         private readonly TargetService _targetService = TargetService.Instance;
 
         private IGuidanceState? _currentState;
@@ -147,7 +147,7 @@ namespace C2.Network
         internal abstract class BaseGuidanceState : IGuidanceState
         {
             protected readonly MockInitialGuidanceManager _manager;
-            protected readonly Missile _missile;
+            protected Missile _missile;
 
             public abstract string Name { get; }
             public abstract IGuidanceState? NextState { get; }
@@ -179,7 +179,7 @@ namespace C2.Network
                     _manager._logService.AddLog(MessageType.System, $"{missileId} 발사 단계로 전환됨");
 
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -192,7 +192,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -205,7 +205,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -220,7 +220,7 @@ namespace C2.Network
                 await base.EnterAsync(token);
                 byte[] key = GenerateSessionKey();
                 _manager._logService.AddLog(MessageType.System, $"세션 키 생성 완료 ({key.Length} bytes)");
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -233,7 +233,7 @@ namespace C2.Network
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -274,7 +274,7 @@ namespace C2.Network
                     $"[{_missile.Id}] PIP 계산 완료: ({pipLat:F6}, {pipLon:F6})"
                 );
 
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -291,7 +291,7 @@ namespace C2.Network
                     _manager._logService.AddLog(MessageType.System, $"{missileId} 초기유도 단계로 전환됨");
 
                 await base.EnterAsync(token);
-                await Task.Delay(500, token);
+                await Task.Delay(10, token);
             }
         }
 
@@ -305,11 +305,38 @@ namespace C2.Network
             {
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.InitialGuidance, MissileState.MidGuidance);
                 WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_missile.Id));
+                
+                await base.EnterAsync(token);
+                await Task.Delay(500, token);
                 if (missileId != null)
                     _manager._logService.AddLog(MessageType.System, $"{missileId} 중기유도 단계로 전환됨");
+                double speed = 500.0;              // m/s (유지)
+                double dt = 0.05;                  // 50ms 간격
+                double metersPerDegree = 111000.0; // 위도 1도 ≈ 111km
 
-                await base.EnterAsync(token);
-                await Task.Delay(5000, token);
+                // 500m/s × 0.05s = 25m → 25/111000 ≈ 0.000225 도
+                double dLat = (speed * dt) / metersPerDegree;
+
+                // 총 이동시간: 300초 → 300 / 0.05 = 6000 스텝
+                int totalSteps = (int)(300.0 / dt);
+
+                for (int i = 0; i < totalSteps; i++)
+                {
+                    if (token.IsCancellationRequested) break;
+
+                    double currentLat = _missile.Latitude;
+                    double currentLon = _missile.Longitude;
+
+                    // 북쪽 방향 = 위도 증가
+                    double newLat = currentLat + dLat;
+                    double newLon = currentLon;
+
+                    // 실제 미사일 객체의 위치 갱신
+                    _missile.LatitudeRaw = (int)(newLat * 1e7);
+                    _missile.LongitudeRaw = (int)(newLon * 1e7);
+
+                    await Task.Delay((int)(dt * 1000), token);
+                }
             }
         }
     }

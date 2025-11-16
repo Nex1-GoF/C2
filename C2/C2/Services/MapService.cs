@@ -159,7 +159,7 @@ namespace C2.Services
                 {
                     // 포커스된 미사일의 PIP만 표시
                     bool pipVisible = focused;
-                    list.Add(($"PIP::{m.Id}", "PIP", m.PIP.Latitude, m.PIP.Longitude, pipVisible, pipVisible));
+                    list.Add(($"PIP::{m.Id}", "PIP", m.PIP.Latitude, m.PIP.Longitude, pipVisible, pipVisible)); // Id를 PIP::MissileId로 설정함
                 }
             }
 
@@ -173,35 +173,35 @@ namespace C2.Services
             return list;
         }
 
-        // 여러 미사일 ↔ PIP, Target ↔ PIP 연결선
-        public IEnumerable<(PointLatLng From, PointLatLng To, string Style)> GetLineSpecs()
-        {
-            var lines = new List<(PointLatLng, PointLatLng, string)>();
-            var selectedIds = SelectedMissileIds;
-            var target = _targetService.SelectedTarget;
-
-            foreach (var mid in selectedIds)
-            {
-                var msl = _missileService.GetMissile(mid);
-                if (msl?.PIP == null) continue;
-                if(msl.State==MissileState.Abort) continue;
-
-                // Missile ↔ PIP
-                lines.Add((new PointLatLng(msl.Latitude, msl.Longitude),
-                           new PointLatLng(msl.PIP.Latitude, msl.PIP.Longitude),
-                           "DashedBlack"));
-
-                // Target ↔ PIP (표적이 있을 경우)
-                if (target != null)
+        /*        // 여러 미사일 ↔ PIP, Target ↔ PIP 연결선
+                public IEnumerable<(PointLatLng From, PointLatLng To, string Style)> GetLineSpecs()
                 {
-                    lines.Add((new PointLatLng(target.CurLoc.Lat, target.CurLoc.Lon),
-                               new PointLatLng(msl.PIP.Latitude, msl.PIP.Longitude),
-                               "DashedBlack"));
-                }
-            }
+                    var lines = new List<(PointLatLng, PointLatLng, string)>();
+                    var selectedIds = SelectedMissileIds;
+                    var target = _targetService.SelectedTarget;
 
-            return lines;
-        }
+                    foreach (var mid in selectedIds)
+                    {
+                        var msl = _missileService.GetMissile(mid);
+                        if (msl?.PIP == null) continue;
+                        if(msl.State==MissileState.Abort) continue;
+
+                        // Missile ↔ PIP
+                        lines.Add((new PointLatLng(msl.Latitude, msl.Longitude),
+                                   new PointLatLng(msl.PIP.Latitude, msl.PIP.Longitude),
+                                   "DashedBlack"));
+
+                        // Target ↔ PIP (표적이 있을 경우)
+                        if (target != null)
+                        {
+                            lines.Add((new PointLatLng(target.CurLoc.Lat, target.CurLoc.Lon),
+                                       new PointLatLng(msl.PIP.Latitude, msl.PIP.Longitude),
+                                       "DashedBlack"));
+                        }
+                    }
+
+                    return lines;
+                }*/
 
         // 경로 (Path)
         public IEnumerable<(List<PointLatLng> Points, Color Color)> GetRouteSpecs()
