@@ -1,22 +1,44 @@
 ﻿<UserControl x:Class="C2.Views.Markers.TargetMarker2"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:C2.Views.Markers"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid RenderTransformOrigin="0.5,0.5">
-        <Grid.RenderTransform>
-            <RotateTransform x:Name="Rt"/>
-        </Grid.RenderTransform>
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d">
 
-        <Rectangle x:Name="TargetRect"
-       Fill="Red"
-       Width="40" Height="40">
-            <Rectangle.OpacityMask>
-                <ImageBrush ImageSource="pack://application:,,,/C2;component/Resources/tgt_marker.png"/>
-            </Rectangle.OpacityMask>
-        </Rectangle>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="40"/>
+            <!-- 픽토그램 영역 -->
+            <ColumnDefinition Width="Auto"/>
+            <!-- 텍스트 -->
+        </Grid.ColumnDefinitions>
+
+        <!-- 🔹 회전되는 픽토그램 영역 -->
+        <Grid Grid.Column="0"
+              Width="40" Height="40"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <RotateTransform x:Name="Rt"/>
+            </Grid.RenderTransform>
+
+            <Rectangle x:Name="TargetRect"
+                       Fill="Red"
+                       Width="40" Height="40">
+                <Rectangle.OpacityMask>
+                    <ImageBrush ImageSource="pack://application:,,,/C2;component/Resources/tgt_marker.png"/>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+        </Grid>
+
+        <!-- 🔹 회전되지 않는 Target ID 텍스트 -->
+        <TextBlock Grid.Column="1"
+                   x:Name="IdLabel"
+                   Text="TGT-000"
+                   Foreground="Red"
+                   FontSize="14"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   Margin="10,0,0,0"/>
+        <!-- 픽토그램 오른쪽 10px -->
     </Grid>
 </UserControl>

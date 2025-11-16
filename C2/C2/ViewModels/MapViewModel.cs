@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -31,8 +32,10 @@ namespace C2.ViewModels
             _map = mapControl;
 
             // 지도 초기화 (뷰모델 책임)
+            //GMaps.Instance.Mode = AccessMode.ServerAndCache;
+            //_map.MapProvider = GMap.NET.MapProviders.OpenStreetMapProvider.Instance;
+            _map.MapProvider = CartoDarkMapProvider.Instance;
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
-            _map.MapProvider = GMap.NET.MapProviders.OpenStreetMapProvider.Instance;
             _map.MinZoom = 2;
             _map.MaxZoom = 18;
             _map.Zoom = 7;

@@ -7,10 +7,10 @@ namespace C2.Views.Markers
     public partial class MissileMarker2 : UserControl
     {
         private static readonly Brush UnfocusedStroke = new SolidColorBrush(Colors.LimeGreen);
-        private static readonly Brush UnfocusedFill = new SolidColorBrush(Colors.LightGreen);
+        private static readonly Brush UnfocusedFill = new SolidColorBrush(Colors.Green);
 
         private static readonly Brush FocusedStroke = new SolidColorBrush(Colors.LimeGreen);
-        private static readonly Brush FocusedFill = new SolidColorBrush(Colors.Red);
+        private static readonly Brush FocusedFill = new SolidColorBrush(Colors.Green);
 
         public string MissileId { get; }
 
@@ -18,6 +18,8 @@ namespace C2.Views.Markers
         {
             MissileId = missileId;
             InitializeComponent();
+
+            IdLabel.Text = $"MSL-00{missileId}";
             SetFocused(false);
         }
 

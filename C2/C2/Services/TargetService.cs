@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace C2.Services
 {
@@ -95,7 +96,11 @@ namespace C2.Services
         public void RemoveTarget(char id)
         {
             _logService.AddLog(MessageType.System, "표적 소실이 발생했습니다.");
-            _targets.Remove(id);
+           
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                _targets.Remove(id);
+            });
             WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
 
             if (SelectedTarget?.Id == id)

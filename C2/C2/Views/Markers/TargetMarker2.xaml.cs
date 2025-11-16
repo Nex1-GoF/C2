@@ -9,14 +9,16 @@ namespace C2.Views.Markers
         private static readonly Brush UnfocusedStroke = new SolidColorBrush(Colors.Red);
         private static readonly Brush UnfocusedFill = new SolidColorBrush(Color.FromRgb(0xFF, 0x40, 0x40));
 
-        private static readonly Brush FocusedStroke = new SolidColorBrush(Colors.Red);
+        private static readonly Brush FocusedStroke = new SolidColorBrush(Colors.Blue);
         private static readonly Brush FocusedFill = new SolidColorBrush(Color.FromRgb(0xFF, 0x40, 0x40));
         public char TargetId { get; }
         public TargetMarker2(char targetId)
         {
             InitializeComponent();
-            SetFocused(false);
             TargetId = targetId;
+
+            IdLabel.Text = $"TGT-00{targetId}";
+            SetFocused(false);
         }
 
         public void SetYaw(double yaw)
