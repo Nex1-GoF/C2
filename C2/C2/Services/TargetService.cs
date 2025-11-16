@@ -45,14 +45,17 @@ namespace C2.Services
                             toRemove.Add(kvp.Key);
                     }
 
+                    // 삭제
                     foreach (var id in toRemove)
                     {
-                        RemoveTarget(id);
+                        RemoveTarget(id);   // 내부에서 Dispatcher.Invoke 처리함
                     }
 
-                    // 선택된 타겟이 사라졌다면 초기화
+                    // 선택 표적이 사라졌다면 UI 스레드에서 처리
                     if (SelectedTarget != null && !_targets.ContainsKey(SelectedTarget.Id))
-                        SelectedTarget = null;
+                    {
+                        ClearTarget();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -102,9 +105,6 @@ namespace C2.Services
                 _targets.Remove(id);
             });
             WeakReferenceMessenger.Default.Send(new TargetRemovedMessage(id));
-
-            if (SelectedTarget?.Id == id)
-                SelectedTarget = null;
         }
 
         //public void SelectTarget(char id)
@@ -124,7 +124,11 @@ namespace C2.Services
         }
         public void ClearTarget()
         {
-            SelectedTarget = null;
+            
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                SelectedTarget = null;
+            });
             WeakReferenceMessenger.Default.Send(new TargetSelectedMessage(null));
         }
     }
