@@ -45,11 +45,11 @@ namespace C2.ViewModels
                 missiles.Add(missile);
             }
 
-            // UpdateDispatcher.Instance.Register(UpdateMissileStates);
+            UpdateDispatcher.Instance.Register(UpdateMissileStates);
         }
         ~MissileViewModel()
         {
-            //UpdateDispatcher.Instance.Unregister(UpdateMissileStates);
+            UpdateDispatcher.Instance.Unregister(UpdateMissileStates);
         }
 
         [RelayCommand]

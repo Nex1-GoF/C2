@@ -305,7 +305,7 @@ namespace C2.Network
             {
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.InitialGuidance, MissileState.MidGuidance);
                 WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_missile.Id));
-                
+                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
                 await base.EnterAsync(token);
                 await Task.Delay(500, token);
                 if (missileId != null)
@@ -323,6 +323,7 @@ namespace C2.Network
                 for (int i = 0; i < totalSteps; i++)
                 {
                     if (token.IsCancellationRequested) break;
+                    if (_missile.State == MissileState.Abort) break;
 
                     double currentLat = _missile.Latitude;
                     double currentLon = _missile.Longitude;
