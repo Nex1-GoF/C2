@@ -7,8 +7,10 @@
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 
-    namespace C2.Views
+namespace C2.Views
     {
         public partial class MapPanel : UserControl
         {
@@ -20,7 +22,11 @@
                 _vm = new MapViewModel(PART_Map);
                 DataContext = _vm;
                 PART_Map.MouseLeftButtonUp += OnMapClick;
-            }
+
+                
+
+        }
+
 
         // 지도 클릭 시: 가장 가까운 마커를 찾아서 포커스 요청을 ViewModel(→MapService)로 전달
         private void OnMapClick(object sender, MouseButtonEventArgs e)
