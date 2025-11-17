@@ -1,4 +1,5 @@
-﻿using C2.Models;
+﻿using C2.Config;
+using C2.Models;
 using C2.Network;
 using C2.Services;
 using GMap.NET;
@@ -12,14 +13,24 @@ public class TargetReceiver
 
     private readonly SocketManager _socketManager;
 
-    private const double ReferenceLat = 37.5665; // 기준 위도
-    private const double ReferenceLon = 126.9780; // 기준 경도 
+    private readonly string _radarIp;
+    private readonly int _radarPort;
+    private readonly double _referenceLat;
+    private readonly double _referenceLon;
+
 
     public TargetReceiver(SocketManager socketManager)
     {
         _targetService = TargetService.Instance;
         _missileService = MissileService.Instance;
         _socketManager = socketManager;
+
+        var network = AppConfig.Network;
+        _radarIp = network.Radar.Ip;
+        _radarPort = network.Radar.Port;
+
+        _referenceLat = network.Reference.Latitude;
+        _referenceLon = network.Reference.Longitude;
 
         // 이벤트 구독
         _socketManager.TargetReceived += HandlePacket;
@@ -64,7 +75,7 @@ public class TargetReceiver
     {
         try
         {
-            _socketManager.Send(tgtInfo.Serialize(), "192.168.1.10", 8003);
+            _socketManager.Send(tgtInfo.Serialize(), _radarIp, _radarPort);
         }
         catch (Exception ex)
         {
@@ -96,7 +107,7 @@ public class TargetReceiver
 
     private TgtInfoOutputPacket ToTgtInfoOutput(TgtInfoInputPacket tgtInfoInput, String mslId)
     {
-        var (x, y) = LatLonToXY(tgtInfoInput.Latitude / 1e7, tgtInfoInput.Longtitude / 1e7, ReferenceLat, ReferenceLon);
+        var (x, y) = LatLonToXY(tgtInfoInput.Latitude / 1e7, tgtInfoInput.Longtitude / 1e7);
        
         double headingRad = (tgtInfoInput.Yaw / 100.0) * Math.PI / 180.0;
         double vx = Math.Sin(headingRad) * tgtInfoInput.Speed;   // 동
@@ -121,19 +132,19 @@ public class TargetReceiver
         return tgtInfoOutput;
     }
 
-    private (double x, double y) LatLonToXY(double lat, double lon, double lat0, double lon0)
+    private (double x, double y) LatLonToXY(double lat, double lon)
     {
         const double R = 6_378_137.0; // 지구 반경
-        double lat0Rad = lat0 * Math.PI / 180.0;
+        double lat0Rad = _referenceLat * Math.PI / 180.0;
 
-        double dLat = (lat - lat0) * Math.PI / 180.0;
-        double dLon = (lon - lon0) * Math.PI / 180.0;
+        double dLat = (lat - _referenceLat) * Math.PI / 180.0;
+        double dLon = (lon - _referenceLon) * Math.PI / 180.0;
 
-        double x = dLon * R * Math.Cos(lat0Rad);  // 동쪽
-        double y = dLat * R;                      // 북쪽
+        double x = dLon * R * Math.Cos(lat0Rad);
+        double y = dLat * R;
 
         return (x, y);
     }
 
-    
+
 }

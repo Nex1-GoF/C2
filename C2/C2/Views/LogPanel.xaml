@@ -9,7 +9,7 @@
         <vm:LogViewModel/>
     </UserControl.DataContext>
 
-    <Border Background="#132235" Padding="10" CornerRadius="6">
+    <Border Background="#132235" Padding="10">
         <!-- ✅ ScrollViewer는 스크롤 이벤트를 위해 x:Name 유지 -->
         <ScrollViewer x:Name="LogScroll"
                       VerticalScrollBarVisibility="Auto"

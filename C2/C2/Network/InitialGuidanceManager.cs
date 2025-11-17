@@ -1,4 +1,5 @@
-﻿using C2.Messages;
+﻿using C2.Config;
+using C2.Messages;
 using C2.Models;
 using C2.Services;
 using CommunityToolkit.Mvvm.Messaging;
@@ -29,7 +30,7 @@ namespace C2.Network
         private int _currentSeq = 0;
         private Missile? _currentMissile;
         private double _currentProgress = 0;
-
+        private bool _abortHandled = false;
         private InitialGuidanceManager() { }
 
         private readonly List<string> Steps = new()
@@ -96,6 +97,7 @@ namespace C2.Network
                 _cts = null;
                 _currentState = null;
                 _currentMissile = null;
+                _abortHandled = false;
             }
         }
 
@@ -115,6 +117,10 @@ namespace C2.Network
 
         internal void PerformAbortSequence(Missile missile, int seq, bool isSystem)
         {
+            if (_abortHandled)
+                return;
+
+            _abortHandled = true;
             try
             {
                 if (seq < 5)
@@ -150,12 +156,13 @@ namespace C2.Network
                 }
 
                 _cts?.Cancel();
-                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
+                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(missile.Id)); // Todo: 따라올 수 있는지
             }
             catch (Exception ex)
             {
                 _logService.AddLog(MessageType.System, $"Abort 절차 중 오류: {ex.Message}");
             }
+
         }
 
         private int GetSeqFromState(IGuidanceState state)
@@ -257,13 +264,13 @@ namespace C2.Network
                         );
                     }
 
-                    using var client = new UdpClient(link.rxPort);
+                    using var client = new UdpClient(link.RxPort);
                     var packet = message.Serialize();
 
-                    var sendEp = new IPEndPoint(IPAddress.Parse(link.txIp), link.txPort);
+                    var sendEp = new IPEndPoint(IPAddress.Parse(link.TxIp), link.TxPort);
 
                     _manager._logService.AddLog(MessageType.System,
-                        $"[II-{seq:D4}] 송신 시작 ({missile.Id}) → {link.txIp}:{link.txPort}");
+                        $"[II-{seq:D4}] 송신 시작 ({missile.Id}) → {link.TxIp}:{link.TxPort}");
                     await client.SendAsync(packet, packet.Length, sendEp);
 
                     // 30초 타임아웃 설정
@@ -455,19 +462,19 @@ namespace C2.Network
             int missileSpeed,            // ✅ int 단위 (m/s)
             double lat0, double lon0)
             {
-                // 1️⃣ 위경도 → 평면 좌표
+                // 1️ 위경도 → 평면 좌표
                 var (tx, ty) = LatLonToXY(target.CurLoc.Lat, target.CurLoc.Lon, lat0, lon0);
                 var (mx, my) = LatLonToXY(missileLat, missileLon, lat0, lon0);
 
-                // 2️⃣ Yaw (1e7으로 스케일 보정)
+                // 2️ Yaw (1e7으로 스케일 보정)
                 double yawDeg = (target.Yaw) / 100.0;
                 double theta = yawDeg * Math.PI / 180.0;
 
-                // 3️⃣ 타겟 진행 방향 단위벡터 * 속도(m/s)
+                // 3️ 타겟 진행 방향 단위벡터 * 속도(m/s)
                 double dx = target.Speed * Math.Sin(theta);
                 double dy = target.Speed * Math.Cos(theta);
 
-                // 4️⃣ 교차 시간 t 탐색 (선형 탐색)
+                // 4️ 교차 시간 t 탐색 (선형 탐색)
                 double t = 0.0;
                 double left = 0, right = 2000; // 최대 1000초 탐색
                 for (int i = 0; i < 100; i++)
@@ -483,7 +490,7 @@ namespace C2.Network
                         right = t;
                 }
 
-                // 5️⃣ 최종 PIP 계산 (1e7 스케일 적용 후 정수 변환)
+                // 5️최종 PIP 계산 (1e7 스케일 적용 후 정수 변환)
                 int pipX = (int)Math.Round((tx + dx * t));
                 int pipY = (int)Math.Round((ty + dy * t));
 
@@ -530,7 +537,24 @@ namespace C2.Network
 
                 _launchingMissile.PIP = new PIP(targetLatLon.lat, targetLatLon.lon, 10);
 
+                var (mx, my) = LatLonToXY(
+                    _launchingMissile.Latitude,
+                    _launchingMissile.Longitude,
+                    _launchingMissile.Latitude,
+                    _launchingMissile.Longitude);
 
+                double dx = targetXY.x - mx;
+                double dy = targetXY.y - my;
+
+                // yaw 계산
+                double rawYaw = Math.Atan2(dx, dy) * (180.0 / Math.PI);
+                double yawDeg = rawYaw + 180.0;
+                if (yawDeg >= 360.0) yawDeg -= 360.0;
+
+                short yawRaw = (short)(yawDeg * 100);
+
+                // ⭐ 미사일 초기 yaw 갱신
+                _launchingMissile.YawRaw = yawRaw;
 
                 bool ok = await SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
                 if (!ok)
@@ -576,7 +600,7 @@ namespace C2.Network
 
         }
 
-        private class LauncherLinkConfig
+        /*private class LauncherLinkConfig
         {
 
             private readonly Dictionary<Missile, (string txIp, int txPort, string rxIp, int rxPort)> _configMap;
@@ -603,6 +627,37 @@ namespace C2.Network
             public bool TryGetLink(Missile missile, out (string txIp, int txPort, string rxIp, int rxPort) link)
             {
                 return _configMap.TryGetValue(missile, out link);
+            }
+        }*/
+        private class LauncherLinkConfig
+        {
+            public record LinkEndPoints(string TxIp, int TxPort, string RxIp, int RxPort);
+
+            private readonly Dictionary<string, LinkEndPoints> _configMap;
+
+            public LauncherLinkConfig()
+            {
+                var network = AppConfig.Network;
+                _configMap = new Dictionary<string, LinkEndPoints>();
+
+                foreach (var item in network.LauncherLinks)
+                {
+                    if (string.IsNullOrWhiteSpace(item.MissileId))
+                        continue;
+
+                    _configMap[item.MissileId] = new LinkEndPoints(
+                        item.TxIp,
+                        item.TxPort,
+                        item.RxIp,
+                        item.RxPort
+                    );
+                }
+            }
+
+            // Missile.Id 가 "1", "2" 이런 형태라고 가정
+            public bool TryGetLink(Missile missile, out LinkEndPoints link)
+            {
+                return _configMap.TryGetValue(missile.Id, out link);
             }
         }
     }

@@ -6,9 +6,9 @@
     <Grid>
         <Canvas Width="20" Height="20">
             <Line x:Name="Line1" X1="0" Y1="0" X2="20" Y2="20"
-                  Stroke="Red" StrokeThickness="2" />
+                  Stroke="Blue" StrokeThickness="2" />
             <Line x:Name="Line2" X1="20" Y1="0" X2="0" Y2="20"
-                  Stroke="Red" StrokeThickness="2" />
+                  Stroke="Blue" StrokeThickness="2" />
         </Canvas>
     </Grid>
 

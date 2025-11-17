@@ -65,6 +65,7 @@ namespace C2.ViewModels
                 if (missileMarker!.Shape is MissileMarker2 mslMarker)
                 {
                     mslMarker.SetVisible(true);
+                    mslMarker.SetLaunching(true);
                 }
             });
 
@@ -91,6 +92,20 @@ namespace C2.ViewModels
                 {
                     RemoveRoute(msg.Value);
                 });
+            });
+            WeakReferenceMessenger.Default.Register<LaunchEndMessage>(this, (r, msg) =>
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var missileMarker = _missileMarkers.GetValueOrDefault(msg.Value);
+                    if (missileMarker!.Shape is MissileMarker2 mslMarker)
+                    {
+                        mslMarker.SetVisible(true);
+                        mslMarker.SetLaunching(false);
+                    }
+                });
+
+                //if()
             });
 
         }
@@ -224,11 +239,16 @@ namespace C2.ViewModels
                 if (mk.Kind == "Missile")
                 {
                     var missile = _mapService.GetMissiles().First(x => x.Id == mk.Id);
+
+                    //if(missile.State == MissileState.InitialGuidance) continue; 
+                    // 초기 유도일때는 미사일 상태 바꾸지않고, 마커만 따로 관리
+                    // 초기 PIP를 따라가는걸로 처리하고싶음
+
                     var missileMarker = _missileMarkers.GetValueOrDefault(mk.Id);
                     if (missileMarker!.Shape is MissileMarker2 mslShape)
                     {
-                        mslShape.SetYaw((double)missile.Yaw / 100.0);
-                        mslShape.SetFocused(mk.Focused);
+                        mslShape.SetYaw((double)missile.YawRaw / 100.0);
+                        mslShape.SetColor(mk.Focused);
                     }
                     missileMarker.Position = new PointLatLng(mk.Lat, mk.Lon);
                 }
@@ -250,13 +270,22 @@ namespace C2.ViewModels
                     var missileId = mk.Id.Replace("PIP::", "");
                     var missile = _mapService.GetMissiles().First(x => x.Id == missileId);
                     var pip = missile.PIP;
-
                     if (pip == null) return;
                     var pipMarker = _pipMarkers.GetValueOrDefault(missileId);
+
                     if (pipMarker!.Shape is PIPMarker2 pipShape)
                     {
                         pipShape.SetVisible(mk.Focused);
+
+                        if (pipShape.AfterLaunch == false
+                            && (missile.State == MissileState.MidGuidance|| missile.State == MissileState.TerminalGuidance))
+                        {
+                            pipShape.LaunchUpdatePIP();
+                        }
                     }
+
+                    
+
                     pipMarker.Position = new PointLatLng(mk.Lat, mk.Lon);
                 }
             }
