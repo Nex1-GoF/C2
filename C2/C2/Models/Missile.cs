@@ -109,9 +109,26 @@ namespace C2.Models
                 {
                     _targetId = value;
                     OnPropertyChanged(nameof(TargetId));
+                    OnPropertyChanged(nameof(TargetDisplayId));
                 }
             }
         }
+
+        public string TargetDisplayId
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(TargetId))
+                    return "";
+
+                // TargetId → 정수 변환 시도
+                if (int.TryParse(TargetId, out int id))
+                    return $"TGT-{id:000}";
+
+                return "";
+            }
+        }
+
         public int IdNumber => int.Parse(Id);
         public double Latitude => LatitudeRaw / 1e7;
         public double Longitude => LongitudeRaw / 1e7;
@@ -170,21 +187,6 @@ namespace C2.Models
             flightTime = 0;
             PIP = pip;
         }
-
-
-        //public Missile() { }
-
-        //public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, MissileState state, string? targetId = null)
-        //{
-        //    Id = id;
-        //    LatitudeRaw = latitudeRaw;
-        //    LongitudeRaw = longitudeRaw;
-        //    Altitude = altitude;
-        //    Speed = 0;
-
-        //    State = state;
-        //    TargetId = targetId;
-        //}
 
         public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude)
         {

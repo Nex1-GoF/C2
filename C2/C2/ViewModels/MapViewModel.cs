@@ -4,6 +4,7 @@ using C2.Services;
 using C2.Views.Markers;
 using CommunityToolkit.Mvvm.Messaging;
 using GMap.NET;
+using GMap.NET.MapProviders;
 using GMap.NET.WindowsPresentation;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 
 namespace C2.ViewModels
@@ -64,7 +66,6 @@ namespace C2.ViewModels
                 var missileMarker = _missileMarkers.GetValueOrDefault(missileId);
                 if (missileMarker!.Shape is MissileMarker2 mslMarker)
                 {
-                    mslMarker.SetVisible(true);
                     mslMarker.SetLaunching(true);
                 }
             });
@@ -100,7 +101,6 @@ namespace C2.ViewModels
                     var missileMarker = _missileMarkers.GetValueOrDefault(msg.Value);
                     if (missileMarker!.Shape is MissileMarker2 mslMarker)
                     {
-                        mslMarker.SetVisible(true);
                         mslMarker.SetLaunching(false);
                     }
                 });
@@ -249,7 +249,15 @@ namespace C2.ViewModels
                     {
                         mslShape.SetYaw((double)missile.YawRaw / 100.0);
                         mslShape.SetColor(mk.Focused);
+                        if (missile.State == MissileState.LaunchReady || missile.State == MissileState.Abort)
+                        {
+                            mslShape.SetVisible(false);
+                        } else
+                        {
+                            mslShape.SetVisible(true);
+                        }
                     }
+                    
                     missileMarker.Position = new PointLatLng(mk.Lat, mk.Lon);
                 }
                 else if (mk.Kind == "Target")
@@ -395,9 +403,18 @@ namespace C2.ViewModels
             {
                 Shape = new System.Windows.Shapes.Path
                 {
-                    Stroke = Brushes.LimeGreen,
-                    StrokeThickness = 2,
-                    Fill = Brushes.Transparent
+                    Stroke = new SolidColorBrush(Color.FromRgb(0, 255, 200)),
+                    StrokeThickness = 2.5,
+                    StrokeDashArray = new DoubleCollection { 4, 6 }, // 레이더 점선 느낌
+                    Opacity = 0.8,
+                    Fill = Brushes.Transparent,
+                    Effect = new DropShadowEffect
+                    {
+                        Color = Color.FromRgb(0, 255, 200),
+                        BlurRadius = 25,
+                        ShadowDepth = 0,
+                        Opacity = 0.7
+                    }
                 }
             };
         }

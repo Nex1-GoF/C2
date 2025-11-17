@@ -70,6 +70,7 @@ namespace C2.Network
 
         private async Task RunStateMachineAsync(CancellationToken token, Missile missile)
         {
+            bool flag = true;
             try
             {
                 WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(missile.Id));
@@ -83,18 +84,20 @@ namespace C2.Network
             {
                 _missileService.CancelLaunch();
                 _logService.AddLog(MessageType.System, "절차가 사용자에 의해 중단됨");
+                flag = false;
             }
             catch (Exception ex)
             {
                 _missileService.CancelLaunch();
                 _logService.AddLog(MessageType.System, $"오류 발생: {ex.Message}");
+                flag = false;
             }
             finally
             {
                 WeakReferenceMessenger.Default.Send(new LaunchEndMessage(missile.Id));
                 _cts = null;
                 _currentState = null;
-                await startMidGuid(token, missile);
+                if(flag == true) await startMidGuid(token, missile);
             }
         }
 
@@ -180,7 +183,7 @@ namespace C2.Network
                 _manager._logService.AddLog(MessageType.System, $"{Name} 수행 중...");
                 int idx = _manager.GetStepIndex(Name);
 
-                if (this is KeyState)
+                if (this is IgnitionState)
                 {
                     _manager._logService.AddLog(MessageType.System, "비가역 상태 진입");
                     WeakReferenceMessenger.Default.Send(
@@ -344,7 +347,7 @@ namespace C2.Network
                 double yawDeg = rawYaw;
                 if (yawDeg < 0) yawDeg += 360.0;
 
-                short yawRaw = (short)(yawDeg * 100);
+                int yawRaw = (int)(yawDeg * 100);
                 _missile.YawRaw = yawRaw;
 
                 _manager._logService.AddLog(

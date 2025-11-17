@@ -204,7 +204,7 @@ namespace C2.Network
             public virtual async Task EnterAsync(CancellationToken token)
             {
                 int idx = _manager.GetStepIndex(Name);
-                if (this is KeyState)
+                if (this is IgnitionState)
                 {
                     _manager._logService.AddLog(MessageType.System, "비가역 상태 진입");
                     WeakReferenceMessenger.Default.Send(

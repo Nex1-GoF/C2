@@ -4,152 +4,172 @@
              xmlns:vm="clr-namespace:C2.ViewModels"
              xmlns:models="clr-namespace:C2.Models"
              xmlns:local="clr-namespace:C2.Views"
-             Background="#0A1B2A">
-
-    <UserControl.DataContext>
-        <vm:TargetViewModel/>
-    </UserControl.DataContext>
+             Background="#0A1922">
 
     <UserControl.Resources>
         <local:TargetStateToBrushConverter x:Key="TargetStateToBrushConverter"/>
-        <vm:IsSelectedTargetConverter x:Key="IsSelectedTargetConverter"/>
+        <vm:SelectedTargetBorderThicknessConverter x:Key="SelectedTargetBorderThicknessConverter"/>
     </UserControl.Resources>
 
-    <Grid Margin="8">
-        <ItemsControl ItemsSource="{Binding Targets}" Width="auto">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="1" Rows="4"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+    <!-- 전체 패널: 상단 고정 제목 + 스크롤 영역 -->
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- 제목 -->
+            <RowDefinition Height="*"/>
+            <!-- 스크롤 영역 -->
+        </Grid.RowDefinitions>
 
-            <!-- ✅ 선택 시 외곽선 하이라이트 -->
-            <ItemsControl.ItemContainerStyle>
-                <Style TargetType="ContentPresenter">
-                    <Style.Triggers>
-                        <DataTrigger Value="True">
-                            <DataTrigger.Binding>
-                                <MultiBinding Converter="{StaticResource IsSelectedTargetConverter}">
-                                    <Binding Path="." />
-                                    <Binding Path="DataContext.SelectedTarget"
-                                                 RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                                </MultiBinding>
-                            </DataTrigger.Binding>
-                            <Setter Property="Effect">
-                                <Setter.Value>
-                                    <DropShadowEffect Color="#00C8FF" BlurRadius="15" ShadowDepth="0" />
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="ContentTemplate">
-                                <Setter.Value>
-                                    <DataTemplate>
-                                        <Border BorderBrush="#00C8FF"
-                                                    BorderThickness="2.5"
-                                                    Background="#1E2A3A"
-                                                    Padding="8" Margin="6">
-                                            <ContentPresenter Content="{Binding}" />
-                                        </Border>
-                                    </DataTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </ItemsControl.ItemContainerStyle>
+        <!-- ===================== 상단 제목 ===================== -->
+        <TextBlock Text="표적 목록"
+                   FontSize="22"
+                   FontWeight="Bold"
+                   Foreground="#AEE8F3"
+                   Margin="4,0,0,12"/>
 
-            <!-- ✅ 표적 카드 템플릿 -->
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type models:Target}">
-                    <Button Margin="6" Padding="8"
-                Background="#1E2A3A"
-                BorderBrush="#2E3C4F"
-                BorderThickness="1"
-                Cursor="Hand"
-                Command="{Binding DataContext.TargetCardClickCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                CommandParameter="{Binding}">
+        <!-- ===================== 스크롤 가능한 카드 영역 ===================== -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
 
-                        <!-- ✅ 전체 카드 레이아웃 Grid -->
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="3*"/>
-                                <!-- 왼쪽 텍스트 -->
-                                <ColumnDefinition Width="2*"/>
-                                <!-- 오른쪽 이미지 -->
-                            </Grid.ColumnDefinitions>
+            <!-- 4개 카드를 세로로 배치하는 Grid -->
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                            <!-- ✅ 왼쪽 텍스트 패널 -->
-                            <StackPanel Grid.Column="0" Orientation="Vertical" Margin="0,0,10,0">
-                                <!-- 상단 -->
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="14" Height="14"
-                                 Fill="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
-                                 Stroke="Black" StrokeThickness="1"
-                                 Margin="0,0,6,0"/>
-                                    <TextBlock Text="{Binding Id}" Foreground="Red" FontWeight="Bold" FontSize="14"/>
-                                    <TextBlock Text=" | " Foreground="Gray"/>
-                                    <TextBlock Text="{Binding State}"
-                                   Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
-                                   FontWeight="Bold" FontSize="13"/>
-                                </StackPanel>
+                <!-- ItemsControl -->
+                <ItemsControl ItemsSource="{Binding Targets}">
+                    <!-- 카드 템플릿 -->
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:Target}">
 
-                                <!-- 중단 정보 -->
-                                <StackPanel Margin="0,8,0,0">
-                                    <TextBlock Text="{Binding CurLatDisplay, StringFormat='위도: {0}'}" Foreground="Yellow" FontSize="14"/>
-                                    <TextBlock Text="{Binding CurLonDisplay, StringFormat='경도: {0}'}" Foreground="Yellow" FontSize="14"/>
-                                    <TextBlock Text="{Binding CurYawDisplay, StringFormat='방향: {0}'}" Foreground="Yellow" FontSize="14"/>
-                                    <TextBlock Text="{Binding Speed, StringFormat='속도: {0} m/s'}" Foreground="Yellow" FontSize="14"/>
-                                    <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}" Foreground="Yellow" FontSize="14"/>
-                                </StackPanel>
+                            <Border CornerRadius="10"
+                                Background="#112431" BorderBrush="#2B7480"
+                                Margin="10"
+                                Padding="14"
+                                MouseLeftButtonDown="Card_MouseLeftButtonDown" 
+                                >
 
-                                <!-- 하단 -->
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding DetectTime, StringFormat='탐지시간:HH:mm:ss'}"
-                                   Foreground="DarkGray" FontSize="11"/>
-                                </StackPanel>
-                            </StackPanel>
+                                <Border.BorderThickness>
+                                    <MultiBinding Converter="{StaticResource SelectedTargetBorderThicknessConverter}">
+                                        <Binding />
+                                        <Binding Path="DataContext.SelectedTarget"
+                                         RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                                    </MultiBinding>
+                                </Border.BorderThickness>
 
-                            <!-- ✅ 오른쪽 이미지: 영역 전체 꽉 채우기 -->
-                            <Grid Grid.Column="1"
-      HorizontalAlignment="Stretch"
-      VerticalAlignment="Stretch"
-      Background="#0F1620">
 
-                                <Image Source="/Resources/target.png"
-       Stretch="Uniform"
-       HorizontalAlignment="Center"
-       VerticalAlignment="Center"
-       MinWidth="40"
-       MinHeight="40"
-       MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=Grid}}"
-       MaxHeight="{Binding ActualHeight, RelativeSource={RelativeSource AncestorType=Grid}}"/>
-                            </Grid>
-                        </Grid>
+                                <Grid Margin="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="3*"/>
+                                        <ColumnDefinition Width="2*"/>
+                                    </Grid.ColumnDefinitions>
 
-                        <!-- ✅ 기존 버튼 템플릿 유지 -->
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="#1E2A3A"/>
-                                <Setter Property="BorderBrush" Value="#2E3C4F"/>
-                                <Setter Property="BorderThickness" Value="1"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="Button">
-                                            <Border Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        CornerRadius="8">
-                                                <ContentPresenter HorizontalAlignment="Stretch"
-                                                      VerticalAlignment="Stretch"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </Button.Style>
+                                    <!-- ================= LEFT ================= -->
+                                    <Grid Grid.Column="0" Margin="10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- 상태/ID -->
+                                            <RowDefinition Height="*"/>
+                                            <!-- 본문 -->
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- 탐지시간 -->
+                                        </Grid.RowDefinitions>
 
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                                        <!-- 상단: 상태 + ID -->
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                            <Ellipse Width="14" Height="14"
+                                                 Fill="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
+                                                 Margin="0,0,6,0"/>
+
+                                            <TextBlock Text="{Binding Id}"
+                                               Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
+                                               FontWeight="Bold"
+                                               FontSize="15"/>
+
+                                            <TextBlock Text=" | " Foreground="#668A94" Margin="4,0"/>
+
+                                            <TextBlock Text="{Binding State}"
+                                               Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
+                                               FontWeight="Bold"
+                                               FontSize="13"/>
+                                        </StackPanel>
+
+                                        <!-- 중간 내용 -->
+                                        <StackPanel Grid.Row="1" Orientation="Vertical">
+                                            <TextBlock Text="{Binding CurLatDisplay, StringFormat='위도: {0}'}"
+                                               Foreground="#AEE8F3" FontSize="14"/>
+                                                            <TextBlock Text="{Binding CurLonDisplay, StringFormat='경도: {0}'}"
+                                               Foreground="#AEE8F3" FontSize="14"/>
+                                                            <TextBlock Text="{Binding YawRaw, StringFormat='방향: {0}°'}"
+                                               Foreground="#AEE8F3" FontSize="14"/>
+                                                            <TextBlock Text="{Binding Speed, StringFormat='속도: {0} m/s'}"
+                                               Foreground="#AEE8F3" FontSize="14"/>
+                                                            <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}"
+                                               Foreground="#AEE8F3" FontSize="14"/>
+                                        </StackPanel>
+
+                                        <!-- 탐지 시간 -->
+                                        <TextBlock Grid.Row="2"
+                                           Text="{Binding DetectTime, StringFormat='탐지시간: HH:mm:ss'}"
+                                           Foreground="#668A94"
+                                           FontSize="12"
+                                           Margin="0,10,0,0"/>
+                                    </Grid>
+
+
+                                    <!-- ================= RIGHT ================= -->
+                                    <Grid Grid.Column="1" Margin="10">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <!-- 이미지 -->
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- 버튼 -->
+                                        </Grid.RowDefinitions>
+
+                                        <!-- 이미지 -->
+                                        <Image Grid.Row="0"
+                                           x:Name="TargetImage"
+                                           Source="/Resources/target.png"
+                                           Stretch="Uniform"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,0,10"/>
+
+                                        <!-- 교전할당 버튼 -->
+                                        <Button Grid.Row="1"
+                                            Content="교전할당"
+                                            Width="{Binding ActualWidth, ElementName=TargetImage}"
+                                            Height="32"
+                                            Background="#174556"
+                                            BorderBrush="#45E8E1"
+                                            Foreground="#AEE8F3"
+                                            BorderThickness="1.2"
+                                            Padding="4"
+                                            FontSize="13"
+                                            HorizontalAlignment="Center"
+                                            PreviewMouseLeftButtonDown="EngagementButton_Click"
+                                            Command="{Binding DataContext.EngagementCommand,
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"/>
+                                    </Grid>
+
+                                </Grid>
+
+                            </Border>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+            </Grid>
+
+        </ScrollViewer>
+
     </Grid>
+
 </UserControl>

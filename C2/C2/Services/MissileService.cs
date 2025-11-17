@@ -104,6 +104,7 @@ namespace C2.Services
         {
             var missile = GetAllMissiles().FirstOrDefault(m => m.State == MissileState.LaunchReady);
             if (missile == null) return false;
+            if(missile.TargetId == null) return false;
             return true;
         }
 

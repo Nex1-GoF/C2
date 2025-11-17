@@ -9,7 +9,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Windows;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace C2.ViewModels
 {
@@ -17,6 +19,7 @@ namespace C2.ViewModels
     {
         public ObservableCollection<Target> Targets { get;} = new ();
         private readonly TargetService _targetService;
+        private readonly LogService _logService;
         private readonly MissileService _missileService;
         private readonly UpdateDispatcher _updateDispatcher;
 
@@ -32,45 +35,46 @@ namespace C2.ViewModels
             _targetService = TargetService.Instance;
             _missileService = MissileService.Instance;
             _updateDispatcher = UpdateDispatcher.Instance;
-
-            // ✅ 테스트용 더미 표적 생성
-            //for (int i = 1; i <= 4; i++)
-            //{
-            //    var target = new Target(
-            //        (char)('A' + i - 1),
-            //        100,
-            //        200,
-            //        0,
-            //        (37, 125 + i),
-            //        DateTime.Now,
-            //        (38, 125 + i)
-            //    );
-            //    _targetService.ReceiveTargetData(target);
-            //}
+            _logService = LogService.Instance;
 
             _updateDispatcher.Register(UpdateTargets);
 
             WeakReferenceMessenger.Default.Register<TargetSelectedMessage>(this, (r, msg) =>
             {
                 if (msg.Value != null)
-                    _selectedTarget = Targets.FirstOrDefault(t => t.Id == msg.Value);
+                    SelectedTarget = Targets.FirstOrDefault(t => t.Id == msg.Value);
                 else
-                    _selectedTarget = null;
+                    SelectedTarget = null;
             });
         }
 
         private void UpdateTargets()
         {
             var latest = _targetService.GetAllTargets();
-            Targets.Clear();
             foreach (var updated in latest)
             {
-                //var existing = Targets.FirstOrDefault(t => t.Id == updated.Id);
-                //if (existing == null)
-                //    Targets.Add(updated);
-                //else
-                //    existing.Update(updated);
-                Targets.Add(updated);
+                var existing = Targets.FirstOrDefault(t => t.Id == updated.Id);
+
+                if (existing == null)
+                {
+                    Targets.Add(updated);
+                }
+                else
+                {
+                    // 속성만 갱신
+                    existing.CurLoc = updated.CurLoc;
+                    existing.Yaw = updated.Yaw;
+                    existing.Speed = updated.Speed;
+                    existing.Altitude = updated.Altitude;
+                    existing.DetectTime = updated.DetectTime;
+                }
+            }
+
+            // 기존 목록에 있었는데 latest에 없는 항목은 제거
+            for (int i = Targets.Count - 1; i >= 0; i--)
+            {
+                if (!latest.Any(t => t.Id == Targets[i].Id))
+                    Targets.RemoveAt(i);
             }
         }
 
@@ -113,6 +117,24 @@ namespace C2.ViewModels
 
             SelectedTarget = target;
         }
+
+        [RelayCommand]
+        private void Engagement(Target target)
+        {
+
+            var missileId = _missileService.AssignTarget(target.Id.ToString());
+
+            if (string.IsNullOrEmpty(missileId))
+            {
+                _logService.AddLog(MessageType.System, "교전할당 가능한 미사일이 없습니다.");
+                return;
+            }
+
+            _logService.AddLog(MessageType.System, $"교전할당 완료: {missileId} 생성됨.");
+
+            // Todo: 발사 버튼 assign
+        }
+
     }
 
     public class IsSelectedTargetConverter : IMultiValueConverter
@@ -127,4 +149,42 @@ namespace C2.ViewModels
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+    public class SelectedTargetBorderConverter : IMultiValueConverter
+    {
+        private static SolidColorBrush SelectedBrush = new SolidColorBrush(Color.FromRgb(69, 232, 225)); // #45E8E1
+        private static SolidColorBrush NormalBrush = new SolidColorBrush(Color.FromRgb(43, 116, 128)); // #2B7480
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 2 || values[0] is not Target current || values[1] is not Target selected)
+                return NormalBrush;
+
+            return current.Id == selected?.Id ? SelectedBrush : NormalBrush;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+    public class SelectedTargetBorderThicknessConverter : IMultiValueConverter
+    {
+        private static readonly Thickness SelectedThickness = new Thickness(3);
+        private static readonly Thickness NormalThickness = new Thickness(1.4);
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length >= 2 &&
+                values[0] is Target current &&
+                values[1] is Target selected &&
+                selected != null)
+            {
+                return current.Id == selected.Id ? SelectedThickness : NormalThickness;
+            }
+
+            return NormalThickness;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
 }

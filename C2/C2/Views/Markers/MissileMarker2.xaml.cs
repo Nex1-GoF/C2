@@ -6,13 +6,8 @@ namespace C2.Views.Markers
 {
     public partial class MissileMarker2 : UserControl
     {
-        private static readonly Brush UnfocusedStroke = new SolidColorBrush(Colors.LimeGreen);
-        private static readonly Brush UnfocusedFill = new SolidColorBrush(Colors.Green);
-
-        private static readonly Brush FocusedStroke = new SolidColorBrush(Colors.LimeGreen);
-        private static readonly Brush FocusedFill = new SolidColorBrush(Colors.Green);
-
-        private static readonly Brush LaunchingStroke = new SolidColorBrush(Colors.Orange);
+        private static readonly Brush UnfocusedFill = new SolidColorBrush(Colors.LimeGreen);
+        private static readonly Brush FocusedFill = new SolidColorBrush(Colors.SkyBlue);
         private static readonly Brush LaunchingFill = new SolidColorBrush(Colors.Orange);
 
         public string MissileId { get; }
@@ -36,18 +31,18 @@ namespace C2.Views.Markers
         {
             if (IsLaunching)
             {
-                MissileRect.Stroke = LaunchingStroke;
                 MissileRect.Fill = LaunchingFill;
+                IdLabel.Foreground = LaunchingFill;
                 return;
             }
             if (focused)
             {
-                MissileRect.Stroke = FocusedStroke;
                 MissileRect.Fill = FocusedFill;
+                IdLabel.Foreground = FocusedFill;
                 return;
             }
-            MissileRect.Stroke = UnfocusedStroke;
             MissileRect.Fill = UnfocusedFill;
+            IdLabel.Foreground = UnfocusedFill;
         }
 
         public void SetVisible(bool isVisible)
