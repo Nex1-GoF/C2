@@ -26,6 +26,7 @@ namespace C2.ViewModels
         [ObservableProperty] private string _currentStep = "";
         [ObservableProperty] private int _currentStepIndex = 0;
         [ObservableProperty] private bool _currentStepIsOn = false;
+        private bool _isReversible = false;
         public List<string> Steps { get; } = new()
         {
             "전원 점검",
@@ -57,14 +58,14 @@ namespace C2.ViewModels
                     CurrentStepIndex = msg.StepIndex;
                     CurrentStepIsOn = msg.IsOn;
                     IsLaunching = true;
-                    if (msg.IsIrreversible)
+                    if (msg.IsIrreversible && msg.IsOn)
                         CanLaunchOrAbort = false;
                 });
             });
             // ✅ 버튼 활성화 메시지 (Launch 절차 완료 후 true로 돌아옴)
             WeakReferenceMessenger.Default.Register<ButtonDeactivateMessage>(this, (_, msg) =>
             {
-                CanLaunchOrAbort = msg.Value;
+                _isReversible = msg.Value;
             });
             WeakReferenceMessenger.Default.Register<LaunchEndMessage>(this, (_, msg) =>
             {
@@ -81,34 +82,7 @@ namespace C2.ViewModels
 
         private void UpdateCanLaunch()
         {
-            CanAssign = _targetService.SelectedTarget != null && _missileService.CanLaunch();
-        }
-
-        [RelayCommand]
-        private void AssignTarget()
-        {
-            if (_targetService.SelectedTarget == null)
-            {
-                _logService.AddLog(MessageType.System, "선택된 표적이 없습니다.");
-                CanAssign = false;
-                return;
-            }
-
-            var targetId = _targetService.SelectedTarget.Id;
-            var missileId = _missileService.AssignTarget(targetId.ToString());
-
-            if (string.IsNullOrEmpty(missileId))
-            {
-                _logService.AddLog(MessageType.System, "교전할당 가능한 미사일이 없습니다.");
-                CanAssign = false;
-                return;
-            }
-
-            _logService.AddLog(MessageType.System, $"교전할당 완료: {missileId} 생성됨.");
-            CanLaunchOrAbort = true;
-
-            _targetService.ClearTarget();
-            _missileService.ClearMissiles();
+            CanLaunchOrAbort = _missileService.CanLaunch() || _isReversible;
         }
 
         [RelayCommand(AllowConcurrentExecutions = true)]
@@ -129,6 +103,7 @@ namespace C2.ViewModels
 
             IsLaunching = true;
             ProgressBarVisible = true;
+            _isReversible = true;
 
             // ✅ 전체 절차 위임
             await _guidanceManager.StartAsync(missile);

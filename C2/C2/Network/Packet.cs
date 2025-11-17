@@ -203,7 +203,7 @@ namespace C2.Network
         public Int32 Latitude { get; set; }        // 위도 (4 bytes, ×1e7)
         public Int32 Longtitude { get; set; }      // 경도 (4 bytes, ×1e7)
         public Int16 Altitude { get; set; }        // 고도 (2 bytes)
-        public Int16 Yaw { get; set; }             // 요 (2 bytes)
+        public UInt16 Yaw { get; set; }             // 요 (2 bytes)
         public UInt64 DetectedTime { get; set; }   // 탐지 시간 (8 bytes)
         public UInt16 Speed { get; set; }          // 속도 (2 bytes)
         public char DetectedType { get; set; }     // 탐지체 구분 (1 byte)
@@ -212,7 +212,7 @@ namespace C2.Network
 
         public TgtInfoInputPacket(HeaderPacket header,
                                   char detectedId, Int32 latitude, Int32 longtitude,
-                                  Int16 altitude, Int16 yaw,
+                                  Int16 altitude, UInt16 yaw,
                                   UInt64 detectedTime, UInt16 speed, char detectedType)
         {
             Header = header;
@@ -259,7 +259,7 @@ namespace C2.Network
             Latitude = BitConverter.ToInt32(buffer, offset); offset += 4;
             Longtitude = BitConverter.ToInt32(buffer, offset); offset += 4;
             Altitude = BitConverter.ToInt16(buffer, offset); offset += 2;
-            Yaw = BitConverter.ToInt16(buffer, offset); offset += 2;
+            Yaw = BitConverter.ToUInt16(buffer, offset); offset += 2;
             DetectedTime = BitConverter.ToUInt64(buffer, offset); offset += 8;
             Speed = BitConverter.ToUInt16(buffer, offset); offset += 2;
             DetectedType = (char)buffer[offset]; offset += 1;

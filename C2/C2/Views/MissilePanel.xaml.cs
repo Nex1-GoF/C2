@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace C2.Views
@@ -18,11 +19,29 @@ namespace C2.Views
             InitializeComponent();
         }
 
-        // 🔹 내부 버튼 (기존과 동일)
-        public void CollapseButton_Click(object sender, RoutedEventArgs e)
+        private void MissileCard_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            ToggleCollapse();
+            if (e.Handled)
+                return;
+
+            if (sender is Border border && border.DataContext is Missile missile)
+            {
+                var vm = DataContext as MissileViewModel;
+                if (vm?.SelectMissileCommand?.CanExecute(missile) == true)
+                    vm.SelectMissileCommand.Execute(missile);
+            }
         }
+
+        private void AbortButton_Click(object sender, MouseButtonEventArgs e)
+        {
+            e.Handled = true; // 카드 클릭으로 전달되는 것 막기
+        }
+
+        // 🔹 내부 버튼 (기존과 동일)
+        //public void CollapseButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    ToggleCollapse();
+        //}
 
         // 🔹 외부(MainWindow)에서도 동일 동작하도록 공개 메서드로 분리
         public void ToggleCollapse()

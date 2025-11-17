@@ -8,7 +8,10 @@ using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace C2.ViewModels
@@ -22,11 +25,17 @@ namespace C2.ViewModels
         private List<Missile> missiles = new();
 
         private readonly MissileService _service;
+        private readonly TargetService _targetService;
         private readonly AbortManager _abortManager;
 
         // 여러 미사일 선택 가능하도록 리스트화
-        private readonly List<Missile> _selectedMissiles = new();
-        public IReadOnlyList<Missile> SelectedMissiles => _selectedMissiles;
+        private List<Missile> _selectedMissiles = new();
+        public List<Missile> SelectedMissiles
+        {
+            get => _selectedMissiles;
+            private set => SetProperty(ref _selectedMissiles, value);
+        }
+
         public MissileViewModel()
         {
             _service = MissileService.Instance;
@@ -75,25 +84,39 @@ namespace C2.ViewModels
         {
             if (missile == null)
             {
-                _selectedMissiles.Clear();
-                _service.ClearMissiles(); // 다중 선택 해제용
+                SelectedMissiles = new List<Missile>();     // 여기서 UI 갱신됨
+                _service.ClearMissiles();
+                TargetService.Instance.ClearTarget();
                 return;
             }
 
-            // ✅ 이미 선택되어 있다면 해제
+            // 이미 선택된 미사일이면 → 선택 해제
             if (_selectedMissiles.Contains(missile))
             {
-                _selectedMissiles.Remove(missile);
-            }
-            else
-            {
-                _selectedMissiles.Add(missile);
+                SelectedMissiles = new List<Missile>();     // 참조 변경 → UI 갱신
+                _service.ClearMissiles();
+                TargetService.Instance.ClearTarget();
+                return;
             }
 
-            // ✅ Service에도 반영
-            var ids = _selectedMissiles.Select(m => m.Id).ToList();
-            _service.SelectMissiles(ids);
+            // 전체 초기화
+            SelectedMissiles = new List<Missile>();         // 참조 변경 → UI 갱신
+            _service.ClearMissiles();
+            TargetService.Instance.ClearTarget();
+
+            // 새로운 리스트로 다시 선택 세팅
+            SelectedMissiles = new List<Missile> { missile }; // 참조 변경 → UI 갱신
+            _service.SelectMissiles(new List<string> { missile.Id });
+
+            // 타겟 자동 선택
+            if (missile.TargetId != null && missile.TargetId.Length > 0)
+            {
+                char targetId = missile.TargetId[0];
+                TargetService.Instance.SelectTarget(targetId);
+            }
         }
+
+
 
         private void UpdateMissileStates()
         {
@@ -115,19 +138,25 @@ namespace C2.ViewModels
             }
             // Todo: 미사일 비상폭파 기능 제한 걸기
         }
-        private static double CalculateYaw(double lat1, double lon1, double lat2, double lon2)
+    }
+    public class SelectedMissileBorderThicknessConverter : IMultiValueConverter
+    {
+        private static readonly Thickness SelectedThickness = new Thickness(3);
+        private static readonly Thickness NormalThickness = new Thickness(1.4);
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            double φ1 = lat1 * Math.PI / 180.0;
-            double φ2 = lat2 * Math.PI / 180.0;
-            double Δλ = (lon2 - lon1) * Math.PI / 180.0;
+            if (values.Length < 2 ||
+                values[0] is not Missile current ||
+                values[1] is not IReadOnlyList<Missile> selectedList)
+            {
+                return NormalThickness;
+            }
 
-            double y = Math.Sin(Δλ) * Math.Cos(φ2);
-            double x = Math.Cos(φ1) * Math.Sin(φ2) -
-                       Math.Sin(φ1) * Math.Cos(φ2) * Math.Cos(Δλ);
-
-            double θ = Math.Atan2(y, x);
-            double bearing = (θ * 180.0 / Math.PI + 360.0) % 360.0;
-            return bearing;
+            return selectedList.Contains(current) ? SelectedThickness : NormalThickness;
         }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
     }
 }

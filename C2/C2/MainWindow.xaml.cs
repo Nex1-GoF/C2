@@ -103,8 +103,6 @@ namespace C2
             mapRow.BeginAnimation(RowDefinition.HeightProperty, animMap);
             missileRow.BeginAnimation(RowDefinition.HeightProperty, animMissile);
 
-            // ❌ DataContext 재설정 금지
-            // DataContext = new MainViewModel(); (삭제)
         }
 
         private void TargetPanel_Loaded(object sender, RoutedEventArgs e)
@@ -199,4 +197,30 @@ namespace C2
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+    public class StepCompletedByIndexConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            int stepIndex = System.Convert.ToInt32(values[0]) + 1;   // LED Index
+            int currentStepIndex = System.Convert.ToInt32(values[1]);
+            bool currentStepIsOn = System.Convert.ToBoolean(values[2]);
+
+            // ① 이전 단계는 항상 켜짐
+            if (stepIndex < currentStepIndex)
+                return true;
+
+            // ② 현재 단계는 currentStepIsOn == true일 때만 켜짐
+            if (stepIndex == currentStepIndex)
+                return currentStepIsOn;
+
+            // ③ 이후 단계는 꺼짐
+            return false;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

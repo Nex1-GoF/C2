@@ -6,11 +6,8 @@ namespace C2.Views.Markers
 {
     public partial class TargetMarker2 : UserControl
     {
-        private static readonly Brush UnfocusedStroke = new SolidColorBrush(Colors.Red);
         private static readonly Brush UnfocusedFill = new SolidColorBrush(Color.FromRgb(0xFF, 0x40, 0x40));
-
-        private static readonly Brush FocusedStroke = new SolidColorBrush(Colors.Blue);
-        private static readonly Brush FocusedFill = new SolidColorBrush(Color.FromRgb(0xFF, 0x40, 0x40));
+        private static readonly Brush FocusedFill = new SolidColorBrush(Colors.Yellow);
         public char TargetId { get; }
         public TargetMarker2(char targetId)
         {
@@ -30,12 +27,12 @@ namespace C2.Views.Markers
         {
             if (focused)
             {
-                TargetRect.Stroke = FocusedStroke;
                 TargetRect.Fill = FocusedFill;
+                IdLabel.Foreground = FocusedFill;
                 return;
             }
-            TargetRect.Stroke = UnfocusedStroke;
             TargetRect.Fill = UnfocusedFill;
+            IdLabel.Foreground = UnfocusedFill;
         }
 
         public void SetVisible(bool isVisible)

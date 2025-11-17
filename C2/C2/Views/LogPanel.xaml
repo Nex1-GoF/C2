@@ -38,7 +38,7 @@
                             <!-- 로그 메시지 -->
                             <TextBlock Grid.Column="1"
                                        Text="{Binding Message}"
-                                       Foreground="{Binding Foreground}"
+                                       Foreground="#FFDD33"
                                        FontSize="13"
                                        TextWrapping="Wrap"
                                        TextTrimming="None"

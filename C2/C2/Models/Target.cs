@@ -36,7 +36,13 @@ namespace C2.Models
         public int Altitude { get => _altitude; set { _altitude = value; OnPropertyChanged(); } }
 
         private int _yaw;
-        public int Yaw { get => _yaw; set { _yaw = value; OnPropertyChanged(); OnPropertyChanged(nameof(CurYawDisplay)); } }
+        public int Yaw { get => _yaw; set { _yaw = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(YawRaw));
+            } }
+
+        public double YawRaw => (double)Yaw / 100.0;
+
 
         private TargetState _state;
         public TargetState State { get => _state; set { _state = value; OnPropertyChanged(); } }
