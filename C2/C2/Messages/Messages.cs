@@ -37,15 +37,16 @@ namespace C2.Messages
 
     public class LaunchProgressMessage
     {
-        public double Progress { get; }
+        public string StepName { get; }
+        public int StepIndex { get; }
         public bool IsIrreversible { get; }
+        public bool IsOn { get; }
 
-        public LaunchProgressMessage(
-            double progress,
-            bool isIrreversible = false
-           )
+        public LaunchProgressMessage(string stepName, int stepIndex, bool isOn, bool isIrreversible = false)
         {
-            Progress = progress;
+            StepName = stepName;
+            StepIndex = stepIndex;
+            IsOn = isOn;
             IsIrreversible = isIrreversible;
         }
     }

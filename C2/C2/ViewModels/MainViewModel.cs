@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace C2.ViewModels
 {
@@ -20,9 +21,21 @@ namespace C2.ViewModels
 
         [ObservableProperty] private bool _canAssign = true;
         [ObservableProperty] private bool _progressBarVisible = false;
-        [ObservableProperty] private double _launchProgress = 0;
         [ObservableProperty] private bool _isLaunching = false;
         [ObservableProperty] private bool _canLaunchOrAbort = false;
+        [ObservableProperty] private string _currentStep = "";
+        [ObservableProperty] private int _currentStepIndex = 0;
+        [ObservableProperty] private bool _currentStepIsOn = false;
+        public List<string> Steps { get; } = new()
+        {
+            "전원 점검",
+            "BIT 검사",
+            "항법 정렬",
+            "키 전달",
+            "점화 준비",
+            "PIP 계산",
+            "발사",
+        };
 
         public MainViewModel()
         {
@@ -37,13 +50,17 @@ namespace C2.ViewModels
             // ✅ LaunchProgressMessage 수신 → ProgressBar / 상태 동기화
             WeakReferenceMessenger.Default.Register<LaunchProgressMessage>(this, (_, msg) =>
             {
-                LaunchProgress = msg.Progress;
-                ProgressBarVisible = msg.Progress < 100;
-
-                if (msg.IsIrreversible)
-                    CanLaunchOrAbort = false;
+                
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    CurrentStep = msg.StepName;
+                    CurrentStepIndex = msg.StepIndex;
+                    CurrentStepIsOn = msg.IsOn;
+                    IsLaunching = true;
+                    if (msg.IsIrreversible)
+                        CanLaunchOrAbort = false;
+                });
             });
-
             // ✅ 버튼 활성화 메시지 (Launch 절차 완료 후 true로 돌아옴)
             WeakReferenceMessenger.Default.Register<ButtonDeactivateMessage>(this, (_, msg) =>
             {
@@ -51,9 +68,14 @@ namespace C2.ViewModels
             });
             WeakReferenceMessenger.Default.Register<LaunchEndMessage>(this, (_, msg) =>
             {
-                ProgressBarVisible = false;
-                CanLaunchOrAbort = _missileService.AnyRemaining();
-                IsLaunching = false;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsLaunching = false;    // UI 감춤
+                    CurrentStep = "";       // 초기화
+                    CurrentStepIndex = 0;
+                    CurrentStepIsOn = false;
+                });
+                
             });
         }
 

@@ -10,14 +10,12 @@
         Title="C2 Command Center"
         Height="1080" Width="1920">
 
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:BoolToTextConverter x:Key="BoolToTextConverter"/>
         <views:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
         <local:CollapseIconConverter x:Key="CollapseIconConverter"/>
+        <local:StepCompletedConverter x:Key="StepCompletedConverter"/>
         <Geometry x:Key="IconExpand">M 0 10 L 10 0 L 20 10 Z</Geometry>
         <Geometry x:Key="IconCollapse">M 0 0 L 10 10 L 20 0 Z</Geometry>
         <!-- 위 화살표 -->
@@ -57,32 +55,88 @@
                 </Button>
             </StackPanel>
             <!-- 오른쪽 아래: 발사 UI -->
+            <!-- 오른쪽 아래: 발사 UI -->
             <StackPanel Orientation="Vertical"
-                        Grid.Row="0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Bottom"
-                        Margin="10">
+            Grid.Row="0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Margin="10">
 
-                <!-- 발사 진행 바 -->
-                <ProgressBar Height="8"
-                             Width="170"
-                             Margin="0,0,0,5"
-                             Value="{Binding LaunchProgress}"
-                             Maximum="100">
-                    <ProgressBar.Style>
-                        <Style TargetType="ProgressBar">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding ProgressBarVisible}" Value="True">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ProgressBar.Style>
-                </ProgressBar>
+                <!-- 1) 현재 단계 텍스트 + 현재 스텝 dot -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6"
+            Visibility="{Binding IsLaunching, Converter={StaticResource BoolToVisibilityConverter}}">
 
-                <!-- 버튼 그룹 -->
-                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding CurrentStep}"
+               Foreground="White"
+               FontSize="14"
+               VerticalAlignment="Center"/>
+
+                    <Ellipse Width="12" Height="12" Margin="8,0,0,0">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#e9e9e9"/>
+                                <!-- 기본 회색 -->
+
+                                <Style.Triggers>
+                                    <!-- ON -->
+                                    <DataTrigger Binding="{Binding CurrentStepIsOn}" Value="True">
+                                        <Setter Property="Fill" Value="LightGreen"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+
+                </StackPanel>
+
+
+                <!-- 2) 전체 스텝 dot 표시 -->
+                <ItemsControl ItemsSource="{Binding Steps}"
+                  Visibility="{Binding IsLaunching, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Ellipse Width="10" Height="10" Margin="3">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="#444"/>
+                                        <Setter Property="Opacity" Value="0.4"/>
+
+                                        <Style.Triggers>
+
+                                            <!-- StepCompletedConverter: 완료된 스텝 여부 판별 -->
+                                            <DataTrigger Value="True">
+                                                <DataTrigger.Binding>
+                                                    <MultiBinding Converter="{StaticResource StepCompletedConverter}">
+                                                        <Binding />
+                                                        <!-- step name -->
+                                                        <Binding Path="DataContext.CurrentStep" 
+                                                     RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                                        <Binding Path="DataContext.Steps"
+                                                     RelativeSource="{RelativeSource AncestorType=Window}"/>
+                                                    </MultiBinding>
+                                                </DataTrigger.Binding>
+
+                                                <Setter Property="Fill" Value="LightGreen"/>
+                                                <Setter Property="Opacity" Value="1.0"/>
+                                            </DataTrigger>
+
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+
+                <!-- 3) 버튼 영역 -->
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <!-- 발사 버튼 -->
                     <Button Width="80"
                         Margin="0,0,5,0"
@@ -93,12 +147,14 @@
 
                     <!-- 교전할당 버튼 -->
                     <Button Content="교전할당"
-                            Width="80"
-                            Margin="5,0,0,0"
-                            Command="{Binding AssignTargetCommand}"
-                            IsEnabled="{Binding CanAssign}"/>
-                </StackPanel>
+                        Width="80"
+                        Margin="5,0,0,0"
+                        Command="{Binding AssignTargetCommand}"
+                        IsEnabled="{Binding CanAssign}"/>
+                                </StackPanel>
+
             </StackPanel>
+
 
             <!-- 유도탄 패널 -->
             <views:MissilePanel Grid.Row="1"

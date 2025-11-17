@@ -178,4 +178,25 @@ namespace C2
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => Binding.DoNothing;
     }
+
+    public class StepCompletedConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            string stepName = values[0] as string;
+            string currentStep = values[1] as string;
+            var steps = values[2] as IList<string>;
+
+            if (stepName == null || currentStep == null || steps == null)
+                return false;
+
+            int stepIndex = steps.IndexOf(stepName);
+            int currentIndex = steps.IndexOf(currentStep);
+
+            return stepIndex <= currentIndex;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }
