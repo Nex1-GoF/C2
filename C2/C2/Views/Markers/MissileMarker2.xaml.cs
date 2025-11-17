@@ -12,7 +12,11 @@ namespace C2.Views.Markers
         private static readonly Brush FocusedStroke = new SolidColorBrush(Colors.LimeGreen);
         private static readonly Brush FocusedFill = new SolidColorBrush(Colors.Green);
 
+        private static readonly Brush LaunchingStroke = new SolidColorBrush(Colors.Orange);
+        private static readonly Brush LaunchingFill = new SolidColorBrush(Colors.Orange);
+
         public string MissileId { get; }
+        public bool IsLaunching { get; set; } = false;
 
         public MissileMarker2(string missileId)
         {
@@ -20,7 +24,7 @@ namespace C2.Views.Markers
             InitializeComponent();
 
             IdLabel.Text = $"MSL-00{missileId}";
-            SetFocused(false);
+            SetColor(false);
         }
 
         public void SetYaw(double yaw)
@@ -28,8 +32,14 @@ namespace C2.Views.Markers
             Rt.Angle = yaw;
         }
 
-        public void SetFocused(bool focused)
+        public void SetColor(bool focused)
         {
+            if (IsLaunching)
+            {
+                MissileRect.Stroke = LaunchingStroke;
+                MissileRect.Fill = LaunchingFill;
+                return;
+            }
             if (focused)
             {
                 MissileRect.Stroke = FocusedStroke;
@@ -45,10 +55,21 @@ namespace C2.Views.Markers
             this.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        public void SetColor(Brush fill, Brush stroke)
+        public void SetLaunching(bool isLaunching)
         {
-            MissileRect.Fill = fill;
-            MissileRect.Stroke = stroke;
+            IsLaunching = isLaunching;
         }
+
+        /*        public void SetColor(Brush fill, Brush stroke)
+                {
+                    MissileRect.Fill = fill;
+                    MissileRect.Stroke = stroke;
+                }
+
+                public void SetLaunchingColor()
+                {
+                    MissileRect.Stroke = LaunchingStroke;
+                    MissileRect.Fill = LaunchingFill;
+                }*/
     }
 }

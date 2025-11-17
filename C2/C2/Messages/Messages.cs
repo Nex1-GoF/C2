@@ -18,10 +18,11 @@ namespace C2.Messages
     {
         public ButtonDeactivateMessage(bool value) : base(value) { }
     }
-    public class LaunchEndMessage : ValueChangedMessage<bool>
+    public class LaunchEndMessage : ValueChangedMessage<string>
     {
-        public LaunchEndMessage(bool value) : base(value) { }
+        public LaunchEndMessage(string value) : base(value) { }
     }
+
     public class MissileAbortMessage : ValueChangedMessage<string>
     {
         public MissileAbortMessage(string value) : base(value) { }

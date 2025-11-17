@@ -72,6 +72,7 @@ namespace C2.Network
         {
             try
             {
+                WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(missile.Id));
                 while (_currentState != null)
                 {
                     await _currentState.EnterAsync(token);
@@ -90,7 +91,7 @@ namespace C2.Network
             }
             finally
             {
-                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
+                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(missile.Id));
                 _cts = null;
                 _currentState = null;
                 await startMidGuid(token, missile);
@@ -99,33 +100,42 @@ namespace C2.Network
 
         private async Task startMidGuid(CancellationToken token, Missile missile)
         {
-            var missileId = _missileService.UpdateMissileState(MissileState.InitialGuidance, MissileState.MidGuidance);
-            WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(missile.Id));
+            var missileId = _missileService.UpdateMissileState(
+                MissileState.InitialGuidance, MissileState.MidGuidance);
+
             await Task.Delay(500, token);
 
-            double speed = 500.0;              // m/s (유지)
-            double dt = 0.05;                  // 50ms 간격
-            double metersPerDegree = 111000.0; // 위도 1도 ≈ 111km
+            double speed = 500.0;  // m/s
+            double dt = 0.05;      // 50ms
+            double metersPerDegree = 111000.0;
 
-            // 500m/s × 0.05s = 25m → 25/111000 ≈ 0.000225 도
-            double dLat = (speed * dt) / metersPerDegree;
-
-            // 총 이동시간: 300초 → 300 / 0.05 = 6000 스텝
             int totalSteps = (int)(300.0 / dt);
+
+            // YawRaw(단위: deg × 100) → rad 변환
+            double yawDeg = missile.YawRaw / 100.0;
+            double yawRad = yawDeg * Math.PI / 180.0;
+
+            // 방향 벡터 (동쪽,북쪽)
+            double vx = speed * Math.Sin(yawRad);   // east velocity (m/s)
+            double vy = speed * Math.Cos(yawRad);   // north velocity (m/s)
 
             for (int i = 0; i < totalSteps; i++)
             {
                 if (token.IsCancellationRequested) break;
                 if (missile.State == MissileState.Abort) break;
 
-                double currentLat = missile.Latitude;
-                double currentLon = missile.Longitude;
+                // 1) 현재 위치
+                double lat = missile.Latitude;
+                double lon = missile.Longitude;
 
-                // 북쪽 방향 = 위도 증가
-                double newLat = currentLat + dLat;
-                double newLon = currentLon;
+                // 2) 거리(m → deg 단위 변환)
+                double dLat = (vy * dt) / metersPerDegree;
+                double dLon = (vx * dt) / (metersPerDegree * Math.Cos(lat * Math.PI / 180.0));
 
-                // 실제 미사일 객체의 위치 갱신
+                // 3) 업데이트
+                double newLat = lat + dLat;
+                double newLon = lon + dLon;
+
                 missile.LatitudeRaw = (int)(newLat * 1e7);
                 missile.LongitudeRaw = (int)(newLon * 1e7);
 
@@ -284,7 +294,19 @@ namespace C2.Network
             public override string Name => "PIP 계산";
             public override IGuidanceState NextState => new LaunchState(_manager, _missile);
             public PipCalculationState(MockInitialGuidanceManager manager, Missile missile) : base(manager, missile) { }
+            private static (double x, double y) LatLonToXY(double lat, double lon, double lat0, double lon0)
+            {
+                const double R = 6_378_137.0; // 지구 반경 (m)
+                double lat0Rad = lat0 * Math.PI / 180.0;
 
+                double dLat = (lat - lat0) * Math.PI / 180.0;
+                double dLon = (lon - lon0) * Math.PI / 180.0;
+
+                double x = dLon * R * Math.Cos(lat0Rad);
+                double y = dLat * R;
+
+                return (x, y);
+            }
             public override async Task EnterAsync(CancellationToken token)
             {
                 await base.EnterAsync(token);
@@ -310,6 +332,20 @@ namespace C2.Network
                 double pipLon = (mLon + tLon) / 2.0;
 
                 _missile.PIP = new PIP(pipLat, pipLon, 0);
+
+                var (mx, my) = LatLonToXY(mLat, mLon, mLat, mLon);
+                var (px, py) = LatLonToXY(pipLat, pipLon, mLat, mLon);
+
+                double dx = px - mx;
+                double dy = py - my;
+
+                double rawYaw = Math.Atan2(dx, dy) * (180.0 / Math.PI);
+
+                double yawDeg = rawYaw;
+                if (yawDeg < 0) yawDeg += 360.0;
+
+                short yawRaw = (short)(yawDeg * 100);
+                _missile.YawRaw = yawRaw;
 
                 _manager._logService.AddLog(
                     MessageType.System,

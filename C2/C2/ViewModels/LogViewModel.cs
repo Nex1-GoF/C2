@@ -4,8 +4,9 @@
     using System.Windows.Media;
     using C2.Models;
     using C2.Services;
+using System.Windows;
 
-    namespace C2.ViewModels
+namespace C2.ViewModels
     {
         internal partial class LogViewModel : ObservableObject
         {
@@ -35,7 +36,8 @@
             // 로그 추가됐을때 UI에 반영
             public void OnLogAdded(Log newLog)
             {
-                App.Current.Dispatcher.Invoke(() =>
+
+                Application.Current.Dispatcher.Invoke(() =>
                 {
                     _displayLogs.Add(ConvertToDisplayLog(newLog));
                 });

@@ -19,6 +19,8 @@ namespace C2.Views.Markers
 {
     public partial class PIPMarker2 : UserControl
     {
+        private static readonly Brush AfterLaunchStroke = new SolidColorBrush(Colors.Red);
+        public bool AfterLaunch { get; set; } = false;
         public PIPMarker2()
         {
             InitializeComponent();
@@ -28,6 +30,13 @@ namespace C2.Views.Markers
         public void SetVisible(bool visible)
         {
             this.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public void LaunchUpdatePIP()
+        {
+            AfterLaunch = true;
+            Line1.Stroke = AfterLaunchStroke;
+            Line2.Stroke = AfterLaunchStroke;
         }
     }
 
