@@ -32,17 +32,21 @@ namespace C2.Network
 
         private InitialGuidanceManager() { }
 
-        // ✅ 각 단계별 Progress 표시 비율
-        private readonly Dictionary<Type, double> _phaseProgressMap = new()
+        private readonly List<string> Steps = new()
         {
-            { typeof(PowerOnState), 17 },
-            { typeof(BitCheckState), 33 },
-            { typeof(AlignState), 41 },
-            { typeof(KeyState), 50 },
-            { typeof(IgnitionState), 67 },
-            { typeof(PipCalculationState), 83 },
-            { typeof(LaunchState), 100 },
+            "전원 점검",
+            "BIT 검사",
+            "항법 정렬",
+            "키 전달",
+            "점화 준비",
+            "PIP 계산",
+            "발사",
+            "초기유도"
         };
+        private int GetStepIndex(string name)
+        {
+            return Steps.IndexOf(name) + 1;  // 1-based
+        }
 
         // ================================================================
         // 📍 메인 실행 진입점
@@ -73,20 +77,7 @@ namespace C2.Network
                     _currentSeq = GetSeqFromState(_currentState);
                     await _currentState.EnterAsync(token);
 
-                    if (_currentState is KeyState)
-                    {
-                        _logService.AddLog(MessageType.System, "비가역 상태 진입");
-                        WeakReferenceMessenger.Default.Send(
-                            new LaunchProgressMessage(_currentProgress, isIrreversible: true));
-                        WeakReferenceMessenger.Default.Send(new ButtonDeactivateMessage(false));
-                    }
-
-                    if (_currentState is LaunchState)
-                    {
-                        _logService.AddLog(MessageType.System, "발사 절차 완료");
-
-                        WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(100));
-                    }
+                    
 
                     _currentState = _currentState.NextState;
                 }
@@ -120,23 +111,6 @@ namespace C2.Network
 
             _cts.Cancel();
             PerformAbortSequence(_currentMissile, _currentSeq, false); // 현재 seq 판단은 FSM 내부에서 처리
-        }
-
-        internal async Task SmoothProgressToAsync(double target, int durationMs, CancellationToken token)
-        {
-            const int stepTime = 50;
-            int steps = durationMs / stepTime;
-            double start = _currentProgress;
-
-            for (int i = 0; i <= steps; i++)
-            {
-                if (token.IsCancellationRequested)
-                    throw new TaskCanceledException();
-
-                _currentProgress = start + (target - start) * i / steps;
-                WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(_currentProgress));
-                await Task.Delay(stepTime, token);
-            }
         }
 
         internal void PerformAbortSequence(Missile missile, int seq, bool isSystem)
@@ -201,6 +175,7 @@ namespace C2.Network
         internal interface IGuidanceState
         {
             Task EnterAsync(CancellationToken token);
+            Task ExitAsync(CancellationToken token);
             IGuidanceState? NextState { get; }
         }
 
@@ -221,8 +196,31 @@ namespace C2.Network
 
             public virtual async Task EnterAsync(CancellationToken token)
             {
-                double targetProgress = _manager._phaseProgressMap[GetType()];
-                await _manager.SmoothProgressToAsync(targetProgress, 1500, token);
+                int idx = _manager.GetStepIndex(Name);
+                if (this is KeyState)
+                {
+                    _manager._logService.AddLog(MessageType.System, "비가역 상태 진입");
+                    WeakReferenceMessenger.Default.Send(
+                        new LaunchProgressMessage(Name, idx, false, isIrreversible: true));
+                    WeakReferenceMessenger.Default.Send(new ButtonDeactivateMessage(false));
+                }
+
+                else if (this is LaunchState)
+                {
+                    _manager._logService.AddLog(MessageType.System, "발사 절차 완료");
+
+                    WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, false));
+                }
+                else 
+                    WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, false));
+            }
+
+            public virtual async Task ExitAsync(CancellationToken token)
+            {
+                int idx = _manager.GetStepIndex(Name);
+                WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, true));
+                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+                await Task.Delay(500, token);
             }
 
             protected async Task<bool> SendAndWaitForAck(Missile missile, int seq, int? msgSize = 0, byte[]? body = null)
@@ -327,7 +325,7 @@ namespace C2.Network
                     NextState = null;
                     return;
                 }
-                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+                await base.ExitAsync(token);
             }
         }
 
@@ -350,7 +348,8 @@ namespace C2.Network
                     NextState = null;
                     return;
                 }
-                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+
+                await base.ExitAsync(token);
             }
         }
 
@@ -370,7 +369,7 @@ namespace C2.Network
                     NextState = null;
                     return;
                 }
-                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+                await base.ExitAsync(token);
             }
         }
         private class KeyState : BaseGuidanceState
@@ -396,7 +395,7 @@ namespace C2.Network
                     NextState = null;
                     return;
                 }
-                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+                await base.ExitAsync(token);
             }
         }
 
@@ -417,7 +416,7 @@ namespace C2.Network
                     NextState = null;
                     return;
                 }
-                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+                await base.ExitAsync(token);
             }
         }
 
@@ -539,7 +538,8 @@ namespace C2.Network
                     HandleFailure(_launchingMissile, seq: 6);
                     return;
                 }
-                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+
+                await base.ExitAsync(token);
             }
         }
 
@@ -555,7 +555,7 @@ namespace C2.Network
                 
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.Launching, MissileState.InitialGuidance); // 발사중 -> 초기유도로 전환
                 WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_launchingMissile.Id));
-                WeakReferenceMessenger.Default.Send(new LaunchEndMessage(true));
+                
 
                 if (missileId != null)
 
@@ -571,8 +571,9 @@ namespace C2.Network
                     return;
                 }
                 _launchingMissile.flightTime = (ulong)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
+                await base.ExitAsync(token);
             }
+
         }
 
         private class LauncherLinkConfig

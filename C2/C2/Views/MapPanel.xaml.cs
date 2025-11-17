@@ -1,12 +1,12 @@
-﻿    using C2.Models;
-    using C2.Services;
-    using C2.ViewModels;
-    using C2.Views.Markers;
-    using GMap.NET.WindowsPresentation;
-    using System;
-    using System.Windows;
-    using System.Windows.Controls;
-    using System.Windows.Input;
+﻿using C2.Models;
+using C2.Services;
+using C2.ViewModels;
+using C2.Views.Markers;
+using GMap.NET.WindowsPresentation;
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 

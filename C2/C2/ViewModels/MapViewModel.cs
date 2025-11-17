@@ -38,8 +38,8 @@ namespace C2.ViewModels
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
             _map.MinZoom = 2;
             _map.MaxZoom = 18;
-            _map.Zoom = 7;
-            _map.Position = new PointLatLng(36.5, 127.5);
+            _map.Zoom = 8;
+            _map.Position = new PointLatLng(38, 127.5);
             _map.CanDragMap = true;
             _map.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
             _map.IgnoreMarkerOnMouseWheel = true;
@@ -66,14 +66,6 @@ namespace C2.ViewModels
                 {
                     mslMarker.SetVisible(true);
                 }
-                /*var missile = _mapService.GetMissiles().First(m=>m.Id == missileId);
-                string targetId = missile.TargetId!;
-                var target = _mapService.GetTargets().FirstOrDefault(m => m.Id == targetId[0]);
-                if (target == null) return;
-                var routeMarker = CreateRoute(missile, target);
-                routeMarker.Shape.Visibility = Visibility.Visible;
-                //routeMarker.Shape.Visibility = missileMarker.Shape.IsFocused ? Visibility.Visible : Visibility.Collapsed;
-                _map.Markers.Add(routeMarker);*/
             });
 
             //Todo: 미사일 어보티드에서 리무브 처리
@@ -166,7 +158,7 @@ namespace C2.ViewModels
             {
                 Shape = new Path
                 {
-                    Stroke = new SolidColorBrush(Colors.Black),
+                    Stroke = new SolidColorBrush(Colors.White),
                     StrokeThickness = 2,
                     StrokeDashArray = new System.Windows.Media.DoubleCollection { 3, 3 },
                     Opacity = 0.8
@@ -197,7 +189,10 @@ namespace C2.ViewModels
 
             // 2) 새 라인을 다시 생성
             var newRoute = CreateRoute(missile, target);
-            newRoute.Shape.Visibility = _pipMarkers.GetValueOrDefault(missileId)!.Shape.IsVisible ? Visibility.Visible : Visibility.Collapsed;
+            var pipMK = _pipMarkers.GetValueOrDefault(missileId);
+            if (pipMK == null) return;
+
+            newRoute.Shape.Visibility = pipMK.Shape.IsVisible ? Visibility.Visible : Visibility.Collapsed;
             // 3) 새 라인을 지도에 추가
             _map.Markers.Add(newRoute);
 
