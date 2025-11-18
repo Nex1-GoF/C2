@@ -80,5 +80,29 @@ namespace C2.Views
             => throw new NotImplementedException();
     }
 
+    public class TargetFocusedToBackgroundConverter : IMultiValueConverter
+    {
+        private static Brush NormalBrush =>
+            (Brush)Application.Current.FindResource("TargetCardBrush");
 
+        private static Brush FocusedBrush =>
+            (Brush)Application.Current.FindResource("TargetCardFocusedHeaderBrush");
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 2)
+                return NormalBrush;
+
+            var current = values[0];
+            var selected = values[1];
+
+            if (current != null && selected != null && current == selected)
+                return FocusedBrush;
+
+            return NormalBrush;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
 }

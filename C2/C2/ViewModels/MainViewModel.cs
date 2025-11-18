@@ -27,6 +27,21 @@ namespace C2.ViewModels
         [ObservableProperty] private int _currentStepIndex = 0;
         [ObservableProperty] private bool _currentStepIsOn = false;
         private bool _isReversible = false;
+
+        private bool _isCollapsed;
+        public bool IsCollapsed
+        {
+            get => _isCollapsed;
+            set
+            {
+                if (_isCollapsed != value)
+                {
+                    _isCollapsed = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public List<string> Steps { get; } = new()
         {
             "전원 점검",

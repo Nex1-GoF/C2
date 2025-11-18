@@ -9,41 +9,54 @@
         <vm:LogViewModel/>
     </UserControl.DataContext>
 
-    <Border Background="{StaticResource HudBgLogBrush}" Padding="10">
+    <Border Background="{StaticResource LogPanelBrush}" Padding="10">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            
+            <Border Background="{StaticResource LogHeadPenalBrush}" Margin="0,0,0,12">
+                <TextBlock
+                    Text="시스템 로그"
+                    Style="{StaticResource LogPanelHeaderTextStyle}"
+                    TextAlignment="Left"
+                    />
+            </Border>
+            <ScrollViewer x:Name="LogScroll" Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto"
+                          ScrollChanged="ScrollViewer_ScrollChanged">
 
-        <ScrollViewer x:Name="LogScroll"
-                      VerticalScrollBarVisibility="Auto"
-                      ScrollChanged="ScrollViewer_ScrollChanged">
+                <ItemsControl ItemsSource="{Binding DisplayLogs}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:Log}">
 
-            <ItemsControl ItemsSource="{Binding DisplayLogs}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:Log}">
+                            <Grid Margin="2,2,2,6" HorizontalAlignment="Left">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                        <Grid Margin="2,2,2,6">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                                <!-- 타임스탬프 -->
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding DateTime, StringFormat='[HH:mm:ss] '}"
+                                           Style="{StaticResource LogTextStyle}"
+                                           VerticalAlignment="Top"
+                                           Margin="0,0,4,0"/>
 
-                            <!-- 타임스탬프 -->
-                            <TextBlock Grid.Column="0"
-                                       Text="{Binding DateTime, StringFormat='[HH:mm:ss] '}"
-                                       Style="{StaticResource HudLogTimestampTextStyle}"
-                                       VerticalAlignment="Top"
-                                       Margin="0,0,4,0"/>
+                                <!-- 로그 메시지 -->
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Message}"
+                                           Style="{StaticResource LogTextStyle}"
+                                           TextWrapping="Wrap"
+                                           TextTrimming="None"/>
+                            </Grid>
 
-                            <!-- 로그 메시지 -->
-                            <TextBlock Grid.Column="1"
-                                       Text="{Binding Message}"
-                                       Style="{StaticResource LogTextStyle}"
-                                       TextWrapping="Wrap"
-                                       TextTrimming="None"/>
-                        </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
     </Border>
 </UserControl>

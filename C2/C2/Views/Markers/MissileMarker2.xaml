@@ -26,8 +26,7 @@
         <TextBlock x:Name="IdLabel"
                    Text="MSL-000"
                    Foreground="Green"
-                   FontWeight="Bold"
-                   FontSize="14"
+                   Style="{StaticResource MarkerTextStyle}"
                    VerticalAlignment="Center"
                    Margin="50,0,0,0" />
         <!-- 픽토그램 오른쪽에 붙음 -->

@@ -165,26 +165,4 @@ namespace C2.ViewModels
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
-    public class SelectedTargetBorderThicknessConverter : IMultiValueConverter
-    {
-        private static readonly Thickness SelectedThickness = new Thickness(3);
-        private static readonly Thickness NormalThickness = new Thickness(1.4);
-
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (values.Length >= 2 &&
-                values[0] is Target current &&
-                values[1] is Target selected &&
-                selected != null)
-            {
-                return current.Id == selected.Id ? SelectedThickness : NormalThickness;
-            }
-
-            return NormalThickness;
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
-    }
-
 }
