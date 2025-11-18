@@ -35,8 +35,7 @@
                    x:Name="IdLabel"
                    Text="TGT-000"
                    Foreground="Red"
-                   FontSize="14"
-                   FontWeight="Bold"
+                   Style="{StaticResource MarkerTextStyle}"
                    VerticalAlignment="Center"
                    Margin="10,0,0,0"/>
         <!-- 픽토그램 오른쪽 10px -->
