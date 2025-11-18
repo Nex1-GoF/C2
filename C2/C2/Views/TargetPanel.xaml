@@ -22,9 +22,7 @@
 
         <!-- ===================== 상단 제목 ===================== -->
         <TextBlock Text="표적 목록"
-                   FontSize="22"
-                   FontWeight="Bold"
-                   Foreground="#AEE8F3"
+                   Style="{StaticResource HudHeaderTextStyle}"
                    Margin="4,0,0,12"/>
 
         <!-- ===================== 스크롤 가능한 카드 영역 ===================== -->
@@ -48,7 +46,8 @@
                         <DataTemplate DataType="{x:Type models:Target}">
 
                             <Border CornerRadius="10"
-                                Background="#112431" BorderBrush="#2B7480"
+                                Background="{StaticResource HudBgPanelBrush}"
+                                BorderBrush="{StaticResource HudAccentDimBrush}"
                                 Margin="10"
                                 Padding="14"
                                 MouseLeftButtonDown="Card_MouseLeftButtonDown" 
@@ -87,37 +86,38 @@
                                                  Margin="0,0,6,0"/>
 
                                             <TextBlock Text="{Binding Id}"
-                                               Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
-                                               FontWeight="Bold"
-                                               FontSize="15"/>
+                                                   Style="{StaticResource HudSmallHeaderTextStyle}"
+                                                   Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}" />
 
-                                            <TextBlock Text=" | " Foreground="#668A94" Margin="4,0"/>
+                                            <TextBlock Text=" | " Style="{StaticResource HudSmallHeaderTextStyle}" Margin="4,0"/>
 
                                             <TextBlock Text="{Binding State}"
-                                               Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"
-                                               FontWeight="Bold"
-                                               FontSize="13"/>
+                                                   Style="{StaticResource HudSmallHeaderTextStyle}"
+                                                   Foreground="{Binding State, Converter={StaticResource TargetStateToBrushConverter}}"/>
                                         </StackPanel>
 
                                         <!-- 중간 내용 -->
                                         <StackPanel Grid.Row="1" Orientation="Vertical">
                                             <TextBlock Text="{Binding CurLatDisplay, StringFormat='위도: {0}'}"
-                                               Foreground="#AEE8F3" FontSize="14"/>
-                                                            <TextBlock Text="{Binding CurLonDisplay, StringFormat='경도: {0}'}"
-                                               Foreground="#AEE8F3" FontSize="14"/>
-                                                            <TextBlock Text="{Binding YawRaw, StringFormat='방향: {0}°'}"
-                                               Foreground="#AEE8F3" FontSize="14"/>
-                                                            <TextBlock Text="{Binding Speed, StringFormat='속도: {0} m/s'}"
-                                               Foreground="#AEE8F3" FontSize="14"/>
-                                                            <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}"
-                                               Foreground="#AEE8F3" FontSize="14"/>
+                                                Style="{StaticResource HudInfoTextStyle}"/>
+
+                                            <TextBlock Text="{Binding CurLonDisplay, StringFormat='경도: {0}'}"
+                                                Style="{StaticResource HudInfoTextStyle}"/>
+
+                                            <TextBlock Text="{Binding YawRaw, StringFormat='방향: {0}°'}"
+                                                Style="{StaticResource HudInfoTextStyle}"/>
+
+                                            <TextBlock Text="{Binding Speed, StringFormat='속도: {0} m/s'}"
+                                                Style="{StaticResource HudInfoTextStyle}"/>
+
+                                            <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}"
+                                                Style="{StaticResource HudInfoTextStyle}"/>
                                         </StackPanel>
 
                                         <!-- 탐지 시간 -->
                                         <TextBlock Grid.Row="2"
                                            Text="{Binding DetectTime, StringFormat='탐지시간: HH:mm:ss'}"
-                                           Foreground="#668A94"
-                                           FontSize="12"
+                                           Style="{StaticResource HudTimestampTextStyle}"
                                            Margin="0,10,0,0"/>
                                     </Grid>
 

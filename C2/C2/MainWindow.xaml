@@ -130,11 +130,8 @@
                     </Border>
 
                     <TextBlock Text="유도탄 목록"
-                               Foreground="{StaticResource HudTextBrush}"
-                               VerticalAlignment="Center"
-                               Margin="8,0,0,0"
-                               FontSize="24"
-                               FontWeight="Bold"/>
+                               Style="{StaticResource HudHeaderTextStyle}"
+                               VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>
 
@@ -232,7 +229,7 @@
                         Content="{Binding IsLaunching, Converter={StaticResource BoolToTextConverter}, ConverterParameter='발사|발사취소'}"
                         Command="{Binding LaunchOrAbortCommand}"
                         Foreground="White"
-                        FontSize="24"
+                        FontSize="20"
                         FontWeight="Bold"
                         IsEnabled="{Binding CanLaunchOrAbort}"/>
             </StackPanel>
@@ -256,7 +253,7 @@
                                Background="{StaticResource HudBgPanelBrush}"/>
 
             <views:LogPanel Grid.Row="1"
-                            Background="#0E1F28"/>
+                            Background="{StaticResource HudBgLogBrush}"/>
         </Grid>
 
     </Grid>
