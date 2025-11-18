@@ -11,11 +11,11 @@ namespace C2.Network
         private UdpClient client;
         private Thread _updateThread;
         private Random rand = new Random();
-
+        
         // 4대 미사일용 raw pitch/yaw 값
-        private short[] pitchRaw = new short[4] { 0, 100, -150, 220 };
-        private short[] yawRaw = new short[4] { 0, -200, 300, -500 };
-
+        private short[] pitchRaw = new short[5] { 0, 0, 100, -150, 220 };
+        private short[] yawRaw = new short[5] {  0, 0, -200, 300, -500 };
+        private double t = 0;
         public void Start()
         {
             client = new UdpClient();
@@ -55,14 +55,11 @@ namespace C2.Network
 
         private void SendRandomData(double dt)
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 1; i <= 4; i++)
             {
-                byte id = (byte)i;
-
-                // Pitch/Yaw 를 조금씩 랜덤하게 변동
-                pitchRaw[i] += (short)rand.Next(-30, 40);
-                yawRaw[i] += (short)rand.Next(-40, 50);
-
+                byte id = (byte)i; 
+                pitchRaw[i] = (short)((pitchRaw[i] + 1) % 3600);
+                yawRaw[i] = (short)((yawRaw[i] + 1) % 3600);
                 byte[] data = new byte[5];
                 data[0] = id;
 

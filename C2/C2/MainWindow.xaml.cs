@@ -46,8 +46,8 @@ namespace C2
             _missileReceiver = new MissileReceiver(_socketManager);
             _abortManager = AbortManager.Instance;
 
-            //UE5Test uE5Test = new UE5Test();
-            //uE5Test.Start();
+            UE5Test uE5Test = new UE5Test();
+            uE5Test.Start();
         }
 
         // 로그 확인용 - 콘솔 창 열기
