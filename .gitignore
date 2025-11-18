@@ -26,3 +26,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.pptx
+*.png
+navy_dark_map/navy_dark_map.py
+navy_dark_map/__pycache__/navy_dark_map.cpython-313.pyc
