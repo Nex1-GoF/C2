@@ -5,125 +5,158 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <!-- 색상 팔레트 -->
-        
-        <Color x:Key="HudBgDark">#0A1922</Color>
-        <Color x:Key="HudBgPanel">#112431</Color>
-        <Color x:Key="HudAccent">#45E8E1</Color>
-        <Color x:Key="HudAccentDim">#2B7480</Color>
-        <Color x:Key="HudText">#AEE8F3</Color>
-        <Color x:Key="HudWarning">#FFDD33</Color>
-        <Color x:Key="HudTimeStamp">#668A94</Color>
-        <Color x:Key="HudBgLog">#0E1F28</Color>
+
+        <Color x:Key="HudBgDark">#070D16</Color>
+        <!-- 전체 바탕 -->
+        <Color x:Key="HudBgPanel">#0A121A</Color>
+        <!-- 패널 / 카드 -->
+        <Color x:Key="HudBgSub">#0D1A24</Color>
+        <!-- 서브 패널 -->
+        <Color x:Key="HudBgLog">#081017</Color>
+        <!-- 로그 전용 -->
+        <Color x:Key="HudAccent">#38E8FF</Color>
+        <!-- 네온 시안 -->
+        <Color x:Key="HudAccentDim">#2A6A7E</Color>
+        <!-- 약한 시안 -->
+        <Color x:Key="HudTextStrong">#E8F7FF</Color>
+        <!-- 중요한 텍스트 -->
+        <Color x:Key="HudText">#A9C8DA</Color>
+        <!-- 일반 텍스트 -->
+        <Color x:Key="HudTimeStamp">#6C8A9A</Color>
+        <!-- 연한 보조 -->
+        <Color x:Key="HudWarning">#FFD447</Color>
+        <!-- 경고 -->
+        <Color x:Key="HudCritical">#FF5A5A</Color>
+        <!-- TRACKING / FIRING -->
+        <Color x:Key="HudStandby">#6BA2FF</Color>
+        <!-- STANDBY 상태 등 -->
+        <Color x:Key="HudBorder">#1A2B38</Color>
+        <!-- 패널 경계 -->
+        <Color x:Key="HudBorderStrong">#38E8FF</Color>
+        <!-- 강조 구역 -->
 
         <SolidColorBrush x:Key="HudBgDarkBrush" Color="{StaticResource HudBgDark}"/>
         <SolidColorBrush x:Key="HudBgPanelBrush" Color="{StaticResource HudBgPanel}"/>
+        <SolidColorBrush x:Key="HudBgSubBrush" Color="{StaticResource HudBgSub}"/>
+        <SolidColorBrush x:Key="HudBgLogBrush" Color="{StaticResource HudBgLog}"/>
         <SolidColorBrush x:Key="HudAccentBrush" Color="{StaticResource HudAccent}"/>
         <SolidColorBrush x:Key="HudAccentDimBrush" Color="{StaticResource HudAccentDim}"/>
         <SolidColorBrush x:Key="HudTextBrush" Color="{StaticResource HudText}"/>
-        <SolidColorBrush x:Key="HudWarningBrush" Color="{StaticResource HudWarning}"/>
+        <SolidColorBrush x:Key="HudTextStrongBrush" Color="{StaticResource HudTextStrong}"/>
         <SolidColorBrush x:Key="HudTimeStampBrush" Color="{StaticResource HudTimeStamp}"/>
-        <SolidColorBrush x:Key="HudBgLogBrush" Color="{StaticResource HudBgLog}"/>
 
+        <SolidColorBrush x:Key="HudWarningBrush" Color="{StaticResource HudWarning}"/>
+        <SolidColorBrush x:Key="HudCriticalBrush" Color="{StaticResource HudCritical}"/>
 
-
-        <!-- ================================ -->
-        <!-- 🔵 가장 큰 제목 (M-SAM, 큰 타이틀 등) -->
-        <!-- ================================ -->
-        <Style x:Key="HudHeaderTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
-            <Setter Property="FontSize" Value="24"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="4,0,0,0"/>
-        </Style>
-
-        <!-- ================================ -->
-        <!-- 🔵 Small Header (Target ID, 작은 제목용) -->
-        <!-- ================================ -->
-        <Style x:Key="HudSmallHeaderTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-        </Style>
+        <SolidColorBrush x:Key="HudBorderBrush" Color="{StaticResource HudBorder}"/>
+        <SolidColorBrush x:Key="HudBorderStrongBrush" Color="{StaticResource HudBorderStrong}"/>
 
 
         <!-- ================================ -->
-        <!-- 🔵 상태 텍스트 (“발사 준비”, “항법 정렬”) -->
-        <!-- ================================ -->
-        <Style x:Key="HudStateTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="4,2,0,0"/>
-        </Style>
+            <!-- 📌 TEXT STYLES (전체 통합) -->
+            <!-- ================================ -->
 
-        <!-- ================================ -->
-        <!-- 🔵 미사일 ID (MSAM-001 등) -->
-        <!-- ================================ -->
-        <Style x:Key="HudIdTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudTextBrush}"/>
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="0,0,0,8"/>
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-        </Style>
+        <FontFamily x:Key="HudFontDefault">
+            pack://application:,,,/C2;component/Resources/Fonts/#Octapost NBP
+        </FontFamily>
 
-        <!-- ================================ -->
-        <!-- 🔵 일반 정보 (위도/경도/고도/속도) -->
-        <!-- ================================ -->
-        <Style x:Key="HudInfoTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudTextBrush}"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,1,0,0"/>
-        </Style>
-        
-        <!-- ================================ -->
-        <!-- 🔵 로그 정보 -->
-        <!-- ================================ -->
-        <Style x:Key="LogTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Margin" Value="0,1,0,0"/>
-        </Style>
+        <!-- 기본 TextBlock 스타일 -->
+            <Style TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudTextBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource HudFontDefault}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
 
-        <!-- ================================ -->
-        <!-- 🔵 경고 / 강조 정보 (표적 ID 등) -->
-        <!-- ================================ -->
-        <Style x:Key="HudWarningTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="4,10,0,0"/>
-        </Style>
+            <!-- 가장 큰 제목 (예: M-SAM 타이틀) -->
+            <Style x:Key="HudHeaderTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource HudFontDefault}"/>
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
 
-        <Style x:Key="SmallHudWarningTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="4,10,0,0"/>
-        </Style>
-        <!-- ================================ -->
-        <!-- 🔵 Small State (Target 상태 텍스트) -->
-        <!-- ================================ -->
-        <Style x:Key="HudSmallStateTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
+            <!-- 작은 제목 (Target ID 등) -->
+            <Style x:Key="HudSmallHeaderTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource HudFontDefault}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
 
-        <!-- ================================ -->
-        <!-- 🔵 Timestamp Text (탐지시간) -->
-        <!-- ================================ -->
-        <Style x:Key="HudTimestampTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudTimeStampBrush}"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Margin" Value="0,10,0,0"/>
-        </Style>
+            <!-- 상태 텍스트 (“항법 정렬”, “발사 준비”) -->
+            <Style x:Key="HudStateTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
 
-        <Style x:Key="HudLogTimestampTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudTimeStampBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Margin" Value="0,10,0,0"/>
-        </Style>
+            <!-- 미사일 ID (MSAM-001 등) -->
+            <Style x:Key="HudIdTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudTextBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource HudFontDefault}"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+            </Style>
+
+            <!-- 일반 정보 (위도/경도/고도/속도) -->
+            <Style x:Key="HudInfoTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudTextBrush}"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+
+            <!-- 로그 메시지 텍스트 -->
+            <Style x:Key="LogTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
+                <Setter Property="FontSize" Value="13"/>
+            </Style>
+
+            <!-- 경고 / 강조 -->
+            <Style x:Key="HudWarningTextStyleKR" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+            <Style x:Key="HudWarningTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource HudFontDefault}"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+
+            <Style x:Key="SmallHudWarningTextStyleKR" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource HudFontDefault}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+            <Style x:Key="SmallHudWarningTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+            </Style>
+
+            <!-- Target의 작은 상태 텍스트 -->
+            <Style x:Key="HudSmallStateTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudAccentBrush}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+
+            <!-- 타임스탬프 텍스트 -->
+            <Style x:Key="HudTimestampTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudTimeStampBrush}"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Margin" Value="0,10,0,0"/>
+            </Style>
+
+            <!-- 로그 타임스탬프 -->
+            <Style x:Key="HudLogTimestampTextStyle" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="{StaticResource HudTimeStampBrush}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Margin" Value="0,10,0,0"/>
+            </Style>
 
     </Application.Resources>
 </Application>

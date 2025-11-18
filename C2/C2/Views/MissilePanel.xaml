@@ -110,16 +110,17 @@
                             <Ellipse Width="24" Height="24"
                                      Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
                                      Stroke="#0A1922" StrokeThickness="1"/>
-                            <TextBlock Text="M-SAM"
+                            <TextBlock Text="M-SAM" Margin="6,0,0,0"
                                    Style="{StaticResource HudHeaderTextStyle}"
                                    Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"/>
                         </StackPanel>
 
                         <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
                            Style="{StaticResource HudStateTextStyle}"
-                           Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"/>
+                           Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
+                           Margin="0,12,0,0"/>
 
-                        <TextBlock Text="{Binding TargetDisplayId, StringFormat='표적: {0}'}">
+                        <TextBlock Text="{Binding TargetDisplayId, StringFormat='표적: {0}'}" Margin="0,12,0,0">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock"
                                     BasedOn="{StaticResource HudWarningTextStyle}">
@@ -144,8 +145,8 @@
                     <!-- 오른쪽: 상세 정보 -->
                     <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right">
 
-                        <TextBlock Text="{Binding IdNumber, StringFormat='MSAM-{0:000}'}"
-                             Style="{StaticResource HudIdTextStyle}" />
+                        <TextBlock Text="{Binding IdNumber, StringFormat='MSL-{0:000}'}"
+                             Style="{StaticResource HudIdTextStyle}" Margin="0,0,0,16"/>
 
                         <TextBlock Text="{Binding Latitude, StringFormat='위도: {0:F4}°'}"
                                     Style="{StaticResource HudInfoTextStyle}" />
@@ -206,17 +207,16 @@
                             <Ellipse Width="20" Height="20"
                                      Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
                                      Stroke="{StaticResource HudBgPanelBrush}" StrokeThickness="1"/>
-                            <TextBlock Text="M-SAM"
+                            <TextBlock Text="M-SAM" 
                                Style="{StaticResource HudHeaderTextStyle}"
                                Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
                                Margin="8,0,0,0"/>
                         </StackPanel>
 
-                        <TextBlock Text="{Binding TargetDisplayId, StringFormat='표적: {0}'}">
+                        <TextBlock Text="{Binding TargetDisplayId, StringFormat='표적: {0}'}" Margin="0,12,0,0">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock"
                                     BasedOn="{StaticResource SmallHudWarningTextStyle}">
-
                                     <Setter Property="Visibility" Value="Visible"/>
 
                                     <Style.Triggers>
@@ -236,7 +236,7 @@
 
                     <!-- 우측 -->
                     <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding Id, StringFormat='MSAM-00{0}'}"
+                        <TextBlock Text="{Binding Id, StringFormat='MSL-00{0}'}"
                                    Style="{StaticResource HudIdTextStyle}"
                                    HorizontalAlignment="Right"/>
 

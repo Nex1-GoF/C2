@@ -44,7 +44,7 @@ namespace C2.ViewModels
                 실제 -> InitialGuidanceManager
             기능테스트용 -> MockInitialGuidanceManager
              */
-            _guidanceManager = InitialGuidanceManager.Instance;
+            _guidanceManager = MockInitialGuidanceManager.Instance;
             
             _updateDispatcher.Register(UpdateCanLaunch);
 
