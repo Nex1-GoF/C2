@@ -128,6 +128,31 @@ namespace C2.Models
                 return "";
             }
         }
+        private int? _ramainingDistance;
+        public int? RemainingDistance
+        {
+            get => _ramainingDistance;
+            set
+            {
+                if (_ramainingDistance != value)
+                {
+                    _ramainingDistance = value;
+                    OnPropertyChanged(nameof(RemainingDistance));
+                    OnPropertyChanged(nameof(DisplayRemainingDistance));
+                }
+            }
+        }
+
+        public string DisplayRemainingDistance
+        {
+            get
+            {
+                if (RemainingDistance == null)
+                    return "";
+
+                return $"{RemainingDistance}";
+            }
+        }
 
         public int IdNumber => int.Parse(Id);
         public double Latitude => LatitudeRaw / 1e7;
@@ -147,7 +172,8 @@ namespace C2.Models
             uint flightTime,
             MissileState state,
             int speed = 0,
-            string? targetId = null)
+            string? targetId = null,
+            int? remainingDistance = null)
         {
             Id = id;
             LatitudeRaw = latitudeRaw;
@@ -158,6 +184,7 @@ namespace C2.Models
             FlightTime = flightTime;
             State = state;
             TargetId = targetId;
+            RemainingDistance = remainingDistance;
             Speed = speed;
             flightTime = 0;
         }
@@ -172,7 +199,8 @@ namespace C2.Models
             MissileState state,
             PIP pip,
             int speed = 0,
-            string? targetId = null)
+            string? targetId = null,
+            int? remainingDistance = null)
         {
             Id = id;
             LatitudeRaw = latitudeRaw;
@@ -183,6 +211,7 @@ namespace C2.Models
             FlightTime = flightTime;
             State = state;
             TargetId = targetId;
+            RemainingDistance = remainingDistance;
             Speed = speed;
             flightTime = 0;
             PIP = pip;
@@ -212,6 +241,7 @@ namespace C2.Models
             FlightTime = src.FlightTime;
             State = src.State;
             PIP = src.PIP;
+            RemainingDistance = src.RemainingDistance;
             //TargetId = src.TargetId;
         }
     }
