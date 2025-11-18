@@ -68,12 +68,13 @@ public class MissileReceiver
             6 => MissileState.Launching,
             _ => MissileState.LaunchReady
         };
+
         return new Missile(
             id: mslInfo.Header?.SrcId.Substring(3, 1) ?? Guid.NewGuid().ToString(),
             latitudeRaw: (int)(lat * 1e7),
             longitudeRaw: (int)(lon * 1e7),
             altitude: (short)mslInfo.Z,
-            yawRaw: (short)(yawDeg * 100),
+            yawRaw: (ushort)(yawDeg * 100),
             pitchRaw: (short)(pitchDeg * 100),
             flightTime: mslInfo.FlightTime,
             state: state,
@@ -100,19 +101,20 @@ public class MissileReceiver
     {
         const double Rad2Deg = 180.0 / Math.PI;
 
-        // 수평거리
+        // ---------- pitch ----------
         double horizontal = Math.Sqrt(dx * dx + dy * dy);
-
-        // pitch: 위(+), 아래(-)
         double pitchRad = Math.Atan2(dz, horizontal);
         double pitchDeg = pitchRad * Rad2Deg;
 
-        // yaw: atan2(동, 북)
+        // ---------- yaw ----------
+        // 북쪽(dy) 기준, 동쪽(dx) 양수 = 90도
         double yawRad = Math.Atan2(dx, dy);
         double yawDeg = yawRad * Rad2Deg;
 
-        // 남쪽이 0°가 되도록 보정
-        yawDeg = (yawDeg + 180.0);
+        // 🔥 음수 각도 보정
+        if (yawDeg < 0) yawDeg += 360.0;
+
+        // 🔥 360도 초과 방지
         if (yawDeg >= 360.0) yawDeg -= 360.0;
 
         return (yawDeg, pitchDeg);

@@ -49,7 +49,8 @@ namespace C2.ViewModels
                     id: $"{i:0}",
                     latitudeRaw: _service.C2Points.latitude,
                     longitudeRaw: _service.C2Points.longitude,
-                    altitude: _service.C2Points.altitude
+                    altitude: _service.C2Points.altitude,
+                    speed: 1000
                 );
                 missiles.Add(missile);
             }

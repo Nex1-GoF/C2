@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace C2.Services
 {
@@ -40,7 +41,8 @@ namespace C2.Services
                     id: $"{i:0}",
                     latitudeRaw: C2Points.latitude,
                     longitudeRaw: C2Points.longitude,
-                    altitude: C2Points.altitude
+                    altitude: C2Points.altitude,
+                    speed: 1000
                 );
                 _missiles[missile.Id] = missile;
             }
@@ -130,44 +132,45 @@ namespace C2.Services
 
         public void ReceiveMissileData(Missile newData)
         {
-            lock (_lock)
+            if (_missiles.TryGetValue(newData.Id, out var existing))
             {
-                if (_missiles.TryGetValue(newData.Id, out var existing))
+                if (existing.State == MissileState.InitialGuidance && newData.State == MissileState.MidGuidance)
                 {
-                    existing.Update(newData);
-                   
-                    //Abort처리
-                    if (newData.State == MissileState.Abort)
-                    {   //Abort처리
-                        if (!existing.IsAbort)
+                    WeakReferenceMessenger.Default.Send(new LaunchEndMessage(existing.Id));
+                }
+                existing.Update(newData);
+
+                //Abort처리
+                if (newData.State == MissileState.Abort)
+                {   //Abort처리
+                    if (!existing.IsAbort)
+                    {
+                        LogService _logService = LogService.Instance;
+                        //_logService.AddLog(MessageType.System, "기폭");
+                        //자폭인지 판별
+                        if (!existing.IsSelfabort)//자폭이 아니라면 타겟요격임
                         {
-                            LogService _logService = LogService.Instance;
-                            //_logService.AddLog(MessageType.System, "기폭");
-                            //자폭인지 판별
-                            if(!existing.IsSelfabort)//자폭이 아니라면 타겟요격임
+                            //_logService.AddLog(MessageType.System, "폭파");
+                            if (!string.IsNullOrEmpty(existing.TargetId))
                             {
-                                //_logService.AddLog(MessageType.System, "폭파");
-                                if (!string.IsNullOrEmpty(existing.TargetId))
-                                {
-                                    //_logService.AddLog(MessageType.System, "폭파신호");
-                                    _abortManager.AbortTarget(existing.TargetId[0]);
-                                }
+                                //_logService.AddLog(MessageType.System, "폭파신호");
+                                _abortManager.AbortTarget(existing.TargetId[0]);
                             }
-                            //if (!string.IsNullOrEmpty(existing.TargetId))
-                            //{
-                            //    _abortManager.AbortTarget(existing.TargetId[0]);
-                            //}
-                            //폭파처리
-                            existing.IsAbort = true;
-                            WeakReferenceMessenger.Default.Send(new MissileAbortMessage(existing.Id));
                         }
+                        //if (!string.IsNullOrEmpty(existing.TargetId))
+                        //{
+                        //    _abortManager.AbortTarget(existing.TargetId[0]);
+                        //}
+                        //폭파처리
+                        existing.IsAbort = true;
+                        WeakReferenceMessenger.Default.Send(new MissileAbortMessage(existing.Id));
                     }
                 }
-                else
-                {
-                    // 초기 4기 생성된 경우에만 들어옴 (이미 있음)
-                    _missiles[newData.Id] = newData;
-                }
+            }
+            else
+            {
+                // 초기 4기 생성된 경우에만 들어옴 (이미 있음)
+                _missiles[newData.Id] = newData;
             }
         }
     }
