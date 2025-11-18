@@ -98,8 +98,8 @@
 
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4*"/>
                         <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="2*"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- 왼쪽: 기본 상태 정보 -->
@@ -147,7 +147,7 @@
                     <!-- 오른쪽: 상세 정보 -->
                     <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right">
 
-                        <TextBlock Text="{Binding IdNumber, StringFormat='LSAM-{0:000}'}"
+                        <TextBlock Text="{Binding IdNumber, StringFormat='MSAM-{0:000}'}"
                                    Foreground="{StaticResource HudTextBrush}"
                                    FontWeight="Bold"
                                    FontSize="20"
@@ -193,6 +193,7 @@
                 CornerRadius="6"
                 Margin="6"
                 Padding="12"
+                MinHeight="180"
                 MouseLeftButtonDown="MissileCard_MouseLeftButtonDown">
 
                 <Border.BorderThickness>

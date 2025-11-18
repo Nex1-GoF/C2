@@ -204,6 +204,7 @@ namespace C2.Network
             public virtual async Task EnterAsync(CancellationToken token)
             {
                 int idx = _manager.GetStepIndex(Name);
+                
                 if (this is IgnitionState)
                 {
                     _manager._logService.AddLog(MessageType.System, "비가역 상태 진입");
@@ -220,6 +221,8 @@ namespace C2.Network
                 }
                 else 
                     WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, false));
+
+                await Task.Delay(1500, token);
             }
 
             public virtual async Task ExitAsync(CancellationToken token)
@@ -324,7 +327,7 @@ namespace C2.Network
             {
                 await base.EnterAsync(token);
                 _manager._missileService.UpdateMissileState(MissileState.LaunchReady, MissileState.Launching);
-
+                WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_launchingMissile.Id));
                 bool ok = await SendAndWaitForAck(_launchingMissile, seq: 1);
                 if (!ok)
                 {
@@ -381,7 +384,7 @@ namespace C2.Network
         }
         private class KeyState : BaseGuidanceState
         {
-            public override string Name => "KEY 전송";
+            public override string Name => "키 전달";
             public override IGuidanceState? NextState { get; set; }
             public KeyState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new IgnitionState(_manager, _launchingMissile); }
             private byte[] GenerateSessionKey()
@@ -533,7 +536,8 @@ namespace C2.Network
 
                 byte[] pip = BuildPipBody(targetXY.x, targetXY.y, 10);
 
-                (double lat, double lon) targetLatLon = XYToLatLon(targetXY.x, targetXY.y, _launchingMissile.Latitude, _launchingMissile.Longitude);
+                (double lat, double lon) targetLatLon = XYToLatLon(targetXY.x, targetXY.y,
+                    _launchingMissile.Latitude, _launchingMissile.Longitude);
 
                 _launchingMissile.PIP = new PIP(targetLatLon.lat, targetLatLon.lon, 10);
 
@@ -546,14 +550,14 @@ namespace C2.Network
                 double dx = targetXY.x - mx;
                 double dy = targetXY.y - my;
 
-                // yaw 계산
+                // 🔥 yaw 계산 (북=0°, 동=90°, 서=270°)
                 double rawYaw = Math.Atan2(dx, dy) * (180.0 / Math.PI);
-                double yawDeg = rawYaw + 180.0;
-                if (yawDeg >= 360.0) yawDeg -= 360.0;
 
-                short yawRaw = (short)(yawDeg * 100);
+                // 🔥 음수 값을 0~360 범위로
+                if (rawYaw < 0)
+                    rawYaw += 360.0;
 
-                // ⭐ 미사일 초기 yaw 갱신
+                ushort yawRaw = (ushort)(rawYaw * 100);
                 _launchingMissile.YawRaw = yawRaw;
 
                 bool ok = await SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
@@ -578,7 +582,6 @@ namespace C2.Network
             {
                 
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.Launching, MissileState.InitialGuidance); // 발사중 -> 초기유도로 전환
-                WeakReferenceMessenger.Default.Send(new MissileLaunchMessage(_launchingMissile.Id));
                 
 
                 if (missileId != null)

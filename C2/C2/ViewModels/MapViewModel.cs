@@ -256,9 +256,28 @@ namespace C2.ViewModels
                         {
                             mslShape.SetVisible(true);
                         }
+
                     }
-                    
-                    missileMarker.Position = new PointLatLng(mk.Lat, mk.Lon);
+                    if (missile.State != MissileState.InitialGuidance)
+                    {
+                        missileMarker.Position = new PointLatLng(mk.Lat, mk.Lon);
+                        
+                    } else
+                    {
+                        //Todo: 초기유도에는 지도상에서만 PIP 따라가도록
+                        double lat = missileMarker.Position.Lat;
+                        double lon = missileMarker.Position.Lng;
+                        double yawDeg = missile.YawRaw / 100.0; // 0~360 도
+                        double yawRad = yawDeg * Math.PI / 180.0;
+
+                        double dt = 0.1; // 100ms (10Hz)
+                        double distance = missile.Speed * dt; // m 단위
+
+                        // 4. 거리 → 위경도 변환
+                        var newPos = MoveLatLon(lat, lon, distance, yawDeg);
+                        missileMarker.Position = new PointLatLng(newPos.Lat, newPos.Lng);
+                    }
+                        
                 }
                 else if (mk.Kind == "Target")
                 {
@@ -421,6 +440,29 @@ namespace C2.ViewModels
 
         private static double Deg2Rad(double d) => d * System.Math.PI / 180.0;
         private static double Rad2Deg(double r) => r * 180.0 / System.Math.PI;
+        private PointLatLng MoveLatLon(double lat, double lon, double distance, double bearingDeg)
+        {
+            const double R = 6371000.0; // 지구 반경 (m)
 
+            double latRad = lat * Math.PI / 180.0;
+            double lonRad = lon * Math.PI / 180.0;
+            double bearingRad = bearingDeg * Math.PI / 180.0;
+
+            double newLatRad = Math.Asin(
+                Math.Sin(latRad) * Math.Cos(distance / R) +
+                Math.Cos(latRad) * Math.Sin(distance / R) * Math.Cos(bearingRad)
+            );
+
+            double newLonRad = lonRad +
+                Math.Atan2(
+                    Math.Sin(bearingRad) * Math.Sin(distance / R) * Math.Cos(latRad),
+                    Math.Cos(distance / R) - Math.Sin(latRad) * Math.Sin(newLatRad)
+                );
+
+            return new PointLatLng(
+                newLatRad * 180.0 / Math.PI,
+                newLonRad * 180.0 / Math.PI
+            );
+        }
     }
 }

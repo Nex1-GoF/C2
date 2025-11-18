@@ -142,7 +142,7 @@ namespace C2.Models
             int latitudeRaw,
             int longitudeRaw,
             short altitude,
-            short yawRaw,
+            ushort yawRaw,
             short pitchRaw,
             uint flightTime,
             MissileState state,
@@ -166,7 +166,7 @@ namespace C2.Models
             int latitudeRaw,
             int longitudeRaw,
             short altitude,
-            short yawRaw,
+            ushort yawRaw,
             short pitchRaw,
             uint flightTime,
             MissileState state,
@@ -188,13 +188,13 @@ namespace C2.Models
             PIP = pip;
         }
 
-        public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude)
+        public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, int speed)
         {
             Id = id;
             LatitudeRaw = latitudeRaw;
             LongitudeRaw = longitudeRaw;
             Altitude = altitude;
-            Speed = 0;
+            Speed = speed;
             State = MissileState.LaunchReady;
             IsAbort = false;
             IsSelfabort = false;

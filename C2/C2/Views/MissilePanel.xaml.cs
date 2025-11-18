@@ -35,6 +35,12 @@ namespace C2.Views
         private void AbortButton_Click(object sender, MouseButtonEventArgs e)
         {
             e.Handled = true; // 카드 클릭으로 전달되는 것 막기
+            if (sender is Button btn && btn.DataContext is Missile missile)
+            {
+                var vm = DataContext as MissileViewModel;
+                if (vm?.AbortCommand?.CanExecute(missile) == true)
+                    vm.AbortCommand.Execute(missile);
+            }
         }
 
         // 🔹 내부 버튼 (기존과 동일)

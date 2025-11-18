@@ -32,4 +32,10 @@
     <Resource Include="Resources\tgt_marker.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Config\network.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

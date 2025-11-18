@@ -167,8 +167,8 @@
 
                     <!-- 점등 -->
                     <Ellipse Grid.Column="1" Margin="0,0,3,0"
-             Width="12" Height="12"
-             VerticalAlignment="Center">
+                         Width="12" Height="12"
+                         VerticalAlignment="Center">
 
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
@@ -232,6 +232,8 @@
                         Content="{Binding IsLaunching, Converter={StaticResource BoolToTextConverter}, ConverterParameter='발사|발사취소'}"
                         Command="{Binding LaunchOrAbortCommand}"
                         Foreground="White"
+                        FontSize="24"
+                        FontWeight="Bold"
                         IsEnabled="{Binding CanLaunchOrAbort}"/>
             </StackPanel>
 
