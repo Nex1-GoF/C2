@@ -9,7 +9,7 @@
         <vm:LogViewModel/>
     </UserControl.DataContext>
 
-    <Border Background="#132235" Padding="10">
+    <Border Background="{StaticResource HudBgLogBrush}" Padding="10">
 
         <ScrollViewer x:Name="LogScroll"
                       VerticalScrollBarVisibility="Auto"

@@ -36,7 +36,7 @@ namespace C2.ViewModels
             // 지도 초기화 (뷰모델 책임)
             //GMaps.Instance.Mode = AccessMode.ServerAndCache;
             //_map.MapProvider = GMap.NET.MapProviders.OpenStreetMapProvider.Instance;
-            _map.MapProvider = CartoDarkMapProvider.Instance;
+            _map.MapProvider = CustomDarkMapProvider.Instance;
             GMaps.Instance.Mode = AccessMode.ServerAndCache;
             _map.MinZoom = 2;
             _map.MaxZoom = 18;
@@ -422,7 +422,7 @@ namespace C2.ViewModels
             {
                 Shape = new System.Windows.Shapes.Path
                 {
-                    Stroke = new SolidColorBrush(Color.FromRgb(0, 255, 200)),
+                    Stroke = new SolidColorBrush(Color.FromRgb(232, 247, 255)),
                     StrokeThickness = 2.5,
                     StrokeDashArray = new DoubleCollection { 4, 6 }, // 레이더 점선 느낌
                     Opacity = 0.8,

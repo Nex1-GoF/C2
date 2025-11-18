@@ -9,8 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Fonts\Octapost.ttf" />
     <None Remove="Resources\msl_marker.png" />
     <None Remove="Resources\target.png" />
+    <None Remove="Resources\target2.png" />
     <None Remove="Resources\tgt_marker.png" />
   </ItemGroup>
 
@@ -22,13 +24,18 @@
 
   <ItemGroup>
     <Folder Include="Driver\" />
-    <Folder Include="Resources\Fonts\" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Fonts\Octapost.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\msl_marker.png" />
     <Resource Include="Resources\target.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\target2.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\tgt_marker.png" />
   </ItemGroup>

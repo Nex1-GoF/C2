@@ -112,7 +112,7 @@
                             Margin="10">
 
                     <Border BorderThickness="0"
-                            Background="#1B2E3A"
+                            Background="{StaticResource HudBgDarkBrush}"
                             Padding="4"
                             CornerRadius="4">
 
@@ -129,7 +129,7 @@
                         </Button>
                     </Border>
 
-                    <TextBlock Text="유도탄 목록"
+                    <TextBlock Text="MISSILES" Margin="8,0,0,0"
                                Style="{StaticResource HudHeaderTextStyle}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
@@ -237,7 +237,7 @@
             <!-- MISSILE PANEL -->
             <views:MissilePanel Grid.Row="1"
                                 x:Name="MissilePanelRef"
-                                Background="{StaticResource HudBgPanelBrush}"/>
+                                Background="{StaticResource HudBgDarkBrush}"/>
         </Grid>
 
         <!-- ===================================================== -->
@@ -250,10 +250,10 @@
             </Grid.RowDefinitions>
 
             <views:TargetPanel Grid.Row="0"
-                               Background="{StaticResource HudBgPanelBrush}"/>
+                               Background="{StaticResource HudBgDarkBrush}"/>
 
             <views:LogPanel Grid.Row="1"
-                            Background="{StaticResource HudBgLogBrush}"/>
+                            Background="{StaticResource HudBgDarkBrush}"/>
         </Grid>
 
     </Grid>
