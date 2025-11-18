@@ -36,10 +36,14 @@ namespace C2.ViewModels
             // 지도 초기화 (뷰모델 책임)
             //GMaps.Instance.Mode = AccessMode.ServerAndCache;
             //_map.MapProvider = GMap.NET.MapProviders.OpenStreetMapProvider.Instance;
-            _map.MapProvider = CustomDarkMapProvider.Instance;
-            GMaps.Instance.Mode = AccessMode.ServerAndCache;
+            _map.MapProvider = NavyDarkMapProvider.Instance;
+            GMaps.Instance.Mode = AccessMode.ServerOnly;
+            _map.Manager.Mode = AccessMode.ServerOnly;
+            _map.CacheLocation = "";               // SQLite 캐시 무효화
+            GMaps.Instance.UseMemoryCache = false;
+            _map.Manager.PrimaryCache = null;
             _map.MinZoom = 2;
-            _map.MaxZoom = 18;
+            _map.MaxZoom = 12;
             _map.Zoom = 8;
             _map.Position = new PointLatLng(38, 127.5);
             _map.CanDragMap = true;

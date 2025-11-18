@@ -83,6 +83,8 @@ public class MissileReceiver
 
         var (yawDeg, pitchDeg) = CalcYawPitch(mslInfo.Vx / 1e3, mslInfo.Vy / 1e3, mslInfo.Vz);
 
+        int RemainingDistance = (int)Math.Sqrt(mslInfo.X * mslInfo.X + mslInfo.Y * mslInfo.Y + mslInfo.Z * mslInfo.Z);
+
         PIP pip = new PIP(pipLat, pipLon, 0);
 
         MissileState state = mslInfo.FlightStatus switch
@@ -105,7 +107,8 @@ public class MissileReceiver
             flightTime: mslInfo.FlightTime,
             state: state,
             speed: (int)Math.Sqrt((mslInfo.Vx / 1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3)),
-            pip: pip
+            pip: pip,
+            remainingDistance: RemainingDistance
         );
         tmpmsl.Sim_X = mslInfo.X;
         tmpmsl.Sim_Y = mslInfo.Y;
