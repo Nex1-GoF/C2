@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="Driver\" />
+    <Folder Include="Resources\Fonts\" />
   </ItemGroup>
 
   <ItemGroup>
