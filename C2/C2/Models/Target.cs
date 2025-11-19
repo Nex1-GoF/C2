@@ -1,16 +1,17 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using C2.Services;
+using Newtonsoft.Json.Linq;
+using System;
 using System;
 using System.Collections.Generic;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
-
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace C2.Models
 {
@@ -42,7 +43,7 @@ namespace C2.Models
             } }
 
         public double YawRaw => (double)Yaw / 100.0;
-
+        
 
         private TargetState _state;
         public TargetState State { get => _state; set { _state = value; OnPropertyChanged(); } }
@@ -63,21 +64,17 @@ namespace C2.Models
 
         public DateTime DetectTime { get; set; }
 
-        public string CurYawDisplay => $"{Yaw:F0}°";
+        public string CurYawDisplay => $"{(Yaw)/100:F0}°";
         public string CurLatDisplay => $"{CurLoc.Lat:F5}";
         public string CurLonDisplay => $"{CurLoc.Lon:F5}";
         public string EndLocDisplay => $"{EndLoc.Lat:F5}, {EndLoc.Lon:F5}";
 
         public List<(double Lat, double Lon)> PathHistory { get; } = new();
 
-        private Missile? _guidanceMSL;
-        public Missile? GuidanceMSL
-        {
-            get => _guidanceMSL;
-            set { _guidanceMSL = value; OnPropertyChanged(); }
-        }
+        public string TargetInfoName { get; set; }
+        public string TargetInfoImagePath { get; set; }
 
-        public Target(char id, int speed, int altitude, int yaw, (double Lat, double Lon) endLoc, DateTime detectTime, (double Lat, double Lon) curLoc)
+        public Target(char id, int speed, int altitude, int yaw, (double Lat, double Lon) endLoc, DateTime detectTime, (double Lat, double Lon) curLoc, char detectedType)
         {
             Id = id;
             Speed = speed;
@@ -87,6 +84,11 @@ namespace C2.Models
             EndLoc = endLoc;
             DetectTime = detectTime;
             CurLoc = curLoc;
+
+            TargetInfo targetInfo = TargetInfos.Instance.GetTargetInfoById(Id);
+            TargetInfoName = targetInfo.TargetName;
+            TargetInfoImagePath = targetInfo.ImagePath;
+
         }
 
         public void Update(Target updated)
@@ -97,6 +99,43 @@ namespace C2.Models
             CurLoc = updated.CurLoc;
             EndLoc = updated.EndLoc;
             DetectTime = updated.DetectTime;
+        }
+    }
+
+
+
+
+    class TargetInfo
+    {
+        public char Id { get; set; }
+        public string TargetName { get; set; }
+        public string ImagePath { get; set; }
+
+        public TargetInfo(char id, string targetName, string imagePath)
+        {
+            Id = id;
+            TargetName = targetName;
+            ImagePath = imagePath;
+        }
+    }
+
+    class TargetInfos
+    {
+        private static TargetInfos _instance;
+        public static TargetInfos Instance => _instance ??= new TargetInfos();
+
+        Dictionary<char, TargetInfo> targetInfos = new();
+        private TargetInfos()
+        {
+            targetInfos.Add('0', new TargetInfo('0', "UNKNOWN", "/Resources/target2.png"));
+            targetInfos.Add('1', new TargetInfo('1', "MIG29", "/Resources/target2.png"));
+            targetInfos.Add('2', new TargetInfo('2', "MIG23", "/Resources/target2.png"));
+            targetInfos.Add('3', new TargetInfo('3', "SU25", "/Resources/target2.png"));
+        }
+
+        public TargetInfo GetTargetInfoById(char id) {
+            if (targetInfos.ContainsKey(id)) return targetInfos[id];
+            else return targetInfos['0'];
         }
     }
 }

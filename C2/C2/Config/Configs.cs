@@ -56,13 +56,13 @@ namespace C2.Config
 
     public class RadarConfig
     {
-        public string Ip { get; set; } = "127.0.0.1";
+        public string Ip { get; set; } = "192.168.1.10";  //"127.0.0.1";
         public int Port { get; set; } = 8003;
     }
 
     public class UnrealConfig
     {
-        public string Ip { get; set; } = "127.0.0.1";
+        public string Ip { get; set; } = "192.168.1.101"; //"127.0.0.1";
         public int Port { get; set; } = 52000;
     }
 
