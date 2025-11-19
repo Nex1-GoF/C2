@@ -112,13 +112,10 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <Button Width="126"
-                        Height="50"
+                <Button 
                         Content="{Binding IsLaunching, Converter={StaticResource BoolToTextConverter}, ConverterParameter='발사|발사취소'}"
                         Command="{Binding LaunchOrAbortCommand}"
                         Style="{StaticResource LaunchButtonStyle}"
-                        FontSize="20"
-                        FontWeight="Bold"
                         IsEnabled="{Binding CanLaunchOrAbort}"/>
             </StackPanel>
 

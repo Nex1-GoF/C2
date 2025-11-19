@@ -74,7 +74,7 @@
                                             </MultiBinding>
                                         </Border.Background>
 
-                                        <Grid Margin="0,0,0,8">
+                                        <Grid >
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
@@ -84,12 +84,12 @@
                                             
                                             <TextBlock Text="{Binding Id, StringFormat='TGT-00{0}'}"
                                                Style="{StaticResource TargetCardIdTextStyle}"
-                                               VerticalAlignment="Center"
+                                               VerticalAlignment="Center" Margin="0,0,0,8"
                                                Grid.Column="0"/>
                                             <Border Grid.Column="1"/>
-                                            <TextBlock Text="{Binding State}" Grid.Column="2"
-                                               Style="{StaticResource TargetCardIdTextStyle}"
-                                               Margin="6,0,0,0"/>
+                                            <TextBlock Text="{Binding TargetInfoName}" Grid.Column="2"
+                                               Style="{StaticResource TargetCardFlightIdTextStyle}"
+                                               VerticalAlignment="Bottom"/>
                                         </Grid>
 
 
@@ -99,63 +99,244 @@
                                         BorderBrush="{StaticResource TargetCardStrokeBrush}"
                                         CornerRadius="0,0,6,6"
                                         BorderThickness="4,2,4,4"
-                                        Padding="6"
+                                        Padding="8"
                                         Grid.Row="1">
 
                                         <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="3*"/>
-                                                <ColumnDefinition Width="2*"/>
-                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid Grid.Row="0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Orientation="Vertical" Grid.Row="0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Border 
+                                                            Background="{StaticResource TargetCardContentBlockBrush}"
+                                                            CornerRadius="4"
+                                                            Padding="2"
+                                                            Margin="0,0,4,2"
+                                                            Grid.Column="0">
+                                                                <TextBlock 
+                                                                Text="위도"
+                                                                Style="{StaticResource TargetContentTextStyle}"/>
+                                                            </Border>
+                                                            <Border 
+                                                                Background="{StaticResource TargetCardContentBlockBrush}"
+                                                                CornerRadius="4"
+                                                                Padding="2"
+                                                                Margin="2,0,4,2"
+                                                                Grid.Column="1">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock
+                                                                        Text="{Binding CurLatDisplay}"
+                                                                        Style="{StaticResource TargetContentTextStyle}"
+                                                                        Grid.Column="0"
+                                                                        />
+                                                                    <TextBlock
+                                                                        Text="(°)"
+                                                                        Style="{StaticResource TargetContentTextStyle}"
+                                                                        Grid.Column="1"/>
+                                                                </Grid>
+                                                            </Border>
+                                                        </Grid>
+                                                        <Grid Grid.Column="1">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Border 
+                                                            Background="{StaticResource TargetCardContentBlockBrush}"
+                                                            CornerRadius="4"
+                                                            Padding="2"
+                                                            Margin="0,0,4,2"
+                                                            Grid.Column="0">
+                                                                <TextBlock 
+                                                                Text="경도"
+                                                                Style="{StaticResource TargetContentTextStyle}"/>
+                                                            </Border>
+                                                            <Border 
+                                                            Background="{StaticResource TargetCardContentBlockBrush}"
+                                                            CornerRadius="4"
+                                                            Padding="2"
+                                                            Margin="0,0,4,2"
+                                                            Grid.Column="1">
+                                                                <Grid>
+                                                                    <Grid.ColumnDefinitions>
+                                                                        <ColumnDefinition Width="*"/>
+                                                                        <ColumnDefinition Width="Auto"/>
+                                                                    </Grid.ColumnDefinitions>
+                                                                    <TextBlock
+                                                                        Text="{Binding CurLonDisplay}"
+                                                                        Style="{StaticResource TargetContentTextStyle}"
+                                                                        Grid.Column="0"
+                                                                        />
 
-                                            <!-- ✦ LEFT SECTION -->
-                                            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Left">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="AUTO"/>
-                                                    <RowDefinition Height="*"/>
-                                                </Grid.RowDefinitions>
-                                                <StackPanel Orientation="Vertical" Margin="0,0,0,6">
-                                                    <TextBlock Text="{Binding CurLatDisplay, StringFormat='위도: {0}'}"
-                                                        Style="{StaticResource TargetContentTextStyle}"/>
+                                                                    <TextBlock
+                                                                Text="(°)"
+                                                                Style="{StaticResource TargetContentTextStyle}"
+                                                                Grid.Column="1"/>
+                                                                </Grid>
+                                                            </Border>
+                                                        </Grid>
+                                                        
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border 
+                                                        Background="{StaticResource TargetCardContentBlockBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="2"
+                                                        Margin="0,2,4,2"
+                                                        Grid.Column="0">
+                                                            <TextBlock 
+                                                            Text="고도"
+                                                            Style="{StaticResource TargetContentTextStyle}"/>
+                                                        </Border>
+                                                        <Border 
+                                                        Background="{StaticResource TargetCardContentBlockBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="2"
+                                                        Margin="4,2"
+                                                        Grid.Column="1">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock
+                                                                    Text="{Binding Altitude}"
+                                                                    Style="{StaticResource TargetContentTextStyle}"
+                                                                    Grid.Column="0"/>
 
-                                                    <TextBlock Text="{Binding CurLonDisplay, StringFormat='경도: {0}'}"
-                                                        Style="{StaticResource TargetContentTextStyle}"/>
+                                                                <TextBlock
+                                                                    Text="(m)"
+                                                                    Style="{StaticResource TargetContentTextStyle}"
+                                                                    Grid.Column="1"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border 
+                                                        Background="{StaticResource TargetCardContentBlockBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="2"
+                                                        Margin="0,2,4,2"
+                                                        Grid.Column="0">
+                                                            <TextBlock 
+                                                            Text="속도"
+                                                            Style="{StaticResource TargetContentTextStyle}"/>
+                                                        </Border>
+                                                        <Border 
+                                                            Background="{StaticResource TargetCardContentBlockBrush}"
+                                                            CornerRadius="4"
+                                                            Padding="2"
+                                                            Margin="4,2,4,2"
+                                                            Grid.Column="1">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                    <TextBlock
+                                                                    Text="{Binding Speed}"
+                                                                    Style="{StaticResource TargetContentTextStyle}"
+                                                                    Grid.Column="0"/>
 
-                                                    <TextBlock Text="{Binding YawRaw, StringFormat='방향: {0}°'}"
-                                                        Style="{StaticResource TargetContentTextStyle}"/>
+                                                                <TextBlock
+                                                                    Text="(m/s)"
+                                                                    Style="{StaticResource TargetContentTextStyle}"
+                                                                    Grid.Column="1">
+                                                                </TextBlock>
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Border 
+                                                        Background="{StaticResource TargetCardContentBlockBrush}"
+                                                        CornerRadius="4"
+                                                        Padding="2"
+                                                        Margin="0,2,4,0"
+                                                        Grid.Column="0">
+                                                            <TextBlock 
+                                                            Text="헤딩"
+                                                            Style="{StaticResource TargetContentTextStyle}"/>
+                                                        </Border>
+                                                        <Border 
+                                                            Background="{StaticResource TargetCardContentBlockBrush}"
+                                                            CornerRadius="4"
+                                                            Padding="2"
+                                                            Margin="4,2,4,0"
+                                                            Grid.Column="1">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                    <TextBlock
+                                                                    Text="{Binding CurYawDisplay}"
+                                                                    Style="{StaticResource TargetContentTextStyle}"
+                                                                    Grid.Column="0"/>
 
-                                                    <TextBlock Text="{Binding Speed, StringFormat='속도: {0} m/s'}"
-                                                        Style="{StaticResource TargetContentTextStyle}"/>
-
-                                                    <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}"
-                                                        Style="{StaticResource TargetContentTextStyle}"/>
+                                                                <TextBlock
+                                                                    Text="(°)"
+                                                                    Style="{StaticResource TargetContentTextStyle}"
+                                                                    Grid.Column="1">
+                                                                </TextBlock>
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
                                                 </StackPanel>
-
-                                                <!-- 탐지 시간 -->
-                                                <TextBlock Text="{Binding DetectTime, StringFormat='탐지시간: HH:mm:ss'}" Grid.Row="1" VerticalAlignment="Bottom"
-                                                    Style="{StaticResource TargetTimeStampTextStyle}"/>
-                                            </Grid>
-
-                                            <!-- ✦ RIGHT SECTION -->
-                                            <Grid Grid.Column="1" >
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="*"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                </Grid.RowDefinitions>
-
                                                 <!-- 🔵 이미지: 상단 고정 + 좌우 스트래치 -->
-                                                <Image Grid.Row="0"
+                                                <Image Grid.Column="1"
                                                    x:Name="TargetImage"
-                                                   Source="/Resources/target2.png"
+                                                   Source= '{Binding TargetInfoImagePath}'
                                                    Stretch="Uniform"
                                                    Height="90"
-                                                   HorizontalAlignment="Stretch"
+                                                   HorizontalAlignment="Stretch" 
                                                    VerticalAlignment="Top"
-                                                   Margin="0,0,0,10"/>
-
-                                                <!-- 🔵 버튼: 하단 고정 + 너비 이미지와 동일 -->
-                                                <Button Grid.Row="2"
+                                                   Margin="8,0,0,0"/>
+                                            </Grid>
+                                        
+                                            <Grid Grid.Row="1" Margin="0,4,0,0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock 
+                                                    Text="{Binding DetectTime, StringFormat='탐지시간: HH:mm:ss'}" Grid.Column="0"
+                                                    Style="{StaticResource TargetTimeStampTextStyle}"
+                                                    VerticalAlignment="Bottom"/>
+                                                <Button Grid.Column="2"
                                                     Content="교전할당"
                                                     Padding="10,10"
                                                     Command="{Binding DataContext.EngagementCommand,
@@ -167,8 +348,8 @@
                                                     PreviewMouseLeftButtonDown="EngagementButton_Click"
                                                     Width="{Binding ActualWidth, ElementName=TargetImage}"/>
                                             </Grid>
-
                                         </Grid>
+                                        
                                     </Border>
 
                                 </Grid>

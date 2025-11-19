@@ -91,6 +91,7 @@ public class TargetReceiver
         int yaw = packet.Yaw;
         var curLoc = (Lat: packet.Latitude / 1e7, Lon: packet.Longtitude/ 1e7);
         var detectTime = DateTimeOffset.FromUnixTimeMilliseconds((long)packet.DetectedTime).DateTime;
+        char detectedType = packet.DetectedType;
 
         var target = new Target(
             id: packet.DetectedId,
@@ -99,7 +100,8 @@ public class TargetReceiver
             yaw: yaw,
             endLoc: curLoc,
             detectTime: detectTime,
-            curLoc: curLoc
+            curLoc: curLoc,
+            detectedType: detectedType
         );
 
         return target;
