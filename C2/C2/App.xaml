@@ -10,6 +10,7 @@
         <Color x:Key="DarkPanelColor">#1f1f1f</Color>
 
         <Color x:Key="KeyColor">#677e5b</Color>
+        <Color x:Key="KeyColorDark">#3c4336</Color>
         <Color x:Key="KeyColorRev">#8FAF7C</Color>
 
         <Color x:Key="SubColor">#bcc0c4</Color>
@@ -43,7 +44,7 @@
         <SolidColorBrush x:Key="MissileCardStrokeBrush" Color="{StaticResource KeyColor}"/>  <!-- 카드 가장자리 -->
         <SolidColorBrush x:Key="MissileCardBrush" Color="{StaticResource KeyColorDim}"/>  <!-- 카드 -->
         <SolidColorBrush x:Key="MissileCardFocusedHeaderBrush" Color="{StaticResource KeyColor}"/>  <!-- 포커스 카드 헤더 -->
-        <SolidColorBrush x:Key="MissileCardContentBlockBrush" Color="{StaticResource KeyColor}"/> <!-- 위도, 경도, 고도, CPA 감싸는 블럭 -->
+        <SolidColorBrush x:Key="MissileCardContentBlockBrush" Color="{StaticResource KeyColorDark}"/> <!-- 위도, 경도, 고도, CPA 감싸는 블럭 -->
         <SolidColorBrush x:Key="MissilePenalHeaderTextBrush" Color="{StaticResource KeyColor}"/><!-- 미사일 패널 헤더 컬러-->
         <SolidColorBrush x:Key="MissileCardIDTextBrush" Color="{StaticResource SubColor}"/><!-- 미사일 카드 ID 컬러-->
         <SolidColorBrush x:Key="MissileContentTextBrush" Color="{StaticResource SubColor2}"/><!--위도 경도 cpa ... 컬러-->
@@ -64,6 +65,7 @@
         <!-- 타겟 카드 Color Brushes -->
         <SolidColorBrush x:Key="TargetCardIDTextBrush" Color="{StaticResource SubColor}"/><!-- 미사일 카드 ID 컬러-->
         <SolidColorBrush x:Key="TargetCardStrokeBrush" Color="{StaticResource KeyColor}"/>  <!-- 카드 가장자리 -->
+        <SolidColorBrush x:Key="TargetCardContentBlockBrush" Color="{StaticResource KeyColorDark}"/> <!-- 위도, 경도, 고도 감싸는 블럭 -->
         <SolidColorBrush x:Key="TargetCardBrush" Color="{StaticResource KeyColorDim}"/>  <!-- 카드 -->
         <SolidColorBrush x:Key="TargetCardFocusedHeaderBrush" Color="{StaticResource KeyColor}"/>  <!-- 포커스 카드 헤더 -->
         <SolidColorBrush x:Key="TargetContentTextBrush" Color="{StaticResource SubColor2}"/><!--위도 경도 고도 방향.. 컬러-->
@@ -114,17 +116,23 @@
         </Style>
         <Style x:Key="MissileTargetIDTextStyle" TargetType="TextBlock"><!-- 목표 타겟 ID: ...-->
             <Setter Property="Foreground" Value="{StaticResource MissileContentTextBrush}"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
         
         <!-- 타겟 카드 -->
-        <Style x:Key="TargetCardIdTextStyle" TargetType="TextBlock"> <!-- UNKNOWN -->
+        <Style x:Key="TargetCardIdTextStyle" TargetType="TextBlock"> <!-- TGT-006 -->
             <Setter Property="Foreground" Value="{StaticResource TargetCardIDTextBrush}"/>
             <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
+        <Style x:Key="TargetCardFlightIdTextStyle" TargetType="TextBlock"> <!-- UNKNOWN -->
+            <Setter Property="Foreground" Value="{StaticResource TargetCardIDTextBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+
         <Style x:Key="TargetContentTextStyle" TargetType="TextBlock"><!-- 위도 경도 고도 -->
             <Setter Property="Foreground" Value="{StaticResource TargetContentTextBrush}"/>
             <Setter Property="FontSize" Value="14"/>
@@ -206,26 +214,39 @@
             </Style.Triggers>
         </Style>
 
-        <!-- 버튼 스타일 -->
+        <!-- 발사 버튼 스타일 -->
         <Style x:Key="LaunchButtonStyle" TargetType="Button">
             <!-- 기본 상태 -->
             <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="BorderThickness" Value="3"/>
+            <Setter Property="Width" Value="126"/>
+            <Setter Property="Height" Value="50"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontSize" Value="40"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border CornerRadius="4"
-                        Background="#677E5B"
-                        BorderBrush="#9DB991"
-                        BorderThickness="1.2">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter 
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        TextElement.FontSize="{TemplateBinding FontSize}"
+                        TextElement.FontWeight="{TemplateBinding FontWeight}"
+                        TextElement.Foreground="{TemplateBinding Foreground}"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+
+            <!-- 기본 색 -->
+            <Setter Property="Background" Value="#677E5B"/>
+            <Setter Property="BorderBrush" Value="#9DB991"/>
 
             <!-- Hover -->
             <Style.Triggers>
@@ -427,10 +448,6 @@
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Margin" Value="0,10,0,0"/>
             </Style>
-
-
-
-
 
 
     </Application.Resources>
