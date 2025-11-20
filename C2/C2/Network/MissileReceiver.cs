@@ -14,7 +14,7 @@ public class MissileReceiver
     private const double ReferenceLat = 37.5665; // 기준 위도
     private const double ReferenceLon = 126.9780; // 기준 경도 
 
-    public MissileReceiver(SocketManager socketManager, string unrealIp = "192.168.0.50", int unrealPort = 52000)
+    public MissileReceiver(SocketManager socketManager, string unrealIp = "192.168.0.101", int unrealPort = 7777)
     {
         _service = MissileService.Instance;
         _socketManager = socketManager;

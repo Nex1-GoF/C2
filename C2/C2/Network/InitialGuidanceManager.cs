@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using GMap.NET;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -31,6 +32,7 @@ namespace C2.Network
         private Missile? _currentMissile;
         private double _currentProgress = 0;
         private bool _abortHandled = false;
+        private int _curyaw=0;
         private InitialGuidanceManager() { }
 
         private readonly List<string> Steps = new()
@@ -216,6 +218,15 @@ namespace C2.Network
                 else if (this is LaunchState)
                 {
                     _manager._logService.AddLog(MessageType.System, "발사 절차 완료");
+                    Missile msl = InitialGuidanceManager.Instance._currentMissile;
+                    if (msl!=null)
+                    {
+
+                        Debug.WriteLine($"YawRaw={(ushort)msl.YawRaw}");
+                        _manager._logService.AddLog(MessageType.System, "언리얼발사 절차 완료");
+                        SendToUE5.SendLaunchSignal("C001", "C002", 1, msl.Id,(ushort)msl.YawRaw);
+                    }
+
 
                     WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, false));
                 }
@@ -558,8 +569,8 @@ namespace C2.Network
                     rawYaw += 360.0;
 
                 ushort yawRaw = (ushort)(rawYaw * 100);
-                _launchingMissile.YawRaw = yawRaw;
-
+                _launchingMissile.YawRaw = yawRaw; 
+                Debug.WriteLine($"YawRaw={yawRaw}");
                 bool ok = await SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
                 if (!ok)
                 {

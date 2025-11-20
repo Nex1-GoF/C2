@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
+using System.Windows.Interop;
 
 namespace C2.Network
 {
@@ -524,5 +526,127 @@ namespace C2.Network
         }
 
         public void Print() => Console.WriteLine(Header.ToString());
+    }
+
+    public class MslLaunchSignalPacket : BasePacket
+    {
+        public const int BODY_SIZE = 6;
+
+        public string MissileId { get; set; } = "M000";  // 4 chars
+        public ushort MslYaw { get; set; }               // 0 ~ 36000 (degree×100)
+
+        public MslLaunchSignalPacket() { }
+
+        public MslLaunchSignalPacket(HeaderPacket header, string missileId, ushort yaw)
+        {
+            Header = header;
+            MissileId = missileId;
+            MslYaw = yaw;
+            Debug.WriteLine($"SPACYawRaw={MslYaw}");
+        }
+
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+
+            buffer.AddRange(Encoding.ASCII.GetBytes(MissileId.PadRight(4).Substring(0, 4)));
+            buffer.AddRange(BitConverter.GetBytes(MslYaw));
+
+            return buffer.ToArray();
+        }
+
+        public override void Deserialize(byte[] buffer)
+        {
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+
+            MissileId = Encoding.ASCII.GetString(buffer, offset, 4); offset += 4;
+            MslYaw = BitConverter.ToUInt16(buffer, offset);
+        }
+    }
+
+    public class MslInfoDataPacket : BasePacket
+    {
+        public const int BODY_SIZE = 14;
+
+        public string MissileId { get; set; } = "M000";
+        public ushort MslYaw { get; set; }
+        public byte TelemetryStatus { get; set; }
+        public char FlightStatus { get; set; }
+        public uint TargetDistance { get; set; }
+        public ushort TargetYaw { get; set; }
+
+        public MslInfoDataPacket() { }
+
+        public MslInfoDataPacket(
+            HeaderPacket header,
+            string missileId,
+            ushort mslYaw,
+            byte telemetryStatus,
+            char flightStatus,
+            uint targetDistance,
+            ushort targetYaw)
+        {
+            Header = header;
+            MissileId = missileId;
+            MslYaw = mslYaw;
+            TelemetryStatus = telemetryStatus;
+            FlightStatus = flightStatus;
+            TargetDistance = targetDistance;
+            TargetYaw = targetYaw;
+        }
+
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+
+            buffer.AddRange(Encoding.ASCII.GetBytes(MissileId.PadRight(4).Substring(0, 4)));
+            buffer.AddRange(BitConverter.GetBytes(MslYaw));
+            buffer.Add(TelemetryStatus);
+            buffer.Add((byte)FlightStatus);
+            buffer.AddRange(BitConverter.GetBytes(TargetDistance));
+            buffer.AddRange(BitConverter.GetBytes(TargetYaw));
+
+            return buffer.ToArray();
+        }
+
+        public override void Deserialize(byte[] buffer)
+        {
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+
+            MissileId = Encoding.ASCII.GetString(buffer, offset, 4); offset += 4;
+            MslYaw = BitConverter.ToUInt16(buffer, offset); offset += 2;
+            TelemetryStatus = buffer[offset++];
+            FlightStatus = (char)buffer[offset++];
+            TargetDistance = BitConverter.ToUInt32(buffer, offset); offset += 4;
+            TargetYaw = BitConverter.ToUInt16(buffer, offset);
+        }
+    }
+
+    public class MslDetonationSignalPacket : BasePacket
+    {
+        public const int BODY_SIZE = 4;
+
+        public string MissileId { get; set; } = "M000";
+
+        public MslDetonationSignalPacket() { }
+
+        public MslDetonationSignalPacket(HeaderPacket header, string id)
+        {
+            Header = header;
+            MissileId = id;
+        }
+
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+            buffer.AddRange(Encoding.ASCII.GetBytes(MissileId.PadRight(4).Substring(0, 4)));
+            return buffer.ToArray();
+        }
+
+        public override void Deserialize(byte[] buffer)
+        {
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+            MissileId = Encoding.ASCII.GetString(buffer, offset, 4);
+        }
     }
 }
