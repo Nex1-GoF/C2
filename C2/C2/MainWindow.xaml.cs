@@ -1,7 +1,9 @@
 ﻿using C2.Models;
 using C2.Network;
+using C2.Views;
 using C2.Services;
 using C2.ViewModels;
+using CommunityToolkit.Mvvm.Input;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -29,7 +31,6 @@ namespace C2
         private MissileReceiver _missileReceiver;
         private AbortManager _abortManager;
         private SocketManager _socketManager;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -45,9 +46,16 @@ namespace C2
             _targetReceiver = new TargetReceiver(_socketManager);
             _missileReceiver = new MissileReceiver(_socketManager);
             _abortManager = AbortManager.Instance;
-        
         }
 
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.M)
+            {
+                var wnd = new ManualWindow();
+                wnd.Show();
+            }
+        }
         // 로그 확인용 - 콘솔 창 열기
         static class NativeMethods
         {

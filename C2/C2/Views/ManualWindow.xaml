@@ -1,0 +1,12 @@
+﻿<Window x:Class="C2.Views.ManualWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="사용자 매뉴얼"
+        Width="800"
+        Height="900">
+
+    <Grid>
+        <wv2:WebView2 x:Name="PdfViewer"/>
+    </Grid>
+</Window>

@@ -8,6 +8,7 @@
         
         <!-- Color Pelatte -->
         <Color x:Key="DarkPanelColor">#1f1f1f</Color>
+        <Color x:Key="LightPenalColor">#545454</Color>
 
         <Color x:Key="KeyColor">#677e5b</Color>
         <Color x:Key="KeyColorDark">#3c4336</Color>
@@ -33,6 +34,25 @@
         <FontFamily x:Key="Octapost">
             pack://application:,,,/C2;component/Resources/Fonts/#Octapost NBP
         </FontFamily>
+        <FontFamily x:Key="JetbrainBold">
+            pack://application:,,,/C2;component/Resources/Fonts/#JetBrains Mono
+        </FontFamily>
+        <FontFamily x:Key="JetbrainMedium">
+            pack://application:,,,/C2;component/Resources/Fonts/#JetBrains Mono Medium
+        </FontFamily>
+        <FontFamily x:Key="NanumLight">
+            pack://application:,,,/C2;component/Resources/Fonts/#나눔스퀘어 네오 Light
+        </FontFamily>
+        <FontFamily x:Key="NanumRegular">
+            pack://application:,,,/C2;component/Resources/Fonts/#나눔스퀘어 네오 Regular
+        </FontFamily>
+        <FontFamily x:Key="NanumBold">
+            pack://application:,,,/C2;component/Resources/Fonts/#나눔스퀘어 네오 Bold
+        </FontFamily>
+        <FontFamily x:Key="NanumHeavy">
+            pack://application:,,,/C2;component/Resources/Fonts/#나눔스퀘어 네오 Heavy
+        </FontFamily>
+
 
 
         <!-- Color Brushes -->
@@ -73,7 +93,7 @@
  
         
         <!-- 메인 -->
-        <SolidColorBrush x:Key="LogHeadPenalBrush" Color="{StaticResource KeyColorDim2}"/><!-- 시스템 로그 헤더 패널 버튼 컬러-->
+        <SolidColorBrush x:Key="LogHeadPenalBrush" Color="{StaticResource LightPenalColor}"/><!-- 시스템 로그 헤더 패널 버튼 컬러-->
         <SolidColorBrush x:Key="LaunchSequenceBrush" Color="{StaticResource LaunchReadyColor}"/><!-- 발사 절차 표시 -->
         <SolidColorBrush x:Key="LaunchSequenceBrush2" Color="{StaticResource KeyColorDim2}"/><!--  발사 절차 표시 -->
         <SolidColorBrush x:Key="LaunchSequenceTextBrush" Color="{StaticResource SubColor3}"/><!--  발사 절차 표시 -->
@@ -86,13 +106,13 @@
         <!-- Text Styles -->
         <Style x:Key="MissilePanelHeaderTextStyle" TargetType="TextBlock">   <!-- MISSILES -->
             <Setter Property="Foreground" Value="{StaticResource MissilePenalHeaderTextBrush}"/>
-            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontFamily" Value="{StaticResource JetbrainBold}"/>
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style x:Key="TargetPanelHeaderTextStyle" TargetType="TextBlock">   <!-- TARGETS -->
             <Setter Property="Foreground" Value="{StaticResource TargetPenalHeaderTextBrush}"/>
-            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontFamily" Value="{StaticResource JetbrainBold}"/>
             <Setter Property="FontSize" Value="24"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
@@ -100,47 +120,53 @@
         <!-- 미사일 카드 -->
         <Style x:Key="MissileCardIdTextStyle" TargetType="TextBlock">   <!-- MSL-001-->
             <Setter Property="Foreground" Value="{StaticResource MissileCardIDTextBrush}"/>
-            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontFamily" Value="{StaticResource JetbrainBold}"/>
             <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style x:Key="MissileCardStateTextStyle" TargetType="TextBlock">   <!-- 초기유도 중기유도 ... -->
             <Setter Property="Foreground" Value="{StaticResource MissileCardStateTextBrush}"/>
             <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style x:Key="MissileContentTextStyle" TargetType="TextBlock">   <!-- 위도 경도 cpa ... -->
             <Setter Property="Foreground" Value="{StaticResource MissileContentTextBrush}"/>
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
         <Style x:Key="MissileTargetIDTextStyle" TargetType="TextBlock"><!-- 목표 타겟 ID: ...-->
             <Setter Property="Foreground" Value="{StaticResource MissileContentTextBrush}"/>
-            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
         
         <!-- 타겟 카드 -->
         <Style x:Key="TargetCardIdTextStyle" TargetType="TextBlock"> <!-- TGT-006 -->
             <Setter Property="Foreground" Value="{StaticResource TargetCardIDTextBrush}"/>
-            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontFamily" Value="{StaticResource JetbrainBold}"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style x:Key="TargetCardFlightIdTextStyle" TargetType="TextBlock"> <!-- UNKNOWN -->
             <Setter Property="Foreground" Value="{StaticResource TargetCardIDTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
 
         <Style x:Key="TargetContentTextStyle" TargetType="TextBlock"><!-- 위도 경도 고도 -->
             <Setter Property="Foreground" Value="{StaticResource TargetContentTextBrush}"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
+            <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Medium"/>
         </Style>
 
         <Style x:Key="TargetTimeStampTextStyle" TargetType="TextBlock"><!-- 탐지시각 -->
             <Setter Property="Foreground" Value="{StaticResource TargetTimeStampTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
@@ -150,21 +176,24 @@
         <Style x:Key="MarkerTextStyle" TargetType="TextBlock"> <!-- 마커 텍스트 -->
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontFamily" Value="{StaticResource JetbrainBold}"/>
         </Style>
         <Style x:Key="LaunchTextStyle" TargetType="TextBlock"> <!-- 발사 텍스트 -->
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="Foreground" Value="{StaticResource LaunchSequenceTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
             <Setter Property="FontWeight" Value="Bold"/>
             
         </Style>
         <Style x:Key="LogPanelHeaderTextStyle" TargetType="TextBlock"> <!-- 로그 헤더 -->
             <Setter Property="Foreground" Value="{StaticResource LogHeaderTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
         <Style x:Key="LogTextStyle" TargetType="TextBlock"> <!-- 로그 바디 -->
             <Setter Property="Foreground" Value="{StaticResource LogTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource NanumRegular}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
