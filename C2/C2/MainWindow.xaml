@@ -8,15 +8,13 @@
         xmlns:vm="clr-namespace:C2.ViewModels"
         mc:Ignorable="d"
         Title="C2 Command Center"
+        PreviewKeyDown="Window_PreviewKeyDown"
         Height="1080" Width="1920">
 
     <!-- ===================================================== -->
     <!-- 📌 HUD 스타일 리소스 (전체 UI에 적용) -->
     <!-- ===================================================== -->
     <Window.Resources>
-
-
-
 
         <!-- 변환기 / 기타 리소스 -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
@@ -29,6 +27,7 @@
         <Geometry x:Key="IconCollapse">M 0 0 L 10 10 L 20 0 Z</Geometry>
 
     </Window.Resources>
+
 
     <!-- ===================================================== -->
     <!-- 📌 MAIN LAYOUT -->

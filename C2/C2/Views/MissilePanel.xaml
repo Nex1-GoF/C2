@@ -64,7 +64,7 @@
                             <!-- 왼쪽 상태 블록 -->
                             <Border 
                                 Background="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                                CornerRadius="20"
+                                CornerRadius="8"
                                 Padding="10,4"
                                 Grid.Column="0">
                                 <TextBlock 

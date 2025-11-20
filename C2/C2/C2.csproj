@@ -9,7 +9,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Fonts\JetBrainsMono-Bold.ttf" />
+    <None Remove="Resources\Fonts\JetBrainsMono-Medium.ttf" />
+    <None Remove="Resources\Fonts\NanumSquareNeo-aLt.ttf" />
+    <None Remove="Resources\Fonts\NanumSquareNeo-bRg.ttf" />
+    <None Remove="Resources\Fonts\NanumSquareNeo-cBd.ttf" />
+    <None Remove="Resources\Fonts\NanumSquareNeo-dEb.ttf" />
+    <None Remove="Resources\Fonts\NanumSquareNeo-eHv.ttf" />
     <None Remove="Resources\Fonts\Octapost.ttf" />
+    <None Remove="Resources\manual.pdf" />
     <None Remove="Resources\msl_marker.png" />
     <None Remove="Resources\target.png" />
     <None Remove="Resources\target2.png" />
@@ -20,6 +28,7 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="GMap.NET.Core" Version="2.1.7" />
     <PackageReference Include="GMap.NET.WinPresentation" Version="2.1.7" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,7 +36,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Fonts\JetBrainsMono-Bold.ttf" />
+    <Resource Include="Resources\Fonts\JetBrainsMono-Medium.ttf" />
+    <Resource Include="Resources\Fonts\NanumSquareNeo-aLt.ttf" />
+    <Resource Include="Resources\Fonts\NanumSquareNeo-bRg.ttf" />
+    <Resource Include="Resources\Fonts\NanumSquareNeo-cBd.ttf" />
+    <Resource Include="Resources\Fonts\NanumSquareNeo-dEb.ttf" />
+    <Resource Include="Resources\Fonts\NanumSquareNeo-eHv.ttf" />
     <Resource Include="Resources\Fonts\Octapost.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\manual.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\msl_marker.png" />
