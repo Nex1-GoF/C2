@@ -4,6 +4,297 @@
              xmlns:local="clr-namespace:C2"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
+        
+        
+        <!-- Color Pelatte -->
+        <Color x:Key="DarkPanelColor">#1f1f1f</Color>
+
+        <Color x:Key="KeyColor">#677e5b</Color>
+        <Color x:Key="KeyColorDark">#3c4336</Color>
+        <Color x:Key="KeyColorRev">#8FAF7C</Color>
+
+        <Color x:Key="SubColor">#bcc0c4</Color>
+        <Color x:Key="SubColor2">#ffffff</Color>
+        <Color x:Key="SubColor3">#bababa</Color>
+        
+        <Color x:Key="KeyColorDim">#1f1f1f</Color>
+        <Color x:Key="KeyColorDim2">#201f1f</Color>
+
+        <Color x:Key="LaunchReadyColor">#0097b2</Color>
+        <Color x:Key="LaunchingColor">#007a3f</Color>
+        <Color x:Key="TerminalGuidanceColor">#cc0000</Color>
+        <Color x:Key="MidGuidanceColor">#cc4e00</Color>
+        <Color x:Key="InitialGuidanceColor">#cca300</Color>
+        <Color x:Key="AbortedColor">#bcc0c4</Color>
+        
+
+
+        <!-- fonts-->
+        <FontFamily x:Key="Octapost">
+            pack://application:,,,/C2;component/Resources/Fonts/#Octapost NBP
+        </FontFamily>
+
+
+        <!-- Color Brushes -->
+        <SolidColorBrush x:Key="MissilePanelBrush" Color="{StaticResource KeyColorDim}"/><!-- 미사일 패널 컬러-->
+        <SolidColorBrush x:Key="TargetPanelBrush" Color="{StaticResource KeyColorDim}"/><!-- 표적 패널 컬러-->
+        <SolidColorBrush x:Key="LogPanelBrush" Color="{StaticResource KeyColorDim}"/><!-- 표적 패널 컬러-->
+        <SolidColorBrush x:Key="TargetPenalHeaderTextBrush" Color="{StaticResource KeyColor}"/><!-- 표적 패널 헤더 컬러-->
+        <!-- 미사일 카드 Color Brushes -->
+        <SolidColorBrush x:Key="MissileCardStrokeBrush" Color="{StaticResource KeyColor}"/>  <!-- 카드 가장자리 -->
+        <SolidColorBrush x:Key="MissileCardBrush" Color="{StaticResource KeyColorDim}"/>  <!-- 카드 -->
+        <SolidColorBrush x:Key="MissileCardFocusedHeaderBrush" Color="{StaticResource KeyColor}"/>  <!-- 포커스 카드 헤더 -->
+        <SolidColorBrush x:Key="MissileCardContentBlockBrush" Color="{StaticResource KeyColorDark}"/> <!-- 위도, 경도, 고도, CPA 감싸는 블럭 -->
+        <SolidColorBrush x:Key="MissilePenalHeaderTextBrush" Color="{StaticResource KeyColor}"/><!-- 미사일 패널 헤더 컬러-->
+        <SolidColorBrush x:Key="MissileCardIDTextBrush" Color="{StaticResource SubColor}"/><!-- 미사일 카드 ID 컬러-->
+        <SolidColorBrush x:Key="MissileContentTextBrush" Color="{StaticResource SubColor2}"/><!--위도 경도 cpa ... 컬러-->
+        <SolidColorBrush x:Key="MissileTargetIDTextBrush" Color="{StaticResource SubColor2}"/><!--목표 타겟 ID: ...컬러-->
+        <!-- 미사일 카드 State별 Color Brushes -->
+        <SolidColorBrush x:Key="LaunchReadyBrush" Color="{StaticResource LaunchReadyColor}"/>
+        <SolidColorBrush x:Key="LaunchingBrush" Color="{StaticResource LaunchingColor}"/>
+        <SolidColorBrush x:Key="LaunchingDotBrush" Color="{StaticResource KeyColorRev}"/>
+        <SolidColorBrush x:Key="TerminalGuidanceBrush" Color="{StaticResource TerminalGuidanceColor}"/>
+        <SolidColorBrush x:Key="MidGuidanceBrush" Color="{StaticResource MidGuidanceColor}"/>
+        <SolidColorBrush x:Key="InitialGuidanceBrush" Color="{StaticResource InitialGuidanceColor}"/>
+        <SolidColorBrush x:Key="AbortedBrush" Color="{StaticResource AbortedColor}"/>
+        <SolidColorBrush x:Key="MissileCardStateTextBrush" Color="{StaticResource SubColor2}"/>
+        <!-- 미사일 패널 Color Brushes -->
+        <SolidColorBrush x:Key="PenalDownButtonBrush" Color="{StaticResource KeyColor}"/><!-- 패널 내리기 버튼 컬러-->
+        <SolidColorBrush x:Key="PenalDownButtonBackgroundBrush" Color="{StaticResource KeyColorDim}"/><!-- 패널 내리기 버튼 컬러-->
+        
+        <!-- 타겟 카드 Color Brushes -->
+        <SolidColorBrush x:Key="TargetCardIDTextBrush" Color="{StaticResource SubColor}"/><!-- 미사일 카드 ID 컬러-->
+        <SolidColorBrush x:Key="TargetCardStrokeBrush" Color="{StaticResource KeyColor}"/>  <!-- 카드 가장자리 -->
+        <SolidColorBrush x:Key="TargetCardContentBlockBrush" Color="{StaticResource KeyColorDark}"/> <!-- 위도, 경도, 고도 감싸는 블럭 -->
+        <SolidColorBrush x:Key="TargetCardBrush" Color="{StaticResource KeyColorDim}"/>  <!-- 카드 -->
+        <SolidColorBrush x:Key="TargetCardFocusedHeaderBrush" Color="{StaticResource KeyColor}"/>  <!-- 포커스 카드 헤더 -->
+        <SolidColorBrush x:Key="TargetContentTextBrush" Color="{StaticResource SubColor2}"/><!--위도 경도 고도 방향.. 컬러-->
+        <SolidColorBrush x:Key="TargetTimeStampTextBrush" Color="{StaticResource SubColor3}"/><!--  탐지시각 표시 -->
+ 
+        
+        <!-- 메인 -->
+        <SolidColorBrush x:Key="LogHeadPenalBrush" Color="{StaticResource KeyColorDim2}"/><!-- 시스템 로그 헤더 패널 버튼 컬러-->
+        <SolidColorBrush x:Key="LaunchSequenceBrush" Color="{StaticResource LaunchReadyColor}"/><!-- 발사 절차 표시 -->
+        <SolidColorBrush x:Key="LaunchSequenceBrush2" Color="{StaticResource KeyColorDim2}"/><!--  발사 절차 표시 -->
+        <SolidColorBrush x:Key="LaunchSequenceTextBrush" Color="{StaticResource SubColor3}"/><!--  발사 절차 표시 -->
+
+        <SolidColorBrush x:Key="LogHeaderTextBrush" Color="{StaticResource SubColor2}"/><!--  로그 표시 -->
+        <SolidColorBrush x:Key="LogTextBrush" Color="{StaticResource SubColor3}"/><!--  로그 표시 -->
+
+
+
+        <!-- Text Styles -->
+        <Style x:Key="MissilePanelHeaderTextStyle" TargetType="TextBlock">   <!-- MISSILES -->
+            <Setter Property="Foreground" Value="{StaticResource MissilePenalHeaderTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="TargetPanelHeaderTextStyle" TargetType="TextBlock">   <!-- TARGETS -->
+            <Setter Property="Foreground" Value="{StaticResource TargetPenalHeaderTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        
+        <!-- 미사일 카드 -->
+        <Style x:Key="MissileCardIdTextStyle" TargetType="TextBlock">   <!-- MSL-001-->
+            <Setter Property="Foreground" Value="{StaticResource MissileCardIDTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="MissileCardStateTextStyle" TargetType="TextBlock">   <!-- 초기유도 중기유도 ... -->
+            <Setter Property="Foreground" Value="{StaticResource MissileCardStateTextBrush}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="MissileContentTextStyle" TargetType="TextBlock">   <!-- 위도 경도 cpa ... -->
+            <Setter Property="Foreground" Value="{StaticResource MissileContentTextBrush}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+        <Style x:Key="MissileTargetIDTextStyle" TargetType="TextBlock"><!-- 목표 타겟 ID: ...-->
+            <Setter Property="Foreground" Value="{StaticResource MissileContentTextBrush}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+        
+        <!-- 타겟 카드 -->
+        <Style x:Key="TargetCardIdTextStyle" TargetType="TextBlock"> <!-- TGT-006 -->
+            <Setter Property="Foreground" Value="{StaticResource TargetCardIDTextBrush}"/>
+            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="TargetCardFlightIdTextStyle" TargetType="TextBlock"> <!-- UNKNOWN -->
+            <Setter Property="Foreground" Value="{StaticResource TargetCardIDTextBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+
+        <Style x:Key="TargetContentTextStyle" TargetType="TextBlock"><!-- 위도 경도 고도 -->
+            <Setter Property="Foreground" Value="{StaticResource TargetContentTextBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+
+        <Style x:Key="TargetTimeStampTextStyle" TargetType="TextBlock"><!-- 탐지시각 -->
+            <Setter Property="Foreground" Value="{StaticResource TargetTimeStampTextBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+ 
+        
+        <!-- 메인, 로그-->
+        <Style x:Key="MarkerTextStyle" TargetType="TextBlock"> <!-- 마커 텍스트 -->
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontFamily" Value="{StaticResource Octapost}"/>
+        </Style>
+        <Style x:Key="LaunchTextStyle" TargetType="TextBlock"> <!-- 발사 텍스트 -->
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="{StaticResource LaunchSequenceTextBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            
+        </Style>
+        <Style x:Key="LogPanelHeaderTextStyle" TargetType="TextBlock"> <!-- 로그 헤더 -->
+            <Setter Property="Foreground" Value="{StaticResource LogHeaderTextBrush}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style x:Key="LogTextStyle" TargetType="TextBlock"> <!-- 로그 바디 -->
+            <Setter Property="Foreground" Value="{StaticResource LogTextBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        
+        
+
+
+        <!-- buttons -->
+        <!-- ============================== -->
+        <!-- 🔶 Abort 버튼-->
+        <!-- ============================== -->
+
+
+        <!-- 버튼 프레스 컬러-->
+        <Style x:Key="AbortButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="#ffffff"/>
+            <Setter Property="Background" Value="#cc0000"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width" Value="90"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="4"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#B62626"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#7D1B1B"/><!-- 비상 폭파 -->
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.35"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 발사 버튼 스타일 -->
+        <Style x:Key="LaunchButtonStyle" TargetType="Button">
+            <!-- 기본 상태 -->
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="BorderThickness" Value="3"/>
+            <Setter Property="Width" Value="126"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="40"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="4"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter 
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        TextElement.FontSize="{TemplateBinding FontSize}"
+                        TextElement.FontWeight="{TemplateBinding FontWeight}"
+                        TextElement.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <!-- 기본 색 -->
+            <Setter Property="Background" Value="#677E5B"/>
+            <Setter Property="BorderBrush" Value="#9DB991"/>
+
+            <!-- Hover -->
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#506849"/>
+                    <Setter Property="BorderBrush" Value="#C2E6B8"/>
+                </Trigger>
+
+                <!-- Pressed -->
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#394A32"/>
+                </Trigger>
+
+                <!-- Disabled -->
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         <!-- 색상 팔레트 -->
 
         <Color x:Key="HudBgDark">#070D16</Color>
@@ -107,7 +398,7 @@
             </Style>
 
             <!-- 로그 메시지 텍스트 -->
-            <Style x:Key="LogTextStyle" TargetType="TextBlock">
+            <Style x:Key="LogTextStyle22" TargetType="TextBlock">
                 <Setter Property="Foreground" Value="{StaticResource HudWarningBrush}"/>
                 <Setter Property="FontSize" Value="13"/>
             </Style>
@@ -157,6 +448,7 @@
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Margin" Value="0,10,0,0"/>
             </Style>
+
 
     </Application.Resources>
 </Application>

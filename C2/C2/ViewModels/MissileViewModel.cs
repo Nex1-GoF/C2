@@ -13,6 +13,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace C2.ViewModels
 {
@@ -140,24 +141,5 @@ namespace C2.ViewModels
             // Todo: 미사일 비상폭파 기능 제한 걸기
         }
     }
-    public class SelectedMissileBorderThicknessConverter : IMultiValueConverter
-    {
-        private static readonly Thickness SelectedThickness = new Thickness(3);
-        private static readonly Thickness NormalThickness = new Thickness(1.4);
 
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (values.Length < 2 ||
-                values[0] is not Missile current ||
-                values[1] is not IReadOnlyList<Missile> selectedList)
-            {
-                return NormalThickness;
-            }
-
-            return selectedList.Contains(current) ? SelectedThickness : NormalThickness;
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-            => throw new NotImplementedException();
-    }
 }

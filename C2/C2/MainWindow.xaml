@@ -15,63 +15,13 @@
     <!-- ===================================================== -->
     <Window.Resources>
 
-        <!-- 텍스트 스타일 -->
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource HudTextBrush}"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
 
-        <!-- 버튼 스타일 -->
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="#0F2F3A"/>
-            <Setter Property="Foreground" Value="{StaticResource HudTextBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource HudAccentDimBrush}"/>
-            <Setter Property="BorderThickness" Value="1.2"/>
-            <Setter Property="Padding" Value="6,3"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border CornerRadius="4"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#174556"/>
-                    <Setter Property="BorderBrush" Value="{StaticResource HudAccentBrush}"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#0B2A33"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.4"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
 
-        <!-- Border 기본 스타일 -->
-        <Style TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource HudBgPanelBrush}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource HudAccentDimBrush}"/>
-            <Setter Property="BorderThickness" Value="1.4"/>
-            <Setter Property="CornerRadius" Value="6"/>
-        </Style>
 
         <!-- 변환기 / 기타 리소스 -->
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <local:BoolToTextConverter x:Key="BoolToTextConverter"/>
         <views:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
-        <local:CollapseIconConverter x:Key="CollapseIconConverter"/>
         <local:StepCompletedConverter x:Key="StepCompletedConverter"/>
         <local:StepCompletedByIndexConverter x:Key="StepCompletedByIndexConverter"/>
 
@@ -94,92 +44,30 @@
         <!-- ===================================================== -->
         <Grid x:Name="LeftGrid" Grid.Column="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="7.5*"/>
-                <RowDefinition Height="2.5*"/>
+                <RowDefinition Height="6.5*"/>
+                <RowDefinition Height="3.5*"/>
             </Grid.RowDefinitions>
 
             <!-- 지도 패널 -->
             <views:MapPanel x:Name="MapPanelRef"
-                            Grid.Row="0"
-                            Background="{StaticResource HudBgPanelBrush}"/>
+                            Grid.Row="0"/>
 
-            <!-- 지도 왼쪽 하단: 접기 버튼 -->
-            <Grid>
-                <StackPanel Orientation="Horizontal"
-                            Grid.Row="0"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Bottom"
-                            Margin="10">
-
-                    <Border BorderThickness="0"
-                            Background="{StaticResource HudBgDarkBrush}"
-                            Padding="4"
-                            CornerRadius="4">
-
-                        <Button Width="30"
-                                Height="30"
-                                BorderThickness="0"
-                                Background="#14303D"
-                                Click="GlobalCollapseButton_Click">
-                            <Path Stretch="Uniform"
-                                  Fill="{StaticResource HudTextBrush}"
-                                  Data="{Binding ElementName=MissilePanelRef,
-                                                 Path=DataContext.IsCollapsed,
-                                                 Converter={StaticResource CollapseIconConverter}}"/>
-                        </Button>
-                    </Border>
-
-                    <TextBlock Text="MISSILES" Margin="8,0,0,0"
-                               Style="{StaticResource HudHeaderTextStyle}"
-                               VerticalAlignment="Center"/>
-                </StackPanel>
-            </Grid>
-
+            
             <!-- 지도 오른쪽 하단: 발사 UI -->
             <StackPanel Orientation="Vertical"
                         Grid.Row="0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
+                        
                         Margin="20">
 
-                <Grid Margin="0,0,0,6"
-                      Visibility="{Binding IsLaunching, Converter={StaticResource BoolToVisibilityConverter}}"
-                      HorizontalAlignment="Stretch">
-
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <!-- 현재 단계 이름 -->
-                        <ColumnDefinition Width="Auto"/>
-                        <!-- 점등 램프 -->
-                    </Grid.ColumnDefinitions>
-
-                    <!-- 현재 단계 이름 -->
-                    <TextBlock Grid.Column="0"
-                       Text="{Binding CurrentStep}"
-                       FontSize="15"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Stretch"
-                       TextAlignment="Left"
-                       Margin="3,0,8,0"/>
-
-                    <!-- 점등 -->
-                    <Ellipse Grid.Column="1" Margin="0,0,3,0"
-                         Width="12" Height="12"
-                         VerticalAlignment="Center">
-
-                        <Ellipse.Style>
-                            <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="#4B7075"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CurrentStepIsOn}" Value="True">
-                                        <Setter Property="Fill" Value="{StaticResource HudAccentBrush}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Ellipse.Style>
-
-                    </Ellipse>
-                </Grid>
+                <TextBlock Grid.Column="0"
+                   Text="{Binding CurrentStep}"
+                   Style="{StaticResource LaunchTextStyle}"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Left"
+                   TextAlignment="Left"
+                   Margin="3,0,8,0"/>
 
                 <ItemsControl ItemsSource="{Binding Steps}"
                       AlternationCount="50"
@@ -196,7 +84,7 @@
                             <Ellipse Width="12" Height="12" Margin="3">
                                 <Ellipse.Style>
                                     <Style TargetType="Ellipse">
-                                        <Setter Property="Fill" Value="#4B7075"/>
+                                        <Setter Property="Fill" Value="{StaticResource LaunchSequenceBrush2}"/>
 
                                         <Style.Triggers>
                                             <DataTrigger Value="True">
@@ -214,7 +102,7 @@
                                                     </MultiBinding>
                                                 </DataTrigger.Binding>
 
-                                                <Setter Property="Fill" Value="{StaticResource HudAccentBrush}"/>
+                                                <Setter Property="Fill" Value="{StaticResource LaunchingDotBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -224,20 +112,17 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <Button Width="126"
-                        Height="50"
+                <Button 
                         Content="{Binding IsLaunching, Converter={StaticResource BoolToTextConverter}, ConverterParameter='발사|발사취소'}"
                         Command="{Binding LaunchOrAbortCommand}"
-                        Foreground="White"
-                        FontSize="20"
-                        FontWeight="Bold"
+                        Style="{StaticResource LaunchButtonStyle}"
                         IsEnabled="{Binding CanLaunchOrAbort}"/>
             </StackPanel>
 
             <!-- MISSILE PANEL -->
-            <views:MissilePanel Grid.Row="1"
+            <views:MissilePanel Grid.Row="1" MinHeight="600"
                                 x:Name="MissilePanelRef"
-                                Background="{StaticResource HudBgDarkBrush}"/>
+                                Background="{StaticResource MissilePanelBrush}"/>
         </Grid>
 
         <!-- ===================================================== -->
@@ -250,10 +135,10 @@
             </Grid.RowDefinitions>
 
             <views:TargetPanel Grid.Row="0"
-                               Background="{StaticResource HudBgDarkBrush}"/>
+                               Background="{StaticResource TargetPanelBrush}"/>
 
             <views:LogPanel Grid.Row="1"
-                            Background="{StaticResource HudBgDarkBrush}"/>
+                            Background="{StaticResource LogPanelBrush}"/>
         </Grid>
 
     </Grid>

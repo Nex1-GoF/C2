@@ -76,40 +76,39 @@ namespace C2
             var mapRow = LeftGrid.RowDefinitions[0];
             var missileRow = LeftGrid.RowDefinitions[1];
 
-            // 🔹 고정 비율 정의
-            const double MapDefaultRatio = 0.75;
-            const double MapExpandRatio = 0.9;
+            // 🎯 목표 비율 (명확한 두 상태)
+            const double MissileExpandedRatio = 0.35; // 펼쳐진 상태에서 35%
+            const double MissileCollapsedRatio = 0.20; // 접힌 상태에서 20%
+
+            double toMissileRatio = isCollapsed ? MissileCollapsedRatio : MissileExpandedRatio;
+            double toMapRatio = 1 - toMissileRatio;
 
             double currentMapStar = mapRow.Height.Value;
             double currentMissileStar = missileRow.Height.Value;
 
-            double toMapRatio = isCollapsed ? MapExpandRatio : MapDefaultRatio;
-            double toMissileRatio = 1 - toMapRatio;
-
-            // 🔹 Star 단위 그대로 보간하도록 설정
             var animMap = new GridLengthAnimation
             {
                 From = new GridLength(currentMapStar, GridUnitType.Star),
                 To = new GridLength(toMapRatio, GridUnitType.Star),
-                Duration = TimeSpan.FromMilliseconds(300)
+                Duration = TimeSpan.FromMilliseconds(280)
             };
 
             var animMissile = new GridLengthAnimation
             {
                 From = new GridLength(currentMissileStar, GridUnitType.Star),
                 To = new GridLength(toMissileRatio, GridUnitType.Star),
-                Duration = TimeSpan.FromMilliseconds(300)
+                Duration = TimeSpan.FromMilliseconds(280)
             };
 
             mapRow.BeginAnimation(RowDefinition.HeightProperty, animMap);
             missileRow.BeginAnimation(RowDefinition.HeightProperty, animMissile);
-
         }
 
-        private void TargetPanel_Loaded(object sender, RoutedEventArgs e)
-        {
 
-        }
+        //private void TargetPanel_Loaded(object sender, RoutedEventArgs e)
+        //{
+
+        //}
     }
 
     public class GridLengthAnimation : AnimationTimeline
@@ -162,20 +161,6 @@ namespace C2
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
-    }
-
-    public class CollapseIconConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            bool collapsed = value is bool b && b;
-            return Application.Current.MainWindow.FindResource(
-    collapsed ? "IconExpand" : "IconCollapse"
-);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => Binding.DoNothing;
     }
 
     public class StepCompletedConverter : IMultiValueConverter

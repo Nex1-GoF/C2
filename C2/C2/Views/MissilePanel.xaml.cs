@@ -43,25 +43,30 @@ namespace C2.Views
             }
         }
 
-        // 🔹 내부 버튼 (기존과 동일)
-        //public void CollapseButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    ToggleCollapse();
-        //}
+        private void LocalCollapseButton_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleCollapse();
+        }
 
-        // 🔹 외부(MainWindow)에서도 동일 동작하도록 공개 메서드로 분리
         public void ToggleCollapse()
         {
-            if (DataContext is MissileViewModel vm)
-            {
-                vm.IsCollapsed = !vm.IsCollapsed;
-                CollapseToggled?.Invoke(vm.IsCollapsed);
+            if (DataContext is not MissileViewModel vm)
+                return;
 
-                // ✅ 강제로 ItemsControl 갱신
-                MissileItemsControl.ItemTemplateSelector = null;
-                MissileItemsControl.ItemTemplateSelector =
-                    (MissileTemplateSelector)FindResource("MissileTemplateSelector");
-            }
+            vm.IsCollapsed = !vm.IsCollapsed;
+
+            // 🔥 ItemsControl 강제 Refresh (완전 안전한 방식)
+            CollapseToggled?.Invoke(vm.IsCollapsed);
+            RefreshItemsControl();
+        }
+
+        private void RefreshItemsControl()
+        {
+            var items = MissileItemsControl.ItemsSource;
+
+            // ⭐ ItemsSource 잠시 끊었다가 다시 연결하면 TemplateSelector 재실행됨
+            MissileItemsControl.ItemsSource = null;
+            MissileItemsControl.ItemsSource = items;
         }
     }
 
@@ -73,13 +78,27 @@ namespace C2.Views
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            var window = Application.Current.MainWindow as C2.MainWindow;
-            var missilePanel = window?.MissilePanelRef;
-            if (missilePanel?.DataContext is MissileViewModel vm)
+            if (container is FrameworkElement fe)
             {
-                return vm.IsCollapsed ? CompactTemplate : ExpandedTemplate;
+                // 🔥 UserControl(MissilePanel) 찾아 올라감
+                var panel = FindParent<MissilePanel>(fe);
+                if (panel?.DataContext is MissileViewModel vm)
+                {
+                    return vm.IsCollapsed ? CompactTemplate : ExpandedTemplate;
+                }
             }
+
             return ExpandedTemplate;
+        }
+
+        private T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parent = VisualTreeHelper.GetParent(child);
+
+            while (parent != null && parent is not T)
+                parent = VisualTreeHelper.GetParent(parent);
+
+            return parent as T;
         }
     }
 
@@ -100,56 +119,20 @@ namespace C2.Views
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => Binding.DoNothing;
     }
-
-    // 상태 → 텍스트
-    public class StateToTextConverter : IValueConverter
+    public class CollapseIconConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is MissileState state)
-            {
-                return state switch
-                {
-                    MissileState.LaunchReady => "대기",
-                    MissileState.Launching => "발사 중",
-                    MissileState.InitialGuidance => "초기유도",
-                    MissileState.MidGuidance => "중기유도",
-                    MissileState.TerminalGuidance => "종말유도",
-                    MissileState.Abort => "중단",
-                    _ => "대기"
-                };
-            }
-            return "";
+            bool collapsed = value is bool b && b;
+            return Application.Current.MainWindow.FindResource(
+                collapsed ? "IconExpand" : "IconCollapse"
+            );
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => Binding.DoNothing;
     }
 
-    // 상태 → 색상
-    public class StateToColorConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is MissileState state)
-            {
-                return state switch
-                {
-                    MissileState.LaunchReady => Brushes.SkyBlue,
-                    MissileState.Launching => new SolidColorBrush(Color.FromRgb(0x66, 0xCC, 0xFF)),
-                    MissileState.InitialGuidance => Brushes.Yellow,
-                    MissileState.MidGuidance => Brushes.Orange,
-                    MissileState.TerminalGuidance => Brushes.Red,
-                    MissileState.Abort => Brushes.Gray,
-                    _ => Brushes.SkyBlue
-                };
-            }
-            return Brushes.SkyBlue;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => Binding.DoNothing;
-    }
 
     public class StateToEnabledConverter : IValueConverter
     {
@@ -163,5 +146,117 @@ namespace C2.Views
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
+    }
+
+    public class FocusedToBackgroundConverter : IMultiValueConverter
+    {
+        private static readonly Brush FocusedBrush =
+            (Brush)Application.Current.FindResource("MissileCardFocusedHeaderBrush");
+
+        private static readonly Brush NormalBrush =
+            (Brush)Application.Current.FindResource("MissileCardBrush");
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            // 같은 로직 유지
+            if (values.Length < 2 ||
+                values[0] is not Missile current ||
+                values[1] is not IReadOnlyList<Missile> selectedList)
+            {
+                return NormalBrush;
+            }
+
+            // 선택 또는 포커스된 경우 → 강조색
+            return selectedList.Contains(current) ? FocusedBrush : NormalBrush;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+    public class CoordinateStateMultiConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            // values[0] = 숫자값
+            // values[1] = MissileState
+
+            if (values.Length < 2)
+                return "-";
+
+            if (values[1] is not MissileState state)
+                return "-";
+
+            // 상태가 대기/중단이면 숨김
+            if (state == MissileState.LaunchReady || state == MissileState.Abort)
+                return "-";
+
+            // 값이 null이면 숨김
+            if (values[0] is null)
+                return "-";
+
+            // 숫자면 소수점 4자리 적용
+            if (values[0] is double d)
+                return d.ToString("F4");
+
+            if (values[0] is float f)
+                return f.ToString("F4");
+
+            if (values[0] is int i)
+                return i.ToString();  // 고도 같은 정수값은 그대로
+
+            return values[0].ToString();
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+
+    public class StateToColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not MissileState state)
+                return Application.Current.FindResource("LaunchReadyBrush");
+
+            return state switch
+            {
+                MissileState.LaunchReady => Application.Current.FindResource("LaunchReadyBrush"),
+                MissileState.Launching => Application.Current.FindResource("LaunchingBrush"),
+                MissileState.InitialGuidance => Application.Current.FindResource("InitialGuidanceBrush"),
+                MissileState.MidGuidance => Application.Current.FindResource("MidGuidanceBrush"),
+                MissileState.TerminalGuidance => Application.Current.FindResource("TerminalGuidanceBrush"),
+                MissileState.Abort => Application.Current.FindResource("AbortedBrush"),
+
+                _ => Application.Current.FindResource("LaunchReadyBrush")
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => Binding.DoNothing;
+    }
+
+
+    public class StateToTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is not MissileState state)
+                return "대기";
+
+            return state switch
+            {
+                MissileState.LaunchReady => "대기",
+                MissileState.Launching => "발사 중",
+                MissileState.InitialGuidance => "초기유도",
+                MissileState.MidGuidance => "중기유도",
+                MissileState.TerminalGuidance => "종말유도",
+                MissileState.Abort => "중단됨",
+
+                _ => "대기"
+            };
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => Binding.DoNothing;
     }
 }

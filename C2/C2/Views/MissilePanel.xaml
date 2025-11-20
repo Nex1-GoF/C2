@@ -9,167 +9,337 @@
              mc:Ignorable="d"
              d:DesignHeight="300"
              d:DesignWidth="1600"
-             Background="#0A1922">
+             Background="{StaticResource MissilePanelBrush}">
 
     <!-- ViewModel 연결 -->
     <UserControl.DataContext>
         <vm:MissileViewModel/>
     </UserControl.DataContext>
 
-    <!-- ============================== -->
-    <!-- 🔶 HUD 색상 팔레트 -->
-    <!-- ============================== -->
     <UserControl.Resources>
-
-        <!-- 변환기 -->
-        <local:StateToTextConverter x:Key="StateToTextConverter"/>
+        <local:FocusedToBackgroundConverter x:Key="FocusedToBackgroundConverter"/>
         <local:StateToColorConverter x:Key="StateToColorConverter"/>
-        <local:BooleanToTextConverter x:Key="BooleanToTextConverter"/>
+        <local:StateToTextConverter x:Key="StateToTextConverter"/>
         <local:StateToEnabledConverter x:Key="StateToEnabledConverter"/>
-        <vm:SelectedMissileBorderThicknessConverter x:Key="SelectedMissileBorderThicknessConverter"/>
-
-
-        <Color x:Key="HudBgPanel">#112431</Color>
-        <Color x:Key="HudAccent">#45E8E1</Color>
-        <Color x:Key="HudAccentDim">#2B7480</Color>
-        <Color x:Key="HudText">#AEE8F3</Color>
-
-        <SolidColorBrush x:Key="HudBorderBrush" Color="{StaticResource HudAccentDim}"/>
-        <SolidColorBrush x:Key="HudPanelBrush" Color="{StaticResource HudBgPanel}"/>
-        <SolidColorBrush x:Key="HudTextBrush" Color="{StaticResource HudText}"/>
+        <local:CoordinateStateMultiConverter x:Key="CoordinateStateMultiConverter"/>
+        <local:CollapseIconConverter x:Key="CollapseIconConverter"/>
 
         <!-- ============================== -->
-        <!-- 🔶 Abort 버튼 (HUD Style) -->
-        <!-- ============================== -->
-        <Style x:Key="AbortButtonStyle" TargetType="Button">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="#8A1E1E"/>
-            <Setter Property="BorderBrush" Value="#B83434"/>
-            <Setter Property="BorderThickness" Value="1.5"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Padding" Value="4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border CornerRadius="4"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                              VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#B62626"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#7D1B1B"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.35"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- ============================== -->
-        <!-- 🔶 Expanded 카드 (HUD 스타일) -->
+        <!-- 🔶 Expanded 카드 -->
         <!-- ============================== -->
         <DataTemplate x:Key="ExpandedCardTemplate">
-            <Border Background="{StaticResource HudBgPanelBrush}"
-                    BorderBrush="{StaticResource HudAccentDimBrush}"
-                    CornerRadius="6"
+            <Border Background="{StaticResource MissilePanelBrush}"
                     Margin="6"
-                    Padding="12"
-                    MouseLeftButtonDown="MissileCard_MouseLeftButtonDown">
-
-                <Border.BorderThickness>
-                    <MultiBinding Converter="{StaticResource SelectedMissileBorderThicknessConverter}">
-                        <Binding />
-                        <!-- 현재 Missile -->
-                        <Binding Path="DataContext.SelectedMissiles"
-                     RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-                    </MultiBinding>
-                </Border.BorderThickness>
+                    MouseLeftButtonDown="MissileCard_MouseLeftButtonDown"
+                    Height="Auto">
 
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="4*"/>
-                        <ColumnDefinition Width="3*"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- 왼쪽: 기본 상태 정보 -->
-                    <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <Border Padding="6,6,6,3"
+                            BorderBrush="{StaticResource TargetCardStrokeBrush}"
+                            CornerRadius="6,6,0,0"
+                            BorderThickness="4,4,4,2"
+                            >
+                        <Border.Background>
+                            <MultiBinding Converter="{StaticResource FocusedToBackgroundConverter}">
+                                <!-- current missile -->
+                                <Binding Path="." />
 
-                        <!-- 상단: 상태 아이콘 -->
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="24" Height="24"
-                                     Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                                     Stroke="#0A1922" StrokeThickness="1"/>
-                            <TextBlock Text="M-SAM" Margin="6,0,0,0"
-                                   Style="{StaticResource HudHeaderTextStyle}"
-                                   Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"/>
-                        </StackPanel>
+                                <!-- selected missiles list -->
+                                <Binding Path="DataContext.SelectedMissiles"
+                                     RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                            </MultiBinding>
+                        </Border.Background>
+                        <Grid Margin="6" Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
-                           Style="{StaticResource HudStateTextStyle}"
-                           Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                           Margin="0,12,0,0"/>
+                            <!-- 왼쪽 상태 블록 -->
+                            <Border 
+                                Background="{Binding State, Converter={StaticResource StateToColorConverter}}"
+                                CornerRadius="20"
+                                Padding="10,4"
+                                Grid.Column="0">
+                                <TextBlock 
+                                    Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
+                                    Style="{StaticResource MissileCardStateTextStyle}"/>
+                            </Border>
 
-                        <TextBlock Text="{Binding TargetDisplayId, StringFormat='표적: {0}'}" Margin="0,12,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock"
-                                    BasedOn="{StaticResource HudWarningTextStyle}">
+                            <!-- 오른쪽 MSL 번호 -->
+                            <TextBlock 
+                                Text="{Binding IdNumber, StringFormat='MSL-{0:000}'}"
+                                Style="{StaticResource MissileCardIdTextStyle}"
+                                VerticalAlignment="Center"
+                                Grid.Column="2"/>
+                        </Grid>
 
-                                    <Setter Property="Visibility" Value="Visible"/>
+                    </Border>
+                    <Border 
+                        Background="{StaticResource MissilePanelBrush}"
+                        BorderBrush="{StaticResource TargetCardStrokeBrush}"
+                        CornerRadius="0,0,6,6"
+                        BorderThickness="4,2,4,4"
+                        Margin="0"
+                        Grid.Row="1">
+                        <StackPanel Orientation="Vertical" Margin="6" Grid.Row="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border VerticalAlignment="Center"
+                                    Background="{StaticResource MissileCardContentBlockBrush}"
+                                    CornerRadius="4"
+                                    Padding="2"
+                                    Margin="4,2"
+                                    Grid.Column="0">
+                                        <TextBlock 
+                                        Text="위도"
+                                        Style="{StaticResource MissileContentTextStyle}"/>
+                                    </Border>
+                                    <Border 
+                                        Background="{StaticResource MissileCardContentBlockBrush}"
+                                        CornerRadius="4"
+                                        Padding="2"
+                                        Margin="4,2"
+                                        Grid.Column="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                            Style="{StaticResource MissileContentTextStyle}"
+                                            Grid.Column="0">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource CoordinateStateMultiConverter}"
+                                                        >
+                                                        <Binding Path="Latitude"/>
+                                                        <Binding Path="State"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock
+                                            Text="(°)"
+                                            Style="{StaticResource MissileContentTextStyle}"
+                                            Grid.Column="1"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                                <Grid Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border 
+                                    Background="{StaticResource MissileCardContentBlockBrush}"
+                                    CornerRadius="4"
+                                    Padding="2"
+                                    Margin="4,2"
+                                    Grid.Column="0">
+                                        <TextBlock 
+                                        Text="경도"
+                                        Style="{StaticResource MissileContentTextStyle}"/>
+                                    </Border>
+                                    <Border 
+                                    Background="{StaticResource MissileCardContentBlockBrush}"
+                                    CornerRadius="4"
+                                    Padding="2"
+                                    Margin="4,2"
+                                    Grid.Column="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                            Style="{StaticResource MissileContentTextStyle}"
+                                            Grid.Column="0">
+                                                <TextBlock.Text>
+                                                    <MultiBinding Converter="{StaticResource CoordinateStateMultiConverter}"
+                                                                  >
+                                                        <Binding Path="Longitude"/>
+                                                        <Binding Path="State"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                            <TextBlock
+                                        Text="(°)"
+                                        Style="{StaticResource MissileContentTextStyle}"
+                                        Grid.Column="1"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border 
+                                Background="{StaticResource MissileCardContentBlockBrush}"
+                                CornerRadius="4"
+                                Padding="2"
+                                Margin="4,2"
+                                Grid.Column="0">
+                                    <TextBlock 
+                                    Text="고도"
+                                    Style="{StaticResource MissileContentTextStyle}"/>
+                                </Border>
+                                <Border 
+                                Background="{StaticResource MissileCardContentBlockBrush}"
+                                CornerRadius="4"
+                                Padding="2"
+                                Margin="4,2"
+                                Grid.Column="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                        Style="{StaticResource MissileContentTextStyle}"
+                                        Grid.Column="0">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource CoordinateStateMultiConverter}">
+                                                    <Binding Path="Altitude"/>
+                                                    <Binding Path="State"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <TextBlock
+                                        Text="(m)"
+                                        Style="{StaticResource MissileContentTextStyle}"
+                                        Grid.Column="1"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border 
+                                    Background="{StaticResource MissileCardContentBlockBrush}"
+                                    CornerRadius="4"
+                                    Padding="2"
+                                    Margin="4,2"
+                                    Grid.Column="0">
+                                    <TextBlock 
+                                        Text="속도"
+                                        Style="{StaticResource MissileContentTextStyle}"/>
+                                </Border>
+                                <Border 
+                                Background="{StaticResource MissileCardContentBlockBrush}"
+                                CornerRadius="4"
+                                Padding="2"
+                                Margin="4,2"
+                                Grid.Column="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                        Style="{StaticResource MissileContentTextStyle}"
+                                        Grid.Column="0">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource CoordinateStateMultiConverter}">
+                                                    <Binding Path="Speed"/>
+                                                    <Binding Path="State"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <TextBlock
+                                        Text="(m/s)"
+                                        Style="{StaticResource MissileContentTextStyle}"
+                                        Grid.Column="1">
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border 
+                                    Background="{StaticResource MissileCardContentBlockBrush}"
+                                    CornerRadius="4"
+                                    Padding="2"
+                                    Margin="4,2"
+                                    Grid.Column="0">
+                                    <TextBlock 
+                                        Text="거리"
+                                        Style="{StaticResource MissileContentTextStyle}"/>
+                                </Border>
+                                <Border 
+                                Background="{StaticResource MissileCardContentBlockBrush}"
+                                CornerRadius="4"
+                                Padding="2"
+                                Margin="4,2"
+                                Grid.Column="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                        Style="{StaticResource MissileContentTextStyle}"
+                                        Grid.Column="0">
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource CoordinateStateMultiConverter}">
+                                                    <Binding Path="DisplayRemainingDistance"/>
+                                                    <Binding Path="State"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                        <TextBlock
+                                        Text="(m)"
+                                        Style="{StaticResource MissileContentTextStyle}"
+                                        Grid.Column="1">
+                                        </TextBlock>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Margin="6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <!-- 왼쪽: 최대 확장 -->
+                                    <ColumnDefinition Width="Auto"/>
+                                    <!-- 오른쪽: 버튼 크기만큼 -->
+                                </Grid.ColumnDefinitions>
 
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding TargetDisplayId}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding TargetDisplayId}" Value="">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
+                                <!-- 왼쪽 텍스트 -->
+                                <TextBlock 
+                                Text="{Binding TargetDisplayId, StringFormat='목표 타겟 ID: {0}'}"
+                                Style="{StaticResource MissileTargetIDTextStyle}"
+                                VerticalAlignment="Bottom"
+                                Grid.Column="0"/>
 
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-
-                    </StackPanel>
-
-                    <!-- 오른쪽: 상세 정보 -->
-                    <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right">
-
-                        <TextBlock Text="{Binding IdNumber, StringFormat='MSL-{0:000}'}"
-                             Style="{StaticResource HudIdTextStyle}" Margin="0,0,0,16"/>
-
-                        <TextBlock Text="{Binding Latitude, StringFormat='위도: {0:F4}°'}"
-                                    Style="{StaticResource HudInfoTextStyle}" />
-
-                        <TextBlock Text="{Binding Longitude, StringFormat='경도: {0:F4}°'}"
-                                   Style="{StaticResource HudInfoTextStyle}"/>
-
-                        <TextBlock Text="{Binding Altitude, StringFormat='고도: {0} m'}"
-                                   Style="{StaticResource HudInfoTextStyle}"/>
-
-                        <TextBlock Text="{Binding Speed, StringFormat='속력: {0} m/s'}"
-                                   Style="{StaticResource HudInfoTextStyle}"/>
-
-                        <Button Content="비상폭파"
+                                <!-- 오른쪽 버튼 -->
+                                <Button Content="비상폭파"
                                 PreviewMouseLeftButtonDown="AbortButton_Click"
                                 Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 CommandParameter="{Binding}"
                                 IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
-                                Margin="0,10,0,0"
-                                Width="90" Height="30"
-                                Style="{StaticResource AbortButtonStyle}"/>
-                    </StackPanel>
-
+                                Style="{StaticResource AbortButtonStyle}"
+                                Grid.Column="1"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
                 </Grid>
             </Border>
         </DataTemplate>
@@ -178,79 +348,96 @@
         <!-- 🔶 Compact 카드 (HUD 스타일) -->
         <!-- ============================== -->
         <DataTemplate x:Key="CompactCardTemplate">
-            <Border Background="{StaticResource HudBgPanelBrush}"
-                    BorderBrush="{StaticResource HudAccentDimBrush}"
-                    CornerRadius="6"
-                    Margin="6"
-                    Padding="12"
-                    MinHeight="180"
-                    MouseLeftButtonDown="MissileCard_MouseLeftButtonDown">
-
-                <Border.BorderThickness>
-                    <MultiBinding Converter="{StaticResource SelectedMissileBorderThicknessConverter}">
-                        <Binding />
-                        <!-- 현재 Missile -->
-                        <Binding Path="DataContext.SelectedMissiles"
-                     RelativeSource="{RelativeSource AncestorType=UserControl}"/>
-                    </MultiBinding>
-                </Border.BorderThickness>
+            <Border 
+                Background="{StaticResource MissilePanelBrush}"
+                Margin="6"
+                MouseLeftButtonDown="MissileCard_MouseLeftButtonDown">
 
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                    <!-- 좌측 -->
-                    <StackPanel Grid.Column="0" Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="20" Height="20"
-                                     Fill="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                                     Stroke="{StaticResource HudBgPanelBrush}" StrokeThickness="1"/>
-                            <TextBlock Text="M-SAM" 
-                               Style="{StaticResource HudHeaderTextStyle}"
-                               Foreground="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                               Margin="8,0,0,0"/>
-                        </StackPanel>
+                    <Border 
+                        BorderBrush="{StaticResource TargetCardStrokeBrush}"
+                        CornerRadius="6,6,0,0"
+                        BorderThickness="4,4,4,0"
+                        Margin="0"
+                        Grid.Row="0">
+                        <Border.Background>
+                            <MultiBinding Converter="{StaticResource FocusedToBackgroundConverter}">
+                                <!-- current missile -->
+                                <Binding Path="." />
 
-                        <TextBlock Text="{Binding TargetDisplayId, StringFormat='표적: {0}'}" Margin="0,12,0,0">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock"
-                                    BasedOn="{StaticResource SmallHudWarningTextStyle}">
-                                    <Setter Property="Visibility" Value="Visible"/>
+                                <!-- selected missiles list -->
+                                <Binding Path="DataContext.SelectedMissiles"
+                                    RelativeSource="{RelativeSource AncestorType=UserControl}"/>
+                            </MultiBinding>
+                        </Border.Background>
+                        <Grid Margin="6" Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding TargetDisplayId}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding TargetDisplayId}" Value="">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
+                            <!-- 왼쪽 상태 블록 -->
+                            <Border 
+                                Background="{Binding State, Converter={StaticResource StateToColorConverter}}"
+                                CornerRadius="20"
+                                Padding="10,4"
+                                Grid.Column="0">
+                                <TextBlock 
+                                    Text="{Binding State, Converter={StaticResource StateToTextConverter}}"
+                                    Style="{StaticResource MissileCardStateTextStyle}"/>
+                            </Border>
 
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                            <!-- 오른쪽 MSL 번호 -->
+                            <TextBlock 
+                                Text="{Binding IdNumber, StringFormat='MSL-{0:000}'}"
+                                Style="{StaticResource MissileCardIdTextStyle}"
+                                VerticalAlignment="Center"
+                                Grid.Column="2"/>
+                        </Grid>
+                    </Border>
+                    <Border 
+                        Background="{StaticResource MissilePanelBrush}"
+                        BorderBrush="{StaticResource TargetCardStrokeBrush}"
+                        CornerRadius="0,0,6,6"
+                        BorderThickness="4,0,4,4"
+                        Margin="0"
+                        Grid.Row="1">
 
-                    </StackPanel>
+                        <Grid Margin="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <!-- 왼쪽: 최대 확장 -->
+                                <ColumnDefinition Width="Auto"/>
+                                <!-- 오른쪽: 버튼 크기만큼 -->
+                            </Grid.ColumnDefinitions>
 
-                    <!-- 우측 -->
-                    <StackPanel Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Right">
-                        <TextBlock Text="{Binding Id, StringFormat='MSL-00{0}'}"
-                                   Style="{StaticResource HudIdTextStyle}"
-                                   HorizontalAlignment="Right"/>
+                            <!-- 왼쪽 텍스트 -->
+                            <TextBlock 
+                            Text="{Binding TargetDisplayId, StringFormat='목표 타겟 ID: {0}'}"
+                            Style="{StaticResource MissileTargetIDTextStyle}"
+                            VerticalAlignment="Bottom"
+                            Grid.Column="0"/>
 
-                        <Button Content="비상폭파"
-                                Margin="0,8,0,0"
-                                Width="80" Height="24"
-                                PreviewMouseLeftButtonDown="AbortButton_Click"
-                                Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                CommandParameter="{Binding}"
-                                IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
-                                Style="{StaticResource AbortButtonStyle}"/>
-                    </StackPanel>
-
+                            <!-- 오른쪽 버튼 -->
+                            <Button Content="비상폭파"
+                            PreviewMouseLeftButtonDown="AbortButton_Click"
+                            Command="{Binding DataContext.AbortCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding}"
+                            IsEnabled="{Binding State, Converter={StaticResource StateToEnabledConverter}}"
+                            Style="{StaticResource AbortButtonStyle}"
+                            Grid.Column="1"/>
+                        </Grid>
+                    </Border>
                 </Grid>
+
+
+
             </Border>
         </DataTemplate>
 
@@ -261,17 +448,56 @@
 
     </UserControl.Resources>
 
+
     <!-- ============================== -->
     <!-- 🔶 전체 레이아웃 (HUD 배경 적용) -->
     <!-- ============================== -->
-    <Grid Background="{StaticResource HudBgDarkBrush}">
-        <ScrollViewer VerticalScrollBarVisibility="Disabled"
-                      HorizontalScrollBarVisibility="Disabled">
+    <Grid Background="{StaticResource MissilePanelBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- 헤더 -->
+            <RowDefinition Height="*"/>
+            <!-- 미사일 리스트 -->
+        </Grid.RowDefinitions>
 
+        <!-- ⭐ 헤더 부분 -->
+        <StackPanel Orientation="Horizontal"
+                Grid.Row="0"
+                Background="{StaticResource MissilePanelBrush}"
+                Margin="0">
+
+            <Border BorderThickness="0"
+                Background="{StaticResource HudBgDarkBrush}"
+                Padding="4"
+                CornerRadius="4">
+                <Button Width="30"
+                    Height="30"
+                    BorderThickness="0"
+                    Background="{StaticResource PenalDownButtonBackgroundBrush}"
+                    Click="LocalCollapseButton_Click">
+                    <Path Stretch="Uniform"
+                      Fill="{StaticResource PenalDownButtonBrush}"
+                      Data="{Binding DataContext.IsCollapsed,
+                                     RelativeSource={RelativeSource AncestorType=UserControl},
+                                     Converter={StaticResource CollapseIconConverter}}"/>
+                </Button>
+            </Border>
+
+            <TextBlock Text="MISSILES"
+                   Margin="8,0,0,0"
+                   Style="{StaticResource MissilePanelHeaderTextStyle}"
+                   VerticalAlignment="Center" />
+        </StackPanel>
+
+
+        <!-- ⭐ 미사일 카드 리스트 -->
+        <ScrollViewer Grid.Row="1"
+                  VerticalScrollBarVisibility="Disabled"
+                  HorizontalScrollBarVisibility="Disabled">
             <ItemsControl x:Name="MissileItemsControl"
-                          ItemsSource="{Binding Missiles}"
-                          ItemTemplateSelector="{StaticResource MissileTemplateSelector}"
-                          HorizontalContentAlignment="Stretch">
+                      ItemsSource="{Binding Missiles}"
+                      ItemTemplateSelector="{StaticResource MissileTemplateSelector}"
+                      HorizontalContentAlignment="Stretch">
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -285,9 +511,9 @@
                         <Setter Property="HorizontalAlignment" Value="Stretch"/>
                     </Style>
                 </ItemsControl.ItemContainerStyle>
-
             </ItemsControl>
         </ScrollViewer>
+
     </Grid>
 
 </UserControl>
