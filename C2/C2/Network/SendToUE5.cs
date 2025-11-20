@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Windows.Interop;
 
 namespace C2.Network
 {
@@ -58,6 +59,7 @@ namespace C2.Network
                 targetYaw
             );
 
+            Console.WriteLine($"[SendToUnreal]Packet Yaw:{targetDist}");
             byte[] bytes = packet.Serialize();
 
 

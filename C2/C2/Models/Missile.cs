@@ -16,13 +16,16 @@ namespace C2.Models
         Abort =5,
         Launching = 6,
     }
+    
+
+
     public class PIP
     {
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public short Altitude { get; set; }
 
-        
+       
 
         public PIP (double  lat, double lon, short alt)
         {
@@ -50,6 +53,8 @@ namespace C2.Models
                 OnPropertyChanged(nameof(Latitude)); // Latitude도 알림
             }
         }
+        public double Sim_X { get; set; }
+        public double Sim_Y { get; set; }
 
         private int _longitudeRaw;
         public int LongitudeRaw
@@ -63,6 +68,52 @@ namespace C2.Models
         }
         public bool IsAbort { get; set; }
         public bool IsSelfabort { get; set; }
+
+        //[1/2/3 :: SEEKER_ON/OFF ,TDL_ON/OFF, DL_ON/OFF]
+        public bool SEEKER_ON { get; set; }
+        public bool TDL_ON { get; set; }
+        public bool DL_ON { get; set; }
+
+        public Byte GetTelemetry()
+        {
+            Byte res = 0;
+            if (SEEKER_ON) res += 1;
+            if (TDL_ON) res += 2;
+            if (DL_ON)res += 4;
+            return res;
+        }
+
+        public void SetTelemetry(Byte tel)
+        {
+            int Itel = tel;
+            if ((Itel & 1)==1)
+            {
+                SEEKER_ON = true;
+            }
+            else
+            {
+                SEEKER_ON = false;
+            }
+            Itel = Itel >> 1;
+            if ((Itel & 1) == 1)
+            {
+                TDL_ON = true;
+            }
+            else
+            {
+                TDL_ON = false;
+            }
+            Itel = Itel >> 1;
+            if ((Itel & 1) == 1)
+            {
+                DL_ON = true;
+            }
+            else
+            {
+                DL_ON = false;
+            }
+        }
+
         public int Maxspeed = 200;
         private int _speed = 0;
         public int Speed
@@ -128,7 +179,6 @@ namespace C2.Models
                 return "";
             }
         }
-
         public int IdNumber => int.Parse(Id);
         public double Latitude => LatitudeRaw / 1e7;
         public double Longitude => LongitudeRaw / 1e7;
@@ -160,6 +210,7 @@ namespace C2.Models
             TargetId = targetId;
             Speed = speed;
             flightTime = 0;
+            this.SetTelemetry(0);
         }
         public Missile(
             string id,
@@ -186,6 +237,7 @@ namespace C2.Models
             Speed = speed;
             flightTime = 0;
             PIP = pip;
+            this.SetTelemetry(0);
         }
 
         public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, int speed)
@@ -198,6 +250,7 @@ namespace C2.Models
             State = MissileState.LaunchReady;
             IsAbort = false;
             IsSelfabort = false;
+            this.SetTelemetry(0);
         }
 
         public void Update(Missile src)

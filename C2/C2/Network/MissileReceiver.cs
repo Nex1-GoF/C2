@@ -1,11 +1,16 @@
-﻿using C2.Models;
+﻿using C2.Config;
+using C2.Models;
 using C2.Network;
 using C2.Services;
 using System;
 using System.Diagnostics;
+using System.Windows.Controls;
+using System.Windows.Interop;
 
 public class MissileReceiver
 {
+
+    private readonly TargetService _tservice;
     private readonly MissileService _service;
     private readonly SocketManager _socketManager;   // 그대로 SocketManager 참조
     private readonly string _unrealIp;
@@ -13,14 +18,26 @@ public class MissileReceiver
 
     private const double ReferenceLat = 37.5665; // 기준 위도
     private const double ReferenceLon = 126.9780; // 기준 경도 
+    private readonly string _radarIp;
+    private readonly int _radarPort;
+    private readonly double _referenceLat;
+    private readonly double _referenceLon;
+    
 
     public MissileReceiver(SocketManager socketManager, string unrealIp = "192.168.0.101", int unrealPort = 7777)
     {
         _service = MissileService.Instance;
+        _tservice = TargetService.Instance;
         _socketManager = socketManager;
         _unrealIp = unrealIp;
         _unrealPort = unrealPort;
-
+        //RadorCenterLatLon 없어서 임시..
+        var network = AppConfig.Network;
+        _radarIp = network.Radar.Ip;
+        _radarPort = network.Radar.Port;
+        _referenceLat = network.Reference.Latitude;
+        _referenceLon = network.Reference.Longitude;
+        //
         _socketManager.MissileReceived += HandlePacket;
     }
 
@@ -29,7 +46,17 @@ public class MissileReceiver
         var missile = ToMissile(mslInfo);
        
         _service.ReceiveMissileData(missile);
-        //SendToUnreal(missile);
+        var tmpMsl = _service.GetMissile(missile.Id);
+        var targetId = tmpMsl.TargetId;
+        
+        Target tar=_tservice.GetTarget(tmpMsl.TargetId[0]);
+        if(tar == null) return;
+        int targetDistRaw = mslInfo.X * mslInfo.X + mslInfo.Y * mslInfo.Y + mslInfo.Z * mslInfo.Z;
+        int targetDist = (int)Math.Sqrt(targetDistRaw);
+        Console.WriteLine($"[SendToUnreal]Target Distance:{targetDist}");
+        ushort targetYawRaw = (ushort)tar.YawRaw;
+
+        SendToUE5.SendMslInfo("C001", "C002", 2, missile.Id, (ushort)missile.YawRaw, missile.GetTelemetry(), (char)missile.State, (uint)targetDist, (ushort)targetYawRaw);
     }
 
     private void SendToUnreal(Missile missile)
@@ -68,8 +95,7 @@ public class MissileReceiver
             6 => MissileState.Launching,
             _ => MissileState.LaunchReady
         };
-
-        return new Missile(
+        Missile tmpmsl= new Missile(
             id: mslInfo.Header?.SrcId.Substring(3, 1) ?? Guid.NewGuid().ToString(),
             latitudeRaw: (int)(lat * 1e7),
             longitudeRaw: (int)(lon * 1e7),
@@ -81,6 +107,9 @@ public class MissileReceiver
             speed: (int)Math.Sqrt((mslInfo.Vx / 1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3)),
             pip: pip
         );
+        tmpmsl.Sim_X = mslInfo.X;
+        tmpmsl.Sim_Y = mslInfo.Y;
+        return tmpmsl;
     }
 
     /// <summary>
@@ -95,6 +124,20 @@ public class MissileReceiver
         double newLon = lon0 + (x / (R * Math.Cos(lat0Rad))) * (180.0 / Math.PI);
 
         return (newLat, newLon);
+    }
+
+    private (double x, double y) LatLonToXY(double lat, double lon)
+    {
+        const double R = 6_378_137.0; // 지구 반경
+        double lat0Rad = _referenceLat * Math.PI / 180.0;
+
+        double dLat = (lat - _referenceLat) * Math.PI / 180.0;
+        double dLon = (lon - _referenceLon) * Math.PI / 180.0;
+
+        double x = dLon * R * Math.Cos(lat0Rad);
+        double y = dLat * R;
+
+        return (x, y);
     }
 
     public (double yawDeg, double pitchDeg) CalcYawPitch(double dx, double dy, double dz)

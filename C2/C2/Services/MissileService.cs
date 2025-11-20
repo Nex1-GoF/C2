@@ -163,6 +163,7 @@ namespace C2.Services
                         //}
                         //폭파처리
                         existing.IsAbort = true;
+                        SendToUE5.SendDetonationSignal("C001", "C002", 3, existing.Id);
                         WeakReferenceMessenger.Default.Send(new MissileAbortMessage(existing.Id));
                     }
                 }
