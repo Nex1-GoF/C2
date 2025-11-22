@@ -24,7 +24,7 @@ public class MissileReceiver
     private readonly double _referenceLon;
     
 
-    public MissileReceiver(SocketManager socketManager, string unrealIp = "192.168.0.101", int unrealPort = 7777)
+    public MissileReceiver(SocketManager socketManager, string unrealIp = "192.168.1.101", int unrealPort = 7777)
     {
         _service = MissileService.Instance;
         _tservice = TargetService.Instance;
@@ -45,17 +45,24 @@ public class MissileReceiver
     {
         var missile = ToMissile(mslInfo);
        
-        _service.ReceiveMissileData(missile);
+        
         var tmpMsl = _service.GetMissile(missile.Id);
         var targetId = tmpMsl.TargetId;
         
         Target tar=_tservice.GetTarget(tmpMsl.TargetId[0]);
         if(tar == null) return;
-        int targetDistRaw = mslInfo.X * mslInfo.X + mslInfo.Y * mslInfo.Y + mslInfo.Z * mslInfo.Z;
+        (double tx, double ty) targetXY = LatLonToXY(tar.CurLoc.Lat, tar.CurLoc.Lon);
+        long dx = (mslInfo.X/1000)- (int)targetXY.tx;
+        long dy = (mslInfo.Y / 1000) - (int)targetXY.ty;
+        long dz = mslInfo.Z - tar.Altitude;
+        long targetDistRaw = dx* dx + dy * dy + dz * dz;
         int targetDist = (int)Math.Sqrt(targetDistRaw);
-        Console.WriteLine($"[SendToUnreal]Target Distance:{targetDist}");
+        missile.RemainingDistance = targetDist;
+        Console.WriteLine($"[SendToUnreal]x:{mslInfo.X / 1000},y:{mslInfo.Y / 1000},z:{mslInfo.Z} Target Distance:{targetDist}");
+        Console.WriteLine($"[SendToUnreal]tx:{(int)targetXY.tx},ty:{(int)targetXY.ty},tz:{tar.Altitude} Target Distance:{targetDist}");
         ushort targetYawRaw = (ushort)tar.YawRaw;
 
+        _service.ReceiveMissileData(missile);
         SendToUE5.SendMslInfo("C001", "C002", 2, missile.Id, (ushort)missile.YawRaw, missile.GetTelemetry(), (char)missile.State, (uint)targetDist, (ushort)targetYawRaw);
     }
 
@@ -106,9 +113,11 @@ public class MissileReceiver
             pitchRaw: (short)(pitchDeg * 100),
             flightTime: mslInfo.FlightTime,
             state: state,
+            telemetry: mslInfo.TelemetryStatus,
             speed: (int)Math.Sqrt((mslInfo.Vx / 1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3)),
             pip: pip,
             remainingDistance: RemainingDistance
+            
         );
         tmpmsl.Sim_X = mslInfo.X;
         tmpmsl.Sim_Y = mslInfo.Y;

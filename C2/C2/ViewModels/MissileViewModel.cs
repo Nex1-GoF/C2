@@ -72,10 +72,8 @@ namespace C2.ViewModels
         [RelayCommand]
         private void Abort(Missile missile)
         {
-            missile.State = MissileState.Abort;
             missile.IsSelfabort = true;
-            var mslId = $"M{int.Parse(missile.Id):000}";
-            _abortManager.AbortMissile(mslId);
+            _abortManager.AbortMissile(missile.Id);
 
             // TODO: 폭파 로직 추가
             // TODO: DatalinkService의 비상폭파 로직 실행

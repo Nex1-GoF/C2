@@ -74,8 +74,8 @@ namespace C2.Services
         }
         public Target? GetTarget(char id)
         {
-            _targets.TryGetValue(id, out var missile);
-            return missile;
+            _targets.TryGetValue(id, out var target);
+            return target;
         }
         // 외부 통신 모듈이 호출 (표적 데이터 수신)
         public void ReceiveTargetData(Target newTarget)
