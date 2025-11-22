@@ -179,6 +179,31 @@ namespace C2.Models
                 return "";
             }
         }
+        private int? _ramainingDistance;
+        public int? RemainingDistance
+        {
+            get => _ramainingDistance;
+            set
+            {
+                if (_ramainingDistance != value)
+                {
+                    _ramainingDistance = value;
+                    OnPropertyChanged(nameof(RemainingDistance));
+                    OnPropertyChanged(nameof(DisplayRemainingDistance));
+                }
+            }
+        }
+
+        public string DisplayRemainingDistance
+        {
+            get
+            {
+                if (RemainingDistance == null)
+                    return "";
+
+                return $"{RemainingDistance}";
+            }
+        }
 
         private int? _ramainingDistance;
         public int? RemainingDistance
