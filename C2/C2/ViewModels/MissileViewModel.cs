@@ -51,7 +51,7 @@ namespace C2.ViewModels
                     latitudeRaw: _service.C2Points.latitude,
                     longitudeRaw: _service.C2Points.longitude,
                     altitude: _service.C2Points.altitude,
-                    speed: 1000
+                    speed: 1500
                 );
                 missiles.Add(missile);
             }
@@ -72,7 +72,7 @@ namespace C2.ViewModels
         [RelayCommand]
         private void Abort(Missile missile)
         {
-            missile.State = MissileState.Abort;
+            //missile.State = MissileState.Abort;
             missile.IsSelfabort = true;
             var mslId = $"M{int.Parse(missile.Id):000}";
             _abortManager.AbortMissile(mslId);
@@ -137,6 +137,7 @@ namespace C2.ViewModels
                 local.TargetId = latest.TargetId;
                 // 미사일 모델의 Yaw 갱신
                 local.YawRaw = latest.YawRaw;
+                local.RemainingDistance = latest.RemainingDistance;
             }
             // Todo: 미사일 비상폭파 기능 제한 걸기
         }

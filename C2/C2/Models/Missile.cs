@@ -205,31 +205,7 @@ namespace C2.Models
             }
         }
 
-        private int? _ramainingDistance;
-        public int? RemainingDistance
-        {
-            get => _ramainingDistance;
-            set
-            {
-                if (_ramainingDistance != value)
-                {
-                    _ramainingDistance = value;
-                    OnPropertyChanged(nameof(RemainingDistance));
-                    OnPropertyChanged(nameof(DisplayRemainingDistance));
-                }
-            }
-        }
 
-        public string DisplayRemainingDistance
-        {
-            get
-            {
-                if (RemainingDistance == null)
-                    return "";
-
-                return $"{RemainingDistance}";
-            }
-        }
 
         public int IdNumber => int.Parse(Id);
         public double Latitude => LatitudeRaw / 1e7;
@@ -250,7 +226,8 @@ namespace C2.Models
             MissileState state,
             int speed = 0,
             string? targetId = null,
-            int? remainingDistance = null)
+            int? remainingDistance = null
+            )
         {
             Id = id;
             LatitudeRaw = latitudeRaw;
@@ -264,7 +241,6 @@ namespace C2.Models
             RemainingDistance = remainingDistance;
             Speed = speed;
             flightTime = 0;
-            this.SetTelemetry(0);
         }
         public Missile(
             string id,
@@ -277,8 +253,10 @@ namespace C2.Models
             MissileState state,
             PIP pip,
             int speed = 0,
+            byte telemetry = 0,
             string? targetId = null,
-            int? remainingDistance = null)
+            int? remainingDistance = null
+            )
         {
             Id = id;
             LatitudeRaw = latitudeRaw;
@@ -293,7 +271,7 @@ namespace C2.Models
             Speed = speed;
             flightTime = 0;
             PIP = pip;
-            this.SetTelemetry(0);
+            this.SetTelemetry(telemetry);
         }
 
         public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, int speed)
@@ -322,6 +300,7 @@ namespace C2.Models
             State = src.State;
             PIP = src.PIP;
             RemainingDistance = src.RemainingDistance;
+            SetTelemetry(src.GetTelemetry());
             //TargetId = src.TargetId;
         }
     }

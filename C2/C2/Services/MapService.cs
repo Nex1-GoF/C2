@@ -179,36 +179,39 @@ namespace C2.Services
 
 
 
-        // 경로 (Path)
-        public IEnumerable<(List<PointLatLng> Points, Color Color)> GetRouteSpecs()
-        {
-            var routes = new List<(List<PointLatLng>, Color)>();
-            var selectedIds = SelectedMissileIds;
+        //// 경로 (Path)
+        //public IEnumerable<(List<PointLatLng> Points, Color Color)> GetRouteSpecs()
+        //{
+        //    var routes = new List<(List<PointLatLng>, Color)>();
+        //    var selectedIds = SelectedMissileIds;
 
-            // 여러 미사일 경로
-            foreach (var mid in selectedIds)
-            {
-                var msl = _missileService.GetMissile(mid);
-                if (msl?.PathHistory?.Count > 1)
-                {
-                    routes.Add((
-                        msl.PathHistory.Select(p => new PointLatLng(p.Lat, p.Lon)).ToList(),
-                        Colors.LightSkyBlue
-                    ));
-                }
-            }
+        //    // 여러 미사일 경로
+        //    foreach (var mid in selectedIds)
+        //    {
+        //        var msl = _missileService.GetMissile(mid);
+        //        if (msl?.PathHistory?.Count > 1)
+        //        {
+        //            routes.Add((
+        //                msl.PathHistory.Select(p => new PointLatLng(p.Lat, p.Lon)).ToList(),
+        //                Colors.LightSkyBlue
+        //            ));
+        //        }
+        //    }
 
-            // 단일 표적 경로
-            var tgt = (SelectedTargetId != null) ? _targetService.GetTarget(SelectedTargetId.Value) : null;
-            if (tgt?.PathHistory?.Count > 1)
-            {
-                routes.Add((
-                    tgt.PathHistory.Select(p => new PointLatLng(p.Lat, p.Lon)).ToList(),
-                    Colors.OrangeRed
-                ));
-            }
+        //    // 단일 표적 경로
+        //    var tgt = (SelectedTargetId != null) ? _targetService.GetTarget(SelectedTargetId.Value) : null;
+        //    if (tgt?.PathHistory?.Count > 1)
+        //    {
+        //        routes.Add((
+        //            tgt.PathHistory.Select(p => new PointLatLng(p.Lat, p.Lon)).ToList(),
+        //            Colors.OrangeRed
+        //        ));
+        //    }
 
-            return routes;
-        }
+        //    return routes;
+        //}
+      
+
+
     }
 }

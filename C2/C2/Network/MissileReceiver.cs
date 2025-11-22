@@ -44,21 +44,24 @@ public class MissileReceiver
     private void HandlePacket(MslInfoPacket mslInfo)
     {
         var missile = ToMissile(mslInfo);
-       
-        _service.ReceiveMissileData(missile);
         var tmpMsl = _service.GetMissile(missile.Id);
         var targetId = tmpMsl.TargetId;
-        
-        Target tar=_tservice.GetTarget(tmpMsl.TargetId[0]);
-        if(tar == null) return;
-        int targetDistRaw = mslInfo.X * mslInfo.X + mslInfo.Y * mslInfo.Y + mslInfo.Z * mslInfo.Z;
-        int targetDist = (int)Math.Sqrt(targetDistRaw);
-        Console.WriteLine($"[SendToUnreal]Target Distance:{targetDist}");
-        ushort targetYawRaw = (ushort)tar.YawRaw;
 
+        Target tar = _tservice.GetTarget(tmpMsl.TargetId[0]);
+        if (tar == null) return;
+        (double tx, double ty) targetXY = LatLonToXY(tar.CurLoc.Lat, tar.CurLoc.Lon);
+        long dx = (mslInfo.X / 1000) - (int)targetXY.tx;
+        long dy = (mslInfo.Y / 1000) - (int)targetXY.ty;
+        long dz = mslInfo.Z - tar.Altitude;
+        long targetDistRaw = dx * dx + dy * dy + dz * dz;
+        int targetDist = (int)Math.Sqrt(targetDistRaw);
+        missile.RemainingDistance = targetDist;
+        Console.WriteLine($"[SendToUnreal]x:{mslInfo.X / 1000},y:{mslInfo.Y / 1000},z:{mslInfo.Z} Target Distance:{targetDist}");
+        Console.WriteLine($"[SendToUnreal]tx:{(int)targetXY.tx},ty:{(int)targetXY.ty},tz:{tar.Altitude} Target Distance:{targetDist}");
+        ushort targetYawRaw = (ushort)tar.YawRaw;
+        _service.ReceiveMissileData(missile);
         SendToUE5.SendMslInfo("C001", "C002", 2, missile.Id, (ushort)missile.YawRaw, missile.GetTelemetry(), (char)missile.State, (uint)targetDist, (ushort)targetYawRaw);
     }
-
     private void SendToUnreal(Missile missile)
     {
         try
@@ -97,7 +100,7 @@ public class MissileReceiver
             6 => MissileState.Launching,
             _ => MissileState.LaunchReady
         };
-        Missile tmpmsl= new Missile(
+        Missile tmpmsl = new Missile(
             id: mslInfo.Header?.SrcId.Substring(3, 1) ?? Guid.NewGuid().ToString(),
             latitudeRaw: (int)(lat * 1e7),
             longitudeRaw: (int)(lon * 1e7),
@@ -107,6 +110,7 @@ public class MissileReceiver
             flightTime: mslInfo.FlightTime,
             state: state,
             speed: (int)Math.Sqrt((mslInfo.Vx / 1e3) * (mslInfo.Vx / 1e3) + (mslInfo.Vy / 1e3) * (mslInfo.Vy / 1e3)),
+            telemetry: mslInfo.TelemetryStatus,
             pip: pip,
             remainingDistance: RemainingDistance
         );

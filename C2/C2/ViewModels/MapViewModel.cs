@@ -92,10 +92,16 @@ namespace C2.ViewModels
                 });
             });
             WeakReferenceMessenger.Default.Register<MissileAbortMessage>(this, (r, msg) =>
-            {
+            { // 미사일 어보트시키기
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
+                    string id = msg.Value;
+                    _map.Markers.Remove(_missileMarkers[id]);
+                    _missileMarkers.Remove(id);
+                    _pipMarkers.Remove($"PIP::{id}");
                     RemoveRoute(msg.Value);
+                    RedrawAll();
                 });
             });
             WeakReferenceMessenger.Default.Register<LaunchEndMessage>(this, (r, msg) =>

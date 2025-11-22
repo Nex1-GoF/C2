@@ -121,7 +121,7 @@ namespace C2.Network
             // 방향 벡터 (동쪽,북쪽)
             double vx = speed * Math.Sin(yawRad);   // east velocity (m/s)
             double vy = speed * Math.Cos(yawRad);   // north velocity (m/s)
-
+            missile.RemainingDistance = 0;
             for (int i = 0; i < totalSteps; i++)
             {
                 if (token.IsCancellationRequested) break;
@@ -139,9 +139,10 @@ namespace C2.Network
                 double newLat = lat + dLat;
                 double newLon = lon + dLon;
 
+
                 missile.LatitudeRaw = (int)(newLat * 1e7);
                 missile.LongitudeRaw = (int)(newLon * 1e7);
-
+                missile.RemainingDistance += 100;
                 await Task.Delay((int)(dt * 1000), token);
             }
         }

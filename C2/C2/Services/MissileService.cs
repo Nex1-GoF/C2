@@ -42,7 +42,7 @@ namespace C2.Services
                     latitudeRaw: C2Points.latitude,
                     longitudeRaw: C2Points.longitude,
                     altitude: C2Points.altitude,
-                    speed: 1000
+                    speed: 1500
                 );
                 _missiles[missile.Id] = missile;
             }
