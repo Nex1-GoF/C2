@@ -74,9 +74,7 @@ namespace C2.Network
         {
             try
             {
-                _socketManager.Send(tgtFin.Serialize(), "192.168.1.112", 6004);
                 _socketManager.Send(tgtFin.Serialize(), "192.168.1.200", 6004);
-                //_socketManager.Send(tgtFin.Serialize(), "127.0.0.1", 6004);
             }
             catch (Exception ex)
             {

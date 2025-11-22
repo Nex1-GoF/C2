@@ -170,7 +170,7 @@ namespace C2.Models
             get
             {
                 if (string.IsNullOrWhiteSpace(TargetId))
-                    return "-";
+                    return "";
 
                 // TargetId → 정수 변환 시도
                 if (int.TryParse(TargetId, out int id))
@@ -179,6 +179,32 @@ namespace C2.Models
                 return "";
             }
         }
+        private int? _ramainingDistance;
+        public int? RemainingDistance
+        {
+            get => _ramainingDistance;
+            set
+            {
+                if (_ramainingDistance != value)
+                {
+                    _ramainingDistance = value;
+                    OnPropertyChanged(nameof(RemainingDistance));
+                    OnPropertyChanged(nameof(DisplayRemainingDistance));
+                }
+            }
+        }
+
+        public string DisplayRemainingDistance
+        {
+            get
+            {
+                if (RemainingDistance == null)
+                    return "";
+
+                return $"{RemainingDistance}";
+            }
+        }
+
         private int? _ramainingDistance;
         public int? RemainingDistance
         {
@@ -222,7 +248,6 @@ namespace C2.Models
             short pitchRaw,
             uint flightTime,
             MissileState state,
-            byte telemetry,
             int speed = 0,
             string? targetId = null,
             int? remainingDistance = null)
@@ -239,7 +264,7 @@ namespace C2.Models
             RemainingDistance = remainingDistance;
             Speed = speed;
             flightTime = 0;
-            this.SetTelemetry(telemetry);
+            this.SetTelemetry(0);
         }
         public Missile(
             string id,
@@ -250,7 +275,6 @@ namespace C2.Models
             short pitchRaw,
             uint flightTime,
             MissileState state,
-            byte telemetry,
             PIP pip,
             int speed = 0,
             string? targetId = null,
@@ -269,7 +293,7 @@ namespace C2.Models
             Speed = speed;
             flightTime = 0;
             PIP = pip;
-            this.SetTelemetry(telemetry);
+            this.SetTelemetry(0);
         }
 
         public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, int speed)
@@ -298,9 +322,6 @@ namespace C2.Models
             State = src.State;
             PIP = src.PIP;
             RemainingDistance = src.RemainingDistance;
-            SEEKER_ON = src.SEEKER_ON;
-            TDL_ON = src.TDL_ON;
-            DL_ON = src.DL_ON;
             //TargetId = src.TargetId;
         }
     }

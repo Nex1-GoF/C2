@@ -130,24 +130,6 @@ namespace C2.Services
             WeakReferenceMessenger.Default.Send(new MissileSelectedMessage(null));
         }
 
-        public void AbortMissile(Missile missile)
-        {
-            if (missile.IsAbort) return;
-            LogService _logService = LogService.Instance;
-            missile.State = MissileState.Abort;
-            //자폭인지 판별
-            if (missile.IsSelfabort == false)
-            {
-                if (!string.IsNullOrEmpty(missile.TargetId))
-                {
-                    //_logService.AddLog(MessageType.System, "폭파신호");
-                    _abortManager.AbortTarget(missile.TargetId[0]);
-                }
-            }
-            missile.IsAbort = true;
-            SendToUE5.SendDetonationSignal("C001", "C002", 3, missile.Id);
-            WeakReferenceMessenger.Default.Send(new MissileAbortMessage(missile.Id));
-        }
         public void ReceiveMissileData(Missile newData)
         {
             if (_missiles.TryGetValue(newData.Id, out var existing))
@@ -160,8 +142,30 @@ namespace C2.Services
 
                 //Abort처리
                 if (newData.State == MissileState.Abort)
-                {
-                    AbortMissile(existing);
+                {   //Abort처리
+                    if (!existing.IsAbort)
+                    {
+                        LogService _logService = LogService.Instance;
+                        //_logService.AddLog(MessageType.System, "기폭");
+                        //자폭인지 판별
+                        if (!existing.IsSelfabort)//자폭이 아니라면 타겟요격임
+                        {
+                            //_logService.AddLog(MessageType.System, "폭파");
+                            if (!string.IsNullOrEmpty(existing.TargetId))
+                            {
+                                //_logService.AddLog(MessageType.System, "폭파신호");
+                                _abortManager.AbortTarget(existing.TargetId[0]);
+                            }
+                        }
+                        //if (!string.IsNullOrEmpty(existing.TargetId))
+                        //{
+                        //    _abortManager.AbortTarget(existing.TargetId[0]);
+                        //}
+                        //폭파처리
+                        existing.IsAbort = true;
+                        SendToUE5.SendDetonationSignal("C001", "C002", 3, existing.Id);
+                        WeakReferenceMessenger.Default.Send(new MissileAbortMessage(existing.Id));
+                    }
                 }
             }
             else

@@ -93,7 +93,8 @@
  
         
         <!-- 메인 -->
-        <SolidColorBrush x:Key="LogHeadPenalBrush" Color="{StaticResource LightPenalColor}"/><!-- 시스템 로그 헤더 패널 버튼 컬러-->
+
+        <SolidColorBrush x:Key="LogHeadPenalBrush" Color="{StaticResource KeyColorDim2}"/><!-- 시스템 로그 헤더 패널 버튼 컬러-->
         <SolidColorBrush x:Key="LaunchSequenceBrush" Color="{StaticResource LaunchReadyColor}"/><!-- 발사 절차 표시 -->
         <SolidColorBrush x:Key="LaunchSequenceBrush2" Color="{StaticResource KeyColorDim2}"/><!--  발사 절차 표시 -->
         <SolidColorBrush x:Key="LaunchSequenceTextBrush" Color="{StaticResource SubColor3}"/><!--  발사 절차 표시 -->
