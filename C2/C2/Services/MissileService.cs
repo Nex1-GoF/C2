@@ -134,7 +134,7 @@ namespace C2.Services
         {
             if (_missiles.TryGetValue(newData.Id, out var existing))
             {
-                if (existing.State == MissileState.InitialGuidance && newData.State == MissileState.MidGuidance)
+                if (existing.State == MissileState.InitialGuidance && (newData.State == MissileState.MidGuidance || newData.State == MissileState.TerminalGuidance))
                 {
                     WeakReferenceMessenger.Default.Send(new LaunchEndMessage(existing.Id));
                 }
