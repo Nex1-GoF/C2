@@ -77,6 +77,7 @@ namespace C2.Network
             {
                 while (_currentState != null)
                 {
+
                     _currentSeq = GetSeqFromState(_currentState);
                     await _currentState.EnterAsync(token);
 
@@ -123,6 +124,7 @@ namespace C2.Network
                 return;
 
             _abortHandled = true;
+
             try
             {
                 if (seq < 5)
@@ -205,6 +207,14 @@ namespace C2.Network
 
             public virtual async Task EnterAsync(CancellationToken token)
             {
+                if (_launchingMissile.State == MissileState.Abort)
+                {
+                    _manager.PerformAbortSequence(_launchingMissile,
+                                                  _manager.GetSeqFromState(this),
+                                                  true);
+                    return;
+                }
+
                 int idx = _manager.GetStepIndex(Name);
                 
                 if (this is IgnitionState)
@@ -525,27 +535,43 @@ namespace C2.Network
                 await base.EnterAsync(token);
 
                 // Todo: X Y Z 변환해서 보내야함
-                char targetId = _launchingMissile.TargetId[0];
+                char targetId = _launchingMissile.TargetId != null ? _launchingMissile.TargetId[0] : '0';
                 // 1. PIP를 구한다. (현재 표적 위 경 고도
                 var target = _manager._targetService.GetTarget(targetId);
 
                 if (target == null)
                 {
-                    NextState = null;
-                    return;
+                    // 비가역상태이므로 임시 서해 임시 타겟 생성
+                    // 예: 백령도 서쪽 약간 떨어진 해상 좌표
+                    double westSeaLat = 37.9600;
+                    double westSeaLon = 124.6000;
+
+                    target = new Target(
+                        id: 'Z',                       // 임시 타겟 ID
+                        speed: 0,                      // 속력 0 (정지 표적)
+                        altitude: 0,                   // 고도 0
+                        yaw: 0,                        // 방향 0
+                        endLoc: (westSeaLat, westSeaLon),
+                        detectTime: DateTime.UtcNow,
+                        curLoc: (westSeaLat, westSeaLon),
+                        detectedType: '0'              // Unknown / 임시
+                    );
+
+                    _manager._logService.AddLog(MessageType.System,
+                        "[임시표적] 서해 임시 Target 생성됨 (속력=0)");
                 }
 
-                (int x, int y) targetXY = ComputePIP(
-                     target: target,
-                     missileLat: _launchingMissile.Latitude,
-                     missileLon: _launchingMissile.Longitude,
-                     missileSpeed: 1000,
-                     lat0: _launchingMissile.Latitude,
-                     lon0: _launchingMissile.Longitude
+                (int x, int y) targetXY = ComputePIP( // target x y 좌표
+                         target: target,
+                         missileLat: _launchingMissile.Latitude,
+                         missileLon: _launchingMissile.Longitude,
+                         missileSpeed: 1000,
+                         lat0: _launchingMissile.Latitude,
+                         lon0: _launchingMissile.Longitude
 
                 );
 
-                byte[] pip = BuildPipBody(targetXY.x, targetXY.y, 10);
+                byte[] pip = BuildPipBody(targetXY.x, targetXY.y, 10);  // 초기 x y 좌표
 
                 (double lat, double lon) targetLatLon = XYToLatLon(targetXY.x, targetXY.y,
                     _launchingMissile.Latitude, _launchingMissile.Longitude);

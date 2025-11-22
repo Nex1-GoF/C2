@@ -170,7 +170,7 @@ namespace C2.Models
             get
             {
                 if (string.IsNullOrWhiteSpace(TargetId))
-                    return "";
+                    return "-";
 
                 // TargetId → 정수 변환 시도
                 if (int.TryParse(TargetId, out int id))
@@ -223,6 +223,7 @@ namespace C2.Models
             short pitchRaw,
             uint flightTime,
             MissileState state,
+            byte telemetry,
             int speed = 0,
             string? targetId = null,
             int? remainingDistance = null)
@@ -239,7 +240,7 @@ namespace C2.Models
             RemainingDistance = remainingDistance;
             Speed = speed;
             flightTime = 0;
-            this.SetTelemetry(0);
+            this.SetTelemetry(telemetry);
         }
         public Missile(
             string id,
@@ -250,6 +251,7 @@ namespace C2.Models
             short pitchRaw,
             uint flightTime,
             MissileState state,
+            byte telemetry,
             PIP pip,
             int speed = 0,
             string? targetId = null,
@@ -268,7 +270,7 @@ namespace C2.Models
             Speed = speed;
             flightTime = 0;
             PIP = pip;
-            this.SetTelemetry(0);
+            this.SetTelemetry(telemetry);
         }
 
         public Missile(string id, int latitudeRaw, int longitudeRaw, short altitude, int speed)
@@ -297,6 +299,9 @@ namespace C2.Models
             State = src.State;
             PIP = src.PIP;
             RemainingDistance = src.RemainingDistance;
+            SEEKER_ON = src.SEEKER_ON;
+            TDL_ON = src.TDL_ON;
+            DL_ON = src.DL_ON;
             //TargetId = src.TargetId;
         }
     }

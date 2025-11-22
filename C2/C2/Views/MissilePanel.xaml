@@ -298,13 +298,9 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock
                                         Style="{StaticResource MissileContentTextStyle}"
-                                        Grid.Column="0">
-                                            <TextBlock.Text>
-                                                <MultiBinding Converter="{StaticResource CoordinateStateMultiConverter}">
-                                                    <Binding Path="DisplayRemainingDistance"/>
-                                                    <Binding Path="State"/>
-                                                </MultiBinding>
-                                            </TextBlock.Text>
+                                        Grid.Column="0"
+                                        Text="{Binding DisplayRemainingDistance}">
+                                        
                                         </TextBlock>
                                         <TextBlock
                                         Text="(m)"

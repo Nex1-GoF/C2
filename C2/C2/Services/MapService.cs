@@ -71,10 +71,8 @@ namespace C2.Services
 
             foreach (var missile in relatedMissiles)
             {
-                missile.State = MissileState.Abort;
-                missile.IsSelfabort = true;
-                var mslId = $"M{int.Parse(missile.Id):000}";
-                _abortManager.AbortMissile(mslId);
+                missile.IsSelfabort = true;   
+                _abortManager.AbortMissile(missile.Id);
             }
 
             // 선택 초기화 및 지도 갱신
