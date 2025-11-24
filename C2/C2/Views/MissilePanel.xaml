@@ -238,7 +238,7 @@
                                     Margin="4,2"
                                     Grid.Column="0">
                                     <TextBlock 
-                                        Text="속도"
+                                        Text="속력"
                                         Style="{StaticResource MissileContentTextStyle}"/>
                                 </Border>
                                 <Border 
@@ -385,7 +385,7 @@
                             <!-- 왼쪽 상태 블록 -->
                             <Border 
                                 Background="{Binding State, Converter={StaticResource StateToColorConverter}}"
-                                CornerRadius="20"
+                                CornerRadius="8"
                                 Padding="10,4"
                                 Grid.Column="0">
                                 <TextBlock 

@@ -248,7 +248,7 @@
                                                         Margin="0,2,4,2"
                                                         Grid.Column="0">
                                                             <TextBlock 
-                                                            Text="속도"
+                                                            Text="속력"
                                                             Style="{StaticResource TargetContentTextStyle}"/>
                                                         </Border>
                                                         <Border 

@@ -85,7 +85,7 @@ namespace C2.Models
             DetectTime = detectTime;
             CurLoc = curLoc;
 
-            TargetInfo targetInfo = TargetInfos.Instance.GetTargetInfoById(Id);
+            TargetInfo targetInfo = TargetInfos.Instance.GetTargetInfoById(detectedType);
             TargetInfoName = targetInfo.TargetName;
             TargetInfoImagePath = targetInfo.ImagePath;
 
@@ -128,9 +128,9 @@ namespace C2.Models
         private TargetInfos()
         {
             targetInfos.Add('0', new TargetInfo('0', "UNKNOWN", "/Resources/target2.png"));
-            targetInfos.Add('1', new TargetInfo('1', "MIG29", "/Resources/target2.png"));
-            targetInfos.Add('2', new TargetInfo('2', "MIG23", "/Resources/target2.png"));
-            targetInfos.Add('3', new TargetInfo('3', "SU25", "/Resources/target2.png"));
+            targetInfos.Add('A', new TargetInfo('A', "MIG29", "/Resources/target5.png"));
+            targetInfos.Add('B', new TargetInfo('B', "MIG15", "/Resources/target5.png"));
+            targetInfos.Add('C', new TargetInfo('C', "SU25", "/Resources/target2.png"));
         }
 
         public TargetInfo GetTargetInfoById(char id) {

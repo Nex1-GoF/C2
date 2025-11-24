@@ -191,7 +191,7 @@ namespace C2.Network
             var buffer = new List<byte>(Header.Serialize());
             return buffer.ToArray();
         }
-            
+
         public override string ToString()
         {
             return $"[MslCmdPacket]\n{Header}";
@@ -248,7 +248,7 @@ namespace C2.Network
 
         public override void Deserialize(byte[] buffer)
         {
-           
+
             if (buffer.Length < HeaderPacket.HEADER_PACKET_SIZE + TGT_INFO_INPUT_PACKET_SIZE)
                 throw new ArgumentException("Buffer too small for TgtInfoInputPacket");
 
@@ -388,7 +388,7 @@ namespace C2.Network
 
 
     // --------------------------------------------------------
-      // 발사 절차 시퀀스
+    // 발사 절차 시퀀스
     // --------------------------------------------------------
 
     public class InitialGuidanceMessage : BasePacket
@@ -454,6 +454,83 @@ namespace C2.Network
         }
     }
 
+    public class MslKeyPacket : BasePacket
+    {
+        public const int MSL_KEY_SIZE = 32;
+        public const int MSL_KEY_PACKET_SIZE = HeaderPacket.HEADER_PACKET_SIZE + 4 + MSL_KEY_SIZE;
+
+        public string MslId { get; private set; }   // 항상 4바이트 문자열
+        public byte[] Key { get; private set; }     // 32바이트 키
+
+        public MslKeyPacket()
+        {
+            MslId = string.Empty;
+            Key = Array.Empty<byte>();
+        }
+
+        public MslKeyPacket(HeaderPacket header, string mslId, byte[] keyBytes)
+        {
+            if (mslId.Length != 4)
+                throw new ArgumentException("mslId must be exactly 4 characters");
+
+            if (keyBytes.Length != MSL_KEY_SIZE)
+                throw new ArgumentException($"Key must be {MSL_KEY_SIZE} bytes");
+
+            Header = header;
+            MslId = mslId;
+            Key = new byte[MSL_KEY_SIZE];
+            Array.Copy(keyBytes, Key, MSL_KEY_SIZE);
+        }
+
+        public override byte[] Serialize()
+        {
+            var buffer = new List<byte>(Header.Serialize());
+
+            // mslId (고정 4바이트)
+            buffer.AddRange(Encoding.ASCII.GetBytes(MslId));
+
+            // key (32바이트)
+            buffer.AddRange(Key);
+
+            return buffer.ToArray();
+        }
+
+        public override void Deserialize(byte[] buffer)
+        {
+            if (buffer.Length < MSL_KEY_PACKET_SIZE)
+                throw new ArgumentException("Buffer too small for MslKeyPacket");
+
+            // Header
+            var hdrBuffer = new byte[HeaderPacket.HEADER_PACKET_SIZE];
+            Array.Copy(buffer, 0, hdrBuffer, 0, HeaderPacket.HEADER_PACKET_SIZE);
+            Header = HeaderPacket.Deserialize(hdrBuffer);
+
+            int offset = HeaderPacket.HEADER_PACKET_SIZE;
+
+            // mslId (고정 4바이트)
+            MslId = Encoding.ASCII.GetString(buffer, offset, 4);
+            offset += 4;
+
+            // key (32바이트)
+            Key = new byte[MSL_KEY_SIZE];
+            Array.Copy(buffer, offset, Key, 0, MSL_KEY_SIZE);
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("[MslKeyPacket]");
+            sb.AppendLine(Header.ToString());
+            sb.AppendLine($"msl_id={MslId}");
+            sb.Append("Key: ");
+            foreach (var b in Key)
+            {
+                sb.Append($"{b:X2} ");
+            }
+            return sb.ToString();
+        }
+    }
+
     public class InitialPipMessage : BasePacket
     {
         public int PIP_X { get; private set; }
@@ -503,7 +580,6 @@ namespace C2.Network
             }
         }
     }
-
 
     public class ResponseMessage : BasePacket
     {

@@ -1,4 +1,5 @@
-﻿using C2.Messages;
+﻿using C2.Config;
+using C2.Messages;
 using C2.Models;
 using C2.Network;
 using CommunityToolkit.Mvvm.Messaging;
@@ -21,8 +22,8 @@ namespace C2.Services
         // ==============================
         // Map State
         // ==============================
-        public PointLatLng Center { get; set; } = new PointLatLng(37.5665, 126.9780); // 서울 시청
-        public double Distance { get; set; } = 250_000; // 250 km
+        public PointLatLng Center { get; set; } = new PointLatLng(AppConfig.Network.Reference.Latitude, AppConfig.Network.Reference.Longitude); // 서울 시청
+        public double Distance { get; set; } = 300_000; // 250 km
 
         // ==============================
         // Domain Services

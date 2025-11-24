@@ -1,4 +1,5 @@
-﻿using C2.Messages;
+﻿using C2.Config;
+using C2.Messages;
 using C2.Models;
 using C2.Services;
 using C2.Views.Markers;
@@ -45,7 +46,7 @@ namespace C2.ViewModels
             _map.MinZoom = 2;
             _map.MaxZoom = 12;
             _map.Zoom = 8;
-            _map.Position = new PointLatLng(38, 127.5);
+            _map.Position = new PointLatLng(AppConfig.Network.Reference.Latitude, AppConfig.Network.Reference.Longitude);
             _map.CanDragMap = true;
             _map.MouseWheelZoomType = GMap.NET.MouseWheelZoomType.MousePositionAndCenter;
             _map.IgnoreMarkerOnMouseWheel = true;
@@ -100,7 +101,7 @@ namespace C2.ViewModels
                     _map.Markers.Remove(_missileMarkers[id]);
                     _missileMarkers.Remove(id);
                     _pipMarkers.Remove($"PIP::{id}");
-                    RemoveRoute(msg.Value);
+                    RemoveRoute(id);
                     RedrawAll();
                 });
             });
@@ -255,7 +256,8 @@ namespace C2.ViewModels
                     // 초기 PIP를 따라가는걸로 처리하고싶음
 
                     var missileMarker = _missileMarkers.GetValueOrDefault(mk.Id);
-                    if (missileMarker!.Shape is MissileMarker2 mslShape)
+                    if (missileMarker == null) continue;
+                    if (missileMarker.Shape is MissileMarker2 mslShape)
                     {
                         mslShape.SetYaw((double)missile.YawRaw / 100.0);
                         mslShape.SetColor(mk.Focused);
@@ -309,8 +311,8 @@ namespace C2.ViewModels
                     var pip = missile.PIP;
                     if (pip == null) return;
                     var pipMarker = _pipMarkers.GetValueOrDefault(missileId);
-
-                    if (pipMarker!.Shape is PIPMarker2 pipShape)
+                    if (pipMarker == null) continue;
+                    if (pipMarker.Shape is PIPMarker2 pipShape)
                     {
                         pipShape.SetVisible(mk.Focused);
 

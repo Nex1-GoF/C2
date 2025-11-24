@@ -21,6 +21,9 @@
     <None Remove="Resources\msl_marker.png" />
     <None Remove="Resources\target.png" />
     <None Remove="Resources\target2.png" />
+    <None Remove="Resources\target3.jpg" />
+    <None Remove="Resources\target4.jpg" />
+    <None Remove="Resources\target5.png" />
     <None Remove="Resources\tgt_marker.png" />
   </ItemGroup>
 
@@ -54,6 +57,15 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\target2.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\target3.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\target4.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\target5.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\tgt_marker.png" />

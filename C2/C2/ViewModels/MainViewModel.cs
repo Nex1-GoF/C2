@@ -97,7 +97,7 @@ namespace C2.ViewModels
 
         private void UpdateCanLaunch()
         {
-            CanLaunchOrAbort = _missileService.CanLaunch() || _isReversible;
+            CanLaunchOrAbort = (_missileService.CanLaunch() && !IsLaunching) || _isReversible;
         }
 
         [RelayCommand(AllowConcurrentExecutions = true)]

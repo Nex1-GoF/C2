@@ -32,18 +32,18 @@ namespace C2.Network
         private Missile? _currentMissile;
         private double _currentProgress = 0;
         private bool _abortHandled = false;
-        private int _curyaw=0;
+        private int _curyaw = 0;
         private InitialGuidanceManager() { }
 
         private readonly List<string> Steps = new()
         {
-            "전원 점검",
-            "BIT 검사",
-            "항법 정렬",
-            "키 전달",
-            "점화 준비",
-            "PIP 계산",
-            "발사",
+            "전원 인가",
+            "BIT",
+            "항법 장치 정렬",
+            "암호화 키 전달",
+            "열전지 점화",
+            "초기 PIP 전달",
+            "발사 명령",
             "초기유도"
         };
         private int GetStepIndex(string name)
@@ -80,7 +80,7 @@ namespace C2.Network
                     _currentSeq = GetSeqFromState(_currentState);
                     await _currentState.EnterAsync(token);
 
-                    
+
 
                     _currentState = _currentState.NextState;
                 }
@@ -206,7 +206,7 @@ namespace C2.Network
             public virtual async Task EnterAsync(CancellationToken token)
             {
                 int idx = _manager.GetStepIndex(Name);
-                
+
                 if (this is IgnitionState)
                 {
                     _manager._logService.AddLog(MessageType.System, "비가역 상태 진입");
@@ -219,18 +219,18 @@ namespace C2.Network
                 {
                     _manager._logService.AddLog(MessageType.System, "발사 절차 완료");
                     Missile msl = InitialGuidanceManager.Instance._currentMissile;
-                    if (msl!=null)
+                    if (msl != null)
                     {
 
                         Debug.WriteLine($"YawRaw={(ushort)msl.YawRaw}");
                         _manager._logService.AddLog(MessageType.System, "언리얼발사 절차 완료");
-                        SendToUE5.SendLaunchSignal("C001", "C002", 1, msl.Id,(ushort)msl.YawRaw);
+                        SendToUE5.SendLaunchSignal("C001", "C002", 1, msl.Id, (ushort)msl.YawRaw);
                     }
 
 
                     WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, false));
                 }
-                else 
+                else
                     WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, false));
 
                 await Task.Delay(1500, token);
@@ -257,6 +257,7 @@ namespace C2.Network
                     string senderId = "C001";
                     string receiverId = $"M{int.Parse(missile.Id):000}";
                     var header = new HeaderPacket(senderId, receiverId, (uint)seq, (byte)msgSize);
+                    MslKeyPacket mslKey = null;
 
                     BasePacket message = seq switch
                     {
@@ -268,6 +269,11 @@ namespace C2.Network
                     if (message is KeyExchangeMessage keyMsg && body != null)
                     {
                         keyMsg.SetEncryptionKey(body);
+
+                        var EncryptionKey = new byte[32];
+                        Array.Copy(body, EncryptionKey, Math.Min(32, body.Length));
+
+                        mslKey = new MslKeyPacket(header, header.DestId, EncryptionKey);
                     }
                     else if (message is InitialPipMessage pipMsg && body != null)
                     {
@@ -280,12 +286,19 @@ namespace C2.Network
 
                     using var client = new UdpClient(link.RxPort);
                     var packet = message.Serialize();
-
                     var sendEp = new IPEndPoint(IPAddress.Parse(link.TxIp), link.TxPort);
 
                     _manager._logService.AddLog(MessageType.System,
                         $"[II-{seq:D4}] 송신 시작 ({missile.Id}) → {link.TxIp}:{link.TxPort}");
                     await client.SendAsync(packet, packet.Length, sendEp);
+
+                    if (seq == 4)
+                    {
+                        packet = mslKey.Serialize();
+                        _manager._logService.AddLog(MessageType.System,
+                       $"[II-{seq:D4}] 송신 시작 ({missile.Id}) → {link.TxIp}:{link.TxPort}");
+                        await client.SendAsync(packet, packet.Length, sendEp);
+                    }
 
                     // 30초 타임아웃 설정
                     var recvTask = client.ReceiveAsync();
@@ -328,7 +341,7 @@ namespace C2.Network
 
         private class PowerOnState : BaseGuidanceState
         {
-            public override string Name => "전원 점검";
+            public override string Name => "전원 인가";
             //public override IGuidanceState NextState => new BitCheckState(_manager, _launchingMissile);
             public override IGuidanceState? NextState { get; set; }
 
@@ -354,7 +367,7 @@ namespace C2.Network
 
         private class BitCheckState : BaseGuidanceState
         {
-            public override string Name => "BIT 검사";
+            public override string Name => "BIT";
             public override IGuidanceState? NextState { get; set; }
             public BitCheckState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new AlignState(_manager, _launchingMissile); }
 
@@ -376,7 +389,7 @@ namespace C2.Network
 
         private class AlignState : BaseGuidanceState
         {
-            public override string Name => "항법 정렬";
+            public override string Name => "항법 장치 정렬";
             public override IGuidanceState? NextState { get; set; }
             public AlignState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new KeyState(_manager, _launchingMissile); }
 
@@ -395,7 +408,7 @@ namespace C2.Network
         }
         private class KeyState : BaseGuidanceState
         {
-            public override string Name => "키 전달";
+            public override string Name => "암호화 키 전달";
             public override IGuidanceState? NextState { get; set; }
             public KeyState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new IgnitionState(_manager, _launchingMissile); }
             private byte[] GenerateSessionKey()
@@ -423,7 +436,7 @@ namespace C2.Network
 
         private class IgnitionState : BaseGuidanceState
         {
-            public override string Name => "점화 준비";
+            public override string Name => "열전지 점화";
             public override IGuidanceState? NextState { get; set; }
             public IgnitionState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new PipCalculationState(_manager, _launchingMissile); }
 
@@ -443,7 +456,7 @@ namespace C2.Network
 
         private class PipCalculationState : BaseGuidanceState
         {
-            public override string Name => "PIP 계산";
+            public override string Name => "초기 PIP 전달";
             public override IGuidanceState? NextState { get; set; }
             public PipCalculationState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = new LaunchState(_manager, _launchingMissile); }
 
@@ -569,7 +582,7 @@ namespace C2.Network
                     rawYaw += 360.0;
 
                 ushort yawRaw = (ushort)(rawYaw * 100);
-                _launchingMissile.YawRaw = yawRaw; 
+                _launchingMissile.YawRaw = yawRaw;
                 Debug.WriteLine($"YawRaw={yawRaw}");
                 bool ok = await SendAndWaitForAck(_launchingMissile, seq: 6, msgSize: 12, body: pip);
                 if (!ok)
@@ -585,15 +598,15 @@ namespace C2.Network
 
         private class LaunchState : BaseGuidanceState
         {
-            public override string Name => "발사";
+            public override string Name => "발사 명령";
             public override IGuidanceState? NextState { get; set; }
             public LaunchState(InitialGuidanceManager manager, Missile missile) : base(manager, missile) { NextState = null; }
 
             public override async Task EnterAsync(CancellationToken token)
             {
-                
+
                 var missileId = _manager._missileService.UpdateMissileState(MissileState.Launching, MissileState.InitialGuidance); // 발사중 -> 초기유도로 전환
-                
+
 
                 if (missileId != null)
 

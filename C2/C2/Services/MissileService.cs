@@ -1,4 +1,5 @@
-﻿using C2.Messages;
+﻿using C2.Config;
+using C2.Messages;
 using C2.Models;
 using C2.Network;
 using CommunityToolkit.Mvvm.Messaging;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Windows;
 
 namespace C2.Services
 {
@@ -17,7 +19,7 @@ namespace C2.Services
 
         // 발사대 위치 (서울 시청 인근)
         public (int latitude, int longitude, short altitude) C2Points =
-            ((int)(37.5665 * 1e7), (int)(126.9780 * 1e7), (short)(38));
+            ((int)(AppConfig.Network.Reference.Latitude * 1e7), (int)(AppConfig.Network.Reference.Longitude * 1e7), (short)(38));
         private readonly LogService _logService;
 
         // Dictionary로 변경 (Key: Missile ID)
@@ -37,6 +39,7 @@ namespace C2.Services
             // 초기 미사일 4기 등록
             for (int i = 1; i <= 4; i++)
             {
+                //if (i == 2 || i == 3) continue;
                 var missile = new Missile(
                     id: $"{i:0}",
                     latitudeRaw: C2Points.latitude,
@@ -162,7 +165,11 @@ namespace C2.Services
                         //    _abortManager.AbortTarget(existing.TargetId[0]);
                         //}
                         //폭파처리
-                        existing.IsAbort = true;
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            existing.IsAbort = true;
+                        });
+                        
                         SendToUE5.SendDetonationSignal("C001", "C002", 3, existing.Id);
                         WeakReferenceMessenger.Default.Send(new MissileAbortMessage(existing.Id));
                     }

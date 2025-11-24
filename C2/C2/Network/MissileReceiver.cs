@@ -16,8 +16,8 @@ public class MissileReceiver
     private readonly string _unrealIp;
     private readonly int _unrealPort;
 
-    private const double ReferenceLat = 37.5665; // 기준 위도
-    private const double ReferenceLon = 126.9780; // 기준 경도 
+    //private const double ReferenceLat = 36.1398; // 기준 위도
+    //private const double ReferenceLon = 128.1135; // 기준 경도 
     private readonly string _radarIp;
     private readonly int _radarPort;
     private readonly double _referenceLat;
@@ -47,7 +47,7 @@ public class MissileReceiver
         var tmpMsl = _service.GetMissile(missile.Id);
         var targetId = tmpMsl.TargetId;
 
-        Target tar = _tservice.GetTarget(tmpMsl.TargetId[0]);
+        var tar = _tservice.GetTarget(tmpMsl.TargetId[0]);
         if (tar == null) return;
         (double tx, double ty) targetXY = LatLonToXY(tar.CurLoc.Lat, tar.CurLoc.Lon);
         long dx = (mslInfo.X / 1000) - (int)targetXY.tx;
@@ -81,8 +81,8 @@ public class MissileReceiver
 
     private Missile ToMissile(MslInfoPacket mslInfo)
     {
-        var (lat, lon) = XYToLatLon(mslInfo.X / 1e3, mslInfo.Y / 1e3, ReferenceLat, ReferenceLon);
-        var (pipLat, pipLon) = XYToLatLon(mslInfo.PipX / 1e3, mslInfo.PipY / 1e3, ReferenceLat, ReferenceLon);
+        var (lat, lon) = XYToLatLon(mslInfo.X / 1e3, mslInfo.Y / 1e3, _referenceLat, _referenceLon);
+        var (pipLat, pipLon) = XYToLatLon(mslInfo.PipX / 1e3, mslInfo.PipY / 1e3, _referenceLat, _referenceLon);
 
         var (yawDeg, pitchDeg) = CalcYawPitch(mslInfo.Vx / 1e3, mslInfo.Vy / 1e3, mslInfo.Vz);
 

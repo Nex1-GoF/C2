@@ -41,8 +41,8 @@ namespace C2.Config
 
     public class ReferenceConfig
     {
-        public double Latitude { get; set; } = 37.5665;
-        public double Longitude { get; set; } = 126.9780;
+        public double Latitude { get; set; } = 36.1398;
+        public double Longitude { get; set; } = 128.1135;
     }
 
     public class LauncherLinkItem

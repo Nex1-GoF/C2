@@ -1,7 +1,7 @@
 {
   "Reference": {
-    "Latitude": 37.5665,
-    "Longitude": 126.9780
+    "Latitude": 36.1398,
+    "Longitude": 128.1135
   },
   "LauncherLinks": [
     {
@@ -20,14 +20,14 @@
     },
     {
       "MissileId": "3",
-      "TxIp": "192.168.1.51",
+      "TxIp": "192.168.1.53",
       "TxPort": 9016,
       "RxIp": "192.168.1.100",
       "RxPort": 7005
     },
     {
       "MissileId": "4",
-      "TxIp": "192.168.1.51",
+      "TxIp": "192.168.1.54",
       "TxPort": 9016,
       "RxIp": "192.168.1.100",
       "RxPort": 7005

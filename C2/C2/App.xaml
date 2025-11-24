@@ -223,8 +223,7 @@
                     <ControlTemplate TargetType="Button">
                         <Border CornerRadius="4"
                                 Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
+                                BorderBrush="{TemplateBinding BorderBrush}">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
                         </Border>
@@ -248,7 +247,6 @@
         <Style x:Key="LaunchButtonStyle" TargetType="Button">
             <!-- 기본 상태 -->
             <Setter Property="Padding" Value="6,3"/>
-            <Setter Property="BorderThickness" Value="3"/>
             <Setter Property="Width" Value="126"/>
             <Setter Property="Height" Value="50"/>
             <Setter Property="Cursor" Value="Hand"/>
