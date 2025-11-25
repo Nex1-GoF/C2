@@ -8,6 +8,7 @@ using GMap.NET;
 using GMap.NET.MapProviders;
 using GMap.NET.WindowsPresentation;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
@@ -98,10 +99,17 @@ namespace C2.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     string id = msg.Value;
+                    Debug.WriteLine("1");
                     _map.Markers.Remove(_missileMarkers[id]);
+                    Debug.WriteLine("2");
                     _missileMarkers.Remove(id);
+
+
+                    Debug.WriteLine("3");
                     _pipMarkers.Remove($"PIP::{id}");
+                    Debug.WriteLine("4");
                     RemoveRoute(id);
+                    Debug.WriteLine("5");
                     RedrawAll();
                 });
             });
@@ -231,6 +239,7 @@ namespace C2.ViewModels
             {
                 _routes.Remove(missileId);
                 _map.Markers.Remove(route);
+                Debug.Write("Deleted");
             }
         }
 

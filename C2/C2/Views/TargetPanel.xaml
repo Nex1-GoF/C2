@@ -321,6 +321,7 @@
                                                    Source= '{Binding TargetInfoImagePath}'
                                                    Stretch="Uniform"
                                                    Height="90"
+                                                   Width="60"
                                                    HorizontalAlignment="Stretch" 
                                                    VerticalAlignment="Top"
                                                    Margin="8,0,0,0"/>

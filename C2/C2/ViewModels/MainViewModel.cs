@@ -93,7 +93,7 @@ namespace C2.ViewModels
                 });
                 
             });
-        }
+        } 
 
         private void UpdateCanLaunch()
         {

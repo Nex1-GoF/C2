@@ -75,6 +75,7 @@ namespace C2.Network
         {
             try
             {
+                Debug.WriteLine($"[StateMachine Start] {DateTime.Now:HH:mm:ss}");
                 while (_currentState != null)
                 {
                     _currentSeq = GetSeqFromState(_currentState);
@@ -84,6 +85,7 @@ namespace C2.Network
 
                     _currentState = _currentState.NextState;
                 }
+                Debug.WriteLine($"[StateMachine Start] {DateTime.Now:HH:mm:ss}");
             }
             catch (TaskCanceledException)
             {
@@ -202,7 +204,15 @@ namespace C2.Network
                 _manager = manager;
                 _launchingMissile = missile;
             }
-
+            private async Task PreciseDelay(int milliseconds, CancellationToken token)
+            {
+                var sw = Stopwatch.StartNew();
+                while (sw.ElapsedMilliseconds < milliseconds)
+                {
+                    token.ThrowIfCancellationRequested();
+                    await Task.Delay(1, token); // CPU 점유 방지용 최소 슬립
+                }
+            }
             public virtual async Task EnterAsync(CancellationToken token)
             {
                 int idx = _manager.GetStepIndex(Name);
@@ -233,7 +243,7 @@ namespace C2.Network
                 else
                     WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, false));
 
-                await Task.Delay(1500, token);
+                await PreciseDelay(500, token);
             }
 
             public virtual async Task ExitAsync(CancellationToken token)
@@ -241,7 +251,7 @@ namespace C2.Network
                 int idx = _manager.GetStepIndex(Name);
                 WeakReferenceMessenger.Default.Send(new LaunchProgressMessage(Name, idx, true));
                 _manager._logService.AddLog(MessageType.System, $"{Name} 완료");
-                await Task.Delay(500, token);
+                await PreciseDelay(200, token);
             }
 
             protected async Task<bool> SendAndWaitForAck(Missile missile, int seq, int? msgSize = 0, byte[]? body = null)
@@ -627,35 +637,7 @@ namespace C2.Network
 
         }
 
-        /*private class LauncherLinkConfig
-        {
-
-            private readonly Dictionary<Missile, (string txIp, int txPort, string rxIp, int rxPort)> _configMap;
-
-            public LauncherLinkConfig()
-            {
-                // 🔸 MissileService가 먼저 생성되어 있어야 함
-                MissileService _missileService = MissileService.Instance;
-
-                _configMap = new Dictionary<Missile, (string, int, string, int)>
-                {
-                    //{ _missileService.GetAllMissiles()[0], ("192.168.177.128", 9016, "192.168.1.100", 7005) },
-                    //{ _missileService.GetAllMissiles()[1], ("192.168.177.128", 9016, "192.168.1.100", 7005) },
-                    //{ _missileService.GetAllMissiles()[2], ("192.168.177.128", 9016, "192.168.1.100", 7005) },
-                    //{ _missileService.GetAllMissiles()[3], ("192.168.177.128", 9016, "192.168.1.100", 7005) }
-                    { _missileService.GetAllMissiles()[0], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
-                    { _missileService.GetAllMissiles()[1], ("192.168.1.52", 9016, "192.168.1.100", 7005) },
-                    { _missileService.GetAllMissiles()[2], ("192.168.1.51", 9016, "192.168.1.100", 7005) },
-                    { _missileService.GetAllMissiles()[3], ("192.168.1.51", 9016, "192.168.1.100", 7005) }
-                };
-
-            }
-
-            public bool TryGetLink(Missile missile, out (string txIp, int txPort, string rxIp, int rxPort) link)
-            {
-                return _configMap.TryGetValue(missile, out link);
-            }
-        }*/
+        
         private class LauncherLinkConfig
         {
             public record LinkEndPoints(string TxIp, int TxPort, string RxIp, int RxPort);
