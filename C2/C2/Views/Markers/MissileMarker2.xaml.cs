@@ -6,9 +6,9 @@ namespace C2.Views.Markers
 {
     public partial class MissileMarker2 : UserControl
     {
-        private static readonly Brush UnfocusedFill = new SolidColorBrush(Colors.LimeGreen);
+        private static readonly Brush UnfocusedFill = new SolidColorBrush(Color.FromRgb(255,255,51));
         private static readonly Brush FocusedFill = new SolidColorBrush(Colors.SkyBlue);
-        private static readonly Brush LaunchingFill = new SolidColorBrush(Colors.Orange);
+        private static readonly Brush LaunchingFill = new SolidColorBrush(Color.FromRgb(255,255,51));
 
         public string MissileId { get; }
         public bool IsLaunching { get; set; } = false;

@@ -74,7 +74,9 @@ namespace C2.ViewModels
         private void Abort(Missile missile)
         {
             //missile.State = MissileState.Abort;
-            missile.IsSelfabort = true;
+            var tmpMsl = _service.GetMissile(missile.Id);
+            if (tmpMsl == null) return;
+            tmpMsl.IsSelfabort = true;
             var mslId = $"M{int.Parse(missile.Id):000}";
             _abortManager.AbortMissile(mslId);
 
@@ -136,6 +138,7 @@ namespace C2.ViewModels
                 local.LongitudeRaw = latest.LongitudeRaw;
                 local.Altitude = latest.Altitude;
                 local.TargetId = latest.TargetId;
+                local.Speed = latest.Speed;
                 // 미사일 모델의 Yaw 갱신
                 local.YawRaw = latest.YawRaw;
                 local.RemainingDistance = latest.RemainingDistance;

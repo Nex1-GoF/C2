@@ -76,6 +76,8 @@ namespace C2.Services
                 missile.IsSelfabort = true;
                 var mslId = $"M{int.Parse(missile.Id):000}";
                 _abortManager.AbortMissile(mslId);
+                //나중에확인
+                SendToUE5.SendDetonationSignal("C001", "C002", 3, mslId);
             }
 
             // 선택 초기화 및 지도 갱신

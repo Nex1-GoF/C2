@@ -24,6 +24,7 @@ namespace C2.Network
             var mslCmd = ToMslCmdPacket(mslId);
             //Console.WriteLine(mslCmd.ToString());
             SendToRadar(mslCmd);
+            //SendToUE5.SendDetonationSignal("C001", "C002", 3, mslId);
         }
 
         public void AbortTarget(char tgtId)

@@ -6,8 +6,8 @@ namespace C2.Views.Markers
 {
     public partial class TargetMarker2 : UserControl
     {
-        private static readonly Brush UnfocusedFill = new SolidColorBrush(Color.FromRgb(255, 80, 80));
-        private static readonly Brush FocusedFill = new SolidColorBrush(Colors.Yellow);
+        private static readonly Brush UnfocusedFill = new SolidColorBrush(Color.FromRgb(255,51,51));
+        private static readonly Brush FocusedFill =  new SolidColorBrush(Color.FromRgb(51,255,51));
         public char TargetId { get; }
         public TargetMarker2(char targetId)
         {
