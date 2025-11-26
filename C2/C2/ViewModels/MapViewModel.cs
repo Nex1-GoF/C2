@@ -99,17 +99,13 @@ namespace C2.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     string id = msg.Value;
-                    Debug.WriteLine("1");
-                    _map.Markers.Remove(_missileMarkers[id]);
-                    Debug.WriteLine("2");
-                    _missileMarkers.Remove(id);
-
-
-                    Debug.WriteLine("3");
-                    _pipMarkers.Remove($"PIP::{id}");
-                    Debug.WriteLine("4");
-                    RemoveRoute(id);
-                    Debug.WriteLine("5");
+                    Debug.WriteLine(id);
+                    if (_missileMarkers.ContainsKey(id))
+                    {
+                        _map.Markers.Remove(_missileMarkers[id]);
+                        Debug.WriteLine("2");
+                        _missileMarkers.Remove(id);
+                    }
                     RedrawAll();
                 });
             });
@@ -239,7 +235,7 @@ namespace C2.ViewModels
             {
                 _routes.Remove(missileId);
                 _map.Markers.Remove(route);
-                Debug.Write("Deleted");
+                //Debug.Write("Deleted");
             }
         }
 

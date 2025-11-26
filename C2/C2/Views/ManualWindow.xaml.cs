@@ -16,7 +16,7 @@ namespace C2.Views
             InitializeComponent();
 
             // 프로젝트 내부 PDF 경로
-            string pdfPath = @"C:\workspace\C2\C2\C2\Resources\manual.pdf";
+            string pdfPath = @"C:\workspace\C2\C2\C2\Resources\manual.html";
 
 
             if (File.Exists(pdfPath))

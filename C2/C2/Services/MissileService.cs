@@ -148,6 +148,7 @@ namespace C2.Services
                 {   //Abort처리
                     if (!existing.IsAbort)
                     {
+                        //WeakReferenceMessenger.Default.Send(new MissileAbortMessage(existing.Id));
                         LogService _logService = LogService.Instance;
                         //_logService.AddLog(MessageType.System, "기폭");
                         //자폭인지 판별

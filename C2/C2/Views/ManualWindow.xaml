@@ -4,7 +4,8 @@
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         Title="사용자 매뉴얼"
         Width="800"
-        Height="900">
+        Height="600"
+        Padding="20">
 
     <Grid>
         <wv2:WebView2 x:Name="PdfViewer"/>

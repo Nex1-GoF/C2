@@ -17,6 +17,7 @@
     <None Remove="Resources\Fonts\NanumSquareNeo-dEb.ttf" />
     <None Remove="Resources\Fonts\NanumSquareNeo-eHv.ttf" />
     <None Remove="Resources\Fonts\Octapost.ttf" />
+    <None Remove="Resources\manual.html" />
     <None Remove="Resources\manual.pdf" />
     <None Remove="Resources\msl_marker.png" />
     <None Remove="Resources\target.png" />
@@ -51,7 +52,7 @@
     <Resource Include="Resources\Fonts\Octapost.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
-    <Resource Include="Resources\manual.pdf">
+    <Resource Include="Resources\manual.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\msl_marker.png" />
