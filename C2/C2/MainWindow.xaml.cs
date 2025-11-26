@@ -25,12 +25,14 @@ namespace C2
     {
         private const double MapExpandRatio = 0.9;
         private const double MapDefaultRatio = 0.75;
-
         private readonly MainViewModel _vm;
         private TargetReceiver _targetReceiver;
         private MissileReceiver _missileReceiver;
         private AbortManager _abortManager;
         private SocketManager _socketManager;
+        private ManualWindow _manualWindow;
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -52,8 +54,26 @@ namespace C2
         {
             if (e.Key == Key.M)
             {
-                var wnd = new ManualWindow();
-                wnd.Show();
+                Console.WriteLine("M pressed");
+
+                // 창이 이미 있고 열려있으면 → 닫고 null 처리
+                if (_manualWindow != null)
+                {
+                    if (_manualWindow.IsVisible)
+                    {
+                        Console.WriteLine("Close Window");
+                        _manualWindow.Close();
+                        _manualWindow = null;
+                        return;
+                    }
+                }
+
+                // 새로 생성
+                Console.WriteLine("Create New Window");
+                _manualWindow = new ManualWindow();
+                _manualWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
+                _manualWindow.Show();
             }
         }
         // 로그 확인용 - 콘솔 창 열기

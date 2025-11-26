@@ -1,708 +1,178 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>운용 매뉴얼</title><style>
-/* cspell:disable-file */
-/* webkit printing magic: print all background colors */
-html {
-	-webkit-print-color-adjust: exact;
-}
-* {
-	box-sizing: border-box;
-	-webkit-print-color-adjust: exact;
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>운용 매뉴얼</title>
+
+<!-- =============================== -->
+<!--       MILITARY DARK THEME       -->
+<!-- =============================== -->
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    background: #0e0e0e; /* 매우 어두운 회색/검정 */
+    color: #d7d7d7; /* 군용 디스플레이 느낌의 흐린 회색 */
+    font-family: "Malgun Gothic", "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
 }
 
-html,
+/* 본문 컨테이너 - 너무 넓지 않게 */
 body {
-	margin: 0;
-	padding: 0;
-}
-@media only screen {
-	body {
-		margin: 2em auto;
-		max-width: 900px;
-		color: rgb(55, 53, 47);
-	}
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
 }
 
-body {
-	padding: 20;
-	line-height: 1.5;
-	white-space: pre-wrap;
+/* 제목 부분 */
+h1, h2, h3 {
+    color: #9ee787; /* 군용 HUD 그린 */
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-left: 6px solid #3a553a; /* 녹색 계열 장비 느낌 */
+    padding-left: 10px;
+    margin-top: 40px;
 }
 
-a,
-a.visited {
-	color: inherit;
-	text-decoration: underline;
-}
-
-.pdf-relative-link-path {
-	font-size: 80%;
-	color: #444;
-}
-
-h1,
-h2,
-h3 {
-	letter-spacing: -0.01em;
-	line-height: 1.2;
-	font-weight: 600;
-	margin-bottom: 0;
-}
-
+/* 최상위 제목 */
 .page-title {
-	font-size: 2.5rem;
-	font-weight: 700;
-	margin-top: 0;
-	margin-bottom: 0.75em;
+    font-size: 2.3rem;
+    margin-top: 0;
 }
 
-h1 {
-	font-size: 1.875rem;
-	margin-top: 1.875rem;
-}
-
-h2 {
-	font-size: 1.5rem;
-	margin-top: 1.5rem;
-}
-
-h3 {
-	font-size: 1.25rem;
-	margin-top: 1.25rem;
-}
-
-.source {
-	border: 1px solid #ddd;
-	border-radius: 3px;
-	padding: 1.5em;
-	word-break: break-all;
-}
-
-.callout {
-	border-radius: 10px;
-	padding: 1rem;
-}
-
-figure {
-	margin: 1.25em 0;
-	page-break-inside: avoid;
-}
-
-figcaption {
-	opacity: 0.5;
-	font-size: 85%;
-	margin-top: 0.5em;
-}
-
-mark {
-	background-color: transparent;
-}
-
-.indented {
-	padding-left: 1.5em;
-}
-
+/* 구분선 */
 hr {
-	background: transparent;
-	display: block;
-	width: 100%;
-	height: 1px;
-	visibility: visible;
-	border: none;
-	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+    border: none;
+    border-top: 1px solid #444;
+    margin: 30px 0;
 }
 
-img {
-	max-width: 100%;
+/* 리스트 스타일 */
+ul li {
+    margin: 8px 0;
+    color: #dcdcdc;
 }
 
-@media only print {
-	img {
-		max-height: 100vh;
-		object-fit: contain;
-	}
+ul li::marker {
+    color: #9ee787;
 }
 
-@page {
-	margin: 1in;
+/* 링크 */
+a {
+    color: #88c57d;
+    text-decoration: underline;
 }
 
-.collection-content {
-	font-size: 0.875rem;
+/* 코드/강조 */
+code, .code {
+    background: #1a1a1a;
+    color: #55ff99;
+    padding: 3px 6px;
+    border-radius: 3px;
 }
 
-.collection-content td {
-	white-space: pre-wrap;
-	word-break: break-word;
+/* 인용문 */
+blockquote {
+    border-left: 4px solid #557755;
+    padding-left: 15px;
+    margin-left: 10px;
+    color: #cfcfcf;
 }
 
-.column-list {
-	display: flex;
-	justify-content: space-between;
-}
-
-.column {
-	padding: 0 1em;
-}
-
-.column:first-child {
-	padding-left: 0;
-}
-
-.column:last-child {
-	padding-right: 0;
-}
-
-.table_of_contents-item {
-	display: block;
-	font-size: 0.875rem;
-	line-height: 1.3;
-	padding: 0.125rem;
-}
-
-.table_of_contents-indent-1 {
-	margin-left: 1.5rem;
-}
-
-.table_of_contents-indent-2 {
-	margin-left: 3rem;
-}
-
-.table_of_contents-indent-3 {
-	margin-left: 4.5rem;
-}
-
-.table_of_contents-link {
-	text-decoration: none;
-	opacity: 0.7;
-	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
-}
-
-table,
-th,
-td {
-	border: 1px solid rgba(55, 53, 47, 0.09);
-	border-collapse: collapse;
-}
-
+/* 표 */
 table {
-	border-left: none;
-	border-right: none;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
 }
 
-th,
-td {
-	font-weight: normal;
-	padding: 0.25em 0.5em;
-	line-height: 1.5;
-	min-height: 1.5em;
-	text-align: left;
+th, td {
+    padding: 8px 10px;
+    border: 1px solid #333;
 }
 
 th {
-	color: rgba(55, 53, 47, 0.6);
+    background: #1d1d1d;
+    color: #9ee787;
 }
 
-ol,
-ul {
-	margin: 0;
-	margin-block-start: 0.6em;
-	margin-block-end: 0.6em;
+/* callout 스타일 (군사용 박스 느낌) */
+.callout {
+    background: #151515;
+    border-left: 6px solid #446644;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
 }
 
-li > ol:first-child,
-li > ul:first-child {
-	margin-block-start: 0.6em;
+/* 이미지 */
+img {
+    max-width: 100%;
+    border: 1px solid #333;
+    border-radius: 4px;
 }
 
-ul > li {
-	list-style: disc;
+/* 페이지 전체 여백 조정 */
+article.page {
+    margin-top: 10px;
 }
 
-ul.to-do-list {
-	padding-inline-start: 0;
+/* 표 제목/표기 */
+figcaption {
+    color: #888;
+    font-size: 0.85rem;
 }
 
-ul.to-do-list > li {
-	list-style: none;
-}
-
-.to-do-children-checked {
-	text-decoration: line-through;
-	opacity: 0.375;
-}
-
-ul.toggle > li {
-	list-style: none;
-}
-
-ul {
-	padding-inline-start: 1.7em;
-}
-
-ul > li {
-	padding-left: 0.1em;
-}
-
-ol {
-	padding-inline-start: 1.6em;
-}
-
-ol > li {
-	padding-left: 0.2em;
-}
-
-.mono ol {
-	padding-inline-start: 2em;
-}
-
-.mono ol > li {
-	text-indent: -0.4em;
-}
-
-.toggle {
-	padding-inline-start: 0em;
-	list-style-type: none;
-}
-
-/* Indent toggle children */
-.toggle > li > details {
-	padding-left: 1.7em;
-}
-
-.toggle > li > details > summary {
-	margin-left: -1.1em;
-}
-
-.selected-value {
-	display: inline-block;
-	padding: 0 0.5em;
-	background: rgba(206, 205, 202, 0.5);
-	border-radius: 3px;
-	margin-right: 0.5em;
-	margin-top: 0.3em;
-	margin-bottom: 0.3em;
-	white-space: nowrap;
-}
-
-.collection-title {
-	display: inline-block;
-	margin-right: 1em;
-}
-
+/* 작은 설명 */
 .page-description {
-	margin-bottom: 2em;
+    color: #888;
 }
+</style>
+</head>
 
-.simple-table {
-	margin-top: 1em;
-	font-size: 0.875rem;
-	empty-cells: show;
-}
-.simple-table td {
-	height: 29px;
-	min-width: 120px;
-}
+<body>
+<article class="page sans">
 
-.simple-table th {
-	height: 29px;
-	min-width: 120px;
-}
+<h1 class="page-title">C2 사용자 매뉴얼 (요약본)</h1>
 
-.simple-table-header-color {
-	background: rgb(247, 246, 243);
-	color: black;
-}
-.simple-table-header {
-	font-weight: 500;
-}
+<div class="page-body">
 
-time {
-	opacity: 0.5;
-}
+<h2>1. 표적 교전 할당</h2>
+<ul>
+<li>표적 카드에는 <strong>교전 할당 버튼</strong>이 있다.</li>
+<li>이 버튼을 누르면 시스템이 <strong>가장 적합한 미사일을 자동 선택</strong>하여 연결한다.</li>
+<li>교전 할당이 완료되면 미사일 패널에서 <strong>할당된 표적 정보가 표시</strong>된다.</li>
+</ul>
 
-.icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	max-width: 1.2em;
-	max-height: 1.2em;
-	text-decoration: none;
-	vertical-align: text-bottom;
-	margin-right: 0.5em;
-}
+<hr/>
 
-img.icon {
-	border-radius: 3px;
-}
+<h2>2. 미사일 발사</h2>
+<ul>
+<li>교전 할당 후 <strong>발사 버튼</strong>을 누르면 미사일 발사 절차가 시작된다.</li>
+<li>전원 점검 → BIT → 항법 정렬 → 키 전달 → 점화 준비 등의 자동 절차가 진행된다.</li>
+<li>상태 변화는 미사일 카드에서 <strong>진행률·상태</strong>로 확인 가능하다.</li>
+</ul>
 
-.callout img.notion-static-icon {
-	width: 1em;
-	height: 1em;
-}
+<hr/>
 
-.callout p {
-	margin: 0;
-}
+<h2>3. 교전 상황 확인</h2>
+<ul>
+<li>발사 후 지도에서 미사일과 표적의 궤적이 실시간 표시된다.</li>
+<li><strong>표적 카드 또는 미사일 카드 클릭 시</strong><br/>
+거리·상대 위치·상태·PIP 위치 등 자세한 교전 정보를 확인할 수 있다.</li>
+<li>다른 표적/미사일 선택으로 교전 정보를 즉시 전환 가능하다.</li>
+</ul>
 
-.callout h1,
-.callout h2,
-.callout h3 {
-	margin: 0 0 0.6rem;
-}
+<hr/>
 
-.user-icon {
-	width: 1.5em;
-	height: 1.5em;
-	border-radius: 100%;
-	margin-right: 0.5rem;
-}
+<h2>4. 기타 기능</h2>
+<ul>
+<li><strong>로그 패널</strong>: 시스템의 주요 메시지 표시</li>
+<li><strong>지도 확대/축소</strong>: 휠 또는 버튼 사용</li>
+</ul>
 
-.user-icon-inner {
-	font-size: 0.8em;
-}
+</div>
+</article>
 
-.text-icon {
-	border: 1px solid #000;
-	text-align: center;
-}
-
-.page-cover-image {
-	display: block;
-	object-fit: cover;
-	width: 100%;
-	max-height: 30vh;
-}
-
-.page-header-icon {
-	font-size: 3rem;
-	margin-bottom: 1rem;
-}
-
-.page-header-icon-with-cover {
-	margin-top: -0.72em;
-	margin-left: 0.07em;
-}
-
-.page-header-icon img {
-	border-radius: 3px;
-}
-
-.link-to-page {
-	margin: 1em 0;
-	padding: 0;
-	border: none;
-	font-weight: 500;
-}
-
-p > .user {
-	opacity: 0.5;
-}
-
-td > .user,
-td > time {
-	white-space: nowrap;
-}
-
-input[type="checkbox"] {
-	transform: scale(1.5);
-	margin-right: 0.6em;
-	vertical-align: middle;
-}
-
-p {
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
-}
-
-.image {
-	border: none;
-	margin: 1.5em 0;
-	padding: 0;
-	border-radius: 0;
-	text-align: center;
-}
-
-.code,
-code {
-	background: rgba(135, 131, 120, 0.15);
-	border-radius: 3px;
-	padding: 0.2em 0.4em;
-	border-radius: 3px;
-	font-size: 85%;
-	tab-size: 2;
-}
-
-code {
-	color: #eb5757;
-}
-
-.code {
-	padding: 1.5em 1em;
-}
-
-.code-wrap {
-	white-space: pre-wrap;
-	word-break: break-all;
-}
-
-.code > code {
-	background: none;
-	padding: 0;
-	font-size: 100%;
-	color: inherit;
-}
-
-blockquote {
-	font-size: 1em;
-	margin: 1em 0;
-	padding-left: 1em;
-	border-left: 3px solid rgb(55, 53, 47);
-}
-
-blockquote.quote-large {
-	font-size: 1.25em;
-}
-
-.bookmark {
-	text-decoration: none;
-	max-height: 8em;
-	padding: 0;
-	display: flex;
-	width: 100%;
-	align-items: stretch;
-}
-
-.bookmark-title {
-	font-size: 0.85em;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	height: 1.75em;
-	white-space: nowrap;
-}
-
-.bookmark-text {
-	display: flex;
-	flex-direction: column;
-}
-
-.bookmark-info {
-	flex: 4 1 180px;
-	padding: 12px 14px 14px;
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-}
-
-.bookmark-image {
-	width: 33%;
-	flex: 1 1 180px;
-	display: block;
-	position: relative;
-	object-fit: cover;
-	border-radius: 1px;
-}
-
-.bookmark-description {
-	color: rgba(55, 53, 47, 0.6);
-	font-size: 0.75em;
-	overflow: hidden;
-	max-height: 4.5em;
-	word-break: break-word;
-}
-
-.bookmark-href {
-	font-size: 0.75em;
-	margin-top: 0.25em;
-}
-
-.sans { font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
-.code { font-family: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace; }
-.serif { font-family: Lyon-Text, Georgia, ui-serif, serif; }
-.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
-.pdf .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK JP'; }
-.pdf:lang(zh-CN) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC'; }
-.pdf:lang(zh-TW) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK TC'; }
-.pdf:lang(ko-KR) .sans { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK KR'; }
-.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
-.pdf:lang(zh-CN) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
-.pdf:lang(zh-TW) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
-.pdf:lang(ko-KR) .code { font-family: Source Code Pro, "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
-.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK JP'; }
-.pdf:lang(zh-CN) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK SC'; }
-.pdf:lang(zh-TW) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK TC'; }
-.pdf:lang(ko-KR) .serif { font-family: PT Serif, Lyon-Text, Georgia, ui-serif, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Serif CJK KR'; }
-.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK JP'; }
-.pdf:lang(zh-CN) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC'; }
-.pdf:lang(zh-TW) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK TC'; }
-.pdf:lang(ko-KR) .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK KR'; }
-.highlight-default {
-	color: rgba(44, 44, 43, 1);
-}
-.highlight-gray {
-	color: rgba(125, 122, 117, 1);
-	fill: rgba(125, 122, 117, 1);
-}
-.highlight-brown {
-	color: rgba(159, 118, 90, 1);
-	fill: rgba(159, 118, 90, 1);
-}
-.highlight-orange {
-	color: rgba(210, 123, 45, 1);
-	fill: rgba(210, 123, 45, 1);
-}
-.highlight-yellow {
-	color: rgba(203, 148, 52, 1);
-	fill: rgba(203, 148, 52, 1);
-}
-.highlight-teal {
-	color: rgba(80, 148, 110, 1);
-	fill: rgba(80, 148, 110, 1);
-}
-.highlight-blue {
-	color: rgba(56, 125, 201, 1);
-	fill: rgba(56, 125, 201, 1);
-}
-.highlight-purple {
-	color: rgba(154, 107, 180, 1);
-	fill: rgba(154, 107, 180, 1);
-}
-.highlight-pink {
-	color: rgba(193, 76, 138, 1);
-	fill: rgba(193, 76, 138, 1);
-}
-.highlight-red {
-	color: rgba(207, 81, 72, 1);
-	fill: rgba(207, 81, 72, 1);
-}
-.highlight-default_background {
-	color: rgba(44, 44, 43, 1);
-}
-.highlight-gray_background {
-	background: rgba(42, 28, 0, 0.07);
-}
-.highlight-brown_background {
-	background: rgba(139, 46, 0, 0.086);
-}
-.highlight-orange_background {
-	background: rgba(224, 101, 1, 0.129);
-}
-.highlight-yellow_background {
-	background: rgba(211, 168, 0, 0.137);
-}
-.highlight-teal_background {
-	background: rgba(0, 100, 45, 0.09);
-}
-.highlight-blue_background {
-	background: rgba(0, 124, 215, 0.094);
-}
-.highlight-purple_background {
-	background: rgba(102, 0, 178, 0.078);
-}
-.highlight-pink_background {
-	background: rgba(197, 0, 93, 0.086);
-}
-.highlight-red_background {
-	background: rgba(223, 22, 0, 0.094);
-}
-.block-color-default {
-	color: inherit;
-	fill: inherit;
-}
-.block-color-gray {
-	color: rgba(125, 122, 117, 1);
-	fill: rgba(125, 122, 117, 1);
-}
-.block-color-brown {
-	color: rgba(159, 118, 90, 1);
-	fill: rgba(159, 118, 90, 1);
-}
-.block-color-orange {
-	color: rgba(210, 123, 45, 1);
-	fill: rgba(210, 123, 45, 1);
-}
-.block-color-yellow {
-	color: rgba(203, 148, 52, 1);
-	fill: rgba(203, 148, 52, 1);
-}
-.block-color-teal {
-	color: rgba(80, 148, 110, 1);
-	fill: rgba(80, 148, 110, 1);
-}
-.block-color-blue {
-	color: rgba(56, 125, 201, 1);
-	fill: rgba(56, 125, 201, 1);
-}
-.block-color-purple {
-	color: rgba(154, 107, 180, 1);
-	fill: rgba(154, 107, 180, 1);
-}
-.block-color-pink {
-	color: rgba(193, 76, 138, 1);
-	fill: rgba(193, 76, 138, 1);
-}
-.block-color-red {
-	color: rgba(207, 81, 72, 1);
-	fill: rgba(207, 81, 72, 1);
-}
-.block-color-default_background {
-	color: inherit;
-	fill: inherit;
-}
-.block-color-gray_background {
-	background: rgba(240, 239, 237, 1);
-}
-.block-color-brown_background {
-	background: rgba(245, 237, 233, 1);
-}
-.block-color-orange_background {
-	background: rgba(251, 235, 222, 1);
-}
-.block-color-yellow_background {
-	background: rgba(249, 243, 220, 1);
-}
-.block-color-teal_background {
-	background: rgba(232, 241, 236, 1);
-}
-.block-color-blue_background {
-	background: rgba(229, 242, 252, 1);
-}
-.block-color-purple_background {
-	background: rgba(243, 235, 249, 1);
-}
-.block-color-pink_background {
-	background: rgba(250, 233, 241, 1);
-}
-.block-color-red_background {
-	background: rgba(252, 233, 231, 1);
-}
-.select-value-color-default { background-color: rgba(42, 28, 0, 0.07); }
-.select-value-color-gray { background-color: rgba(28, 19, 1, 0.11); }
-.select-value-color-brown { background-color: rgba(127, 51, 0, 0.156); }
-.select-value-color-orange { background-color: rgba(196, 88, 0, 0.203); }
-.select-value-color-yellow { background-color: rgba(209, 156, 0, 0.282); }
-.select-value-color-green { background-color: rgba(0, 96, 38, 0.156); }
-.select-value-color-blue { background-color: rgba(0, 118, 217, 0.203); }
-.select-value-color-purple { background-color: rgba(92, 0, 163, 0.141); }
-.select-value-color-pink { background-color: rgba(183, 0, 78, 0.152); }
-.select-value-color-red { background-color: rgba(206, 24, 0, 0.164); }
-
-.checkbox {
-	display: inline-flex;
-	vertical-align: text-bottom;
-	width: 16;
-	height: 16;
-	background-size: 16px;
-	margin-left: 2px;
-	margin-right: 5px;
-}
-
-.checkbox-on {
-	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
-}
-
-.checkbox-off {
-	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
-}
-	
-</style></head><body><article id="2b14b359-ff54-808c-aed8-c21c4100c176" class="page sans"><header><h1 class="page-title">C2 사용자 매뉴얼 (요약본)</h1><p class="page-description"></p></header><div class="page-body"><h2 id="2b14b359-ff54-80ce-bf25-ee78df8c2917" class="">1. 표적 교전 할당</h2><ul id="2b14b359-ff54-8001-b8dd-c20a4d071162" class="bulleted-list"><li style="list-style-type:disc">표적 카드에는 <strong>교전 할당 버튼</strong>이 있다.</li></ul><ul id="2b14b359-ff54-8078-9590-e6d05e4756bd" class="bulleted-list"><li style="list-style-type:disc">이 버튼을 누르면 시스템이 <strong>가장 적합한 미사일을 자동으로 선택</strong>하여 해당 표적에 연결한다.</li></ul><ul id="2b14b359-ff54-8056-93f7-f7dce9ceb5b0" class="bulleted-list"><li style="list-style-type:disc">교전 할당이 완료되면 미사일 패널에서 <strong>할당된 표적 정보가 표시</strong>된다.</li></ul><hr id="2b14b359-ff54-80d1-809d-f4b45c6217da"/><h2 id="2b14b359-ff54-80da-9344-d17c94fc149d" class="">2. 미사일 발사</h2><ul id="2b14b359-ff54-8096-8b67-cf934f78098e" class="bulleted-list"><li style="list-style-type:disc">교전 할당이 끝난 뒤 <strong>발사 버튼</strong>을 누르면 미사일 발사 절차가 시작된다.</li></ul><ul id="2b14b359-ff54-801a-a212-d599ee4f191f" class="bulleted-list"><li style="list-style-type:disc">전원 점검 → BIT → 항법 정렬 → 키 전달 → 점화 준비 등 필요한 단계가 순서대로 자동 진행된다.</li></ul><ul id="2b14b359-ff54-8017-a5e8-cbf8bb9cc808" class="bulleted-list"><li style="list-style-type:disc">절차 중 상태 변화는 미사일 카드에서 <strong>실시간 진행률과 상태</strong>로 확인할 수 있다.</li></ul><hr id="2b14b359-ff54-8052-afd1-f71960bf1b80"/><h2 id="2b14b359-ff54-802c-93f4-fa2cf0520c01" class="">3. 교전 상황 확인</h2><ul id="2b14b359-ff54-802e-a236-df78579e0fe2" class="bulleted-list"><li style="list-style-type:disc">미사일이 발사되면, 지도 상에서 미사일과 표적의 궤적이 실시간으로 표시된다.</li></ul><ul id="2b14b359-ff54-80c1-b283-dfbb2e3f36c6" class="bulleted-list"><li style="list-style-type:disc"><strong>표적 카드 또는 미사일 카드 중 하나를 클릭</strong>하면<p id="2b14b359-ff54-8032-859f-cd78a3f04df5" class="">해당 교전 상황의 자세한 정보(거리, 상대 위치, 상태, PIP 위치 등)를 확인할 수 있다.</p></li></ul><ul id="2b14b359-ff54-8018-b0c3-e4e1ea3dad2a" class="bulleted-list"><li style="list-style-type:disc">필요하면 교전 중에도 다른 표적/미사일을 선택하여 정보를 전환해 볼 수 있다.</li></ul><hr id="2b14b359-ff54-803e-b0b5-e45c3cbf164c"/><h2 id="2b14b359-ff54-80a9-a5e2-ea2c5b006fa0" class="">4. 기타 기능</h2><ul id="2b14b359-ff54-8010-bfac-fbf28b3ca51d" class="bulleted-list"><li style="list-style-type:disc"><strong>로그 패널</strong>: 시스템에서 발생하는 주요 메시지를 시간순으로 표시</li></ul><ul id="2b14b359-ff54-8007-8fbf-dc56ca16dea4" class="bulleted-list"><li style="list-style-type:disc"><strong>지도 확대/축소</strong>: 휠 조작 또는 버튼으로 확대·축소 가능</li></ul><p id="2b14b359-ff54-801c-8051-db94786d0299" class="">
-</p></div></article><span class="sans" style="font-size:14px;padding-top:2em"></span></body></html>
+</body>
+</html>
