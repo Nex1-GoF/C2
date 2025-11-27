@@ -99,13 +99,25 @@ namespace C2.ViewModels
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     string id = msg.Value;
-                    Debug.WriteLine(id);
-                    if (_missileMarkers.ContainsKey(id))
-                    {
-                        _map.Markers.Remove(_missileMarkers[id]);
-                        Debug.WriteLine("2");
-                        _missileMarkers.Remove(id);
-                    }
+                    Debug.WriteLine("1");
+
+                    _map.Markers.Remove(_missileMarkers[id]);
+                    Debug.WriteLine("2");
+                    
+                    Debug.WriteLine($"count {_missileMarkers.Count()}");
+                    _missileMarkers.Remove(id);
+                    Debug.WriteLine($"count {_missileMarkers.Count()}");
+
+                    Debug.WriteLine("3");
+
+                    Debug.WriteLine($"count {_pipMarkers.Count()}");
+                    var pipMarker = _pipMarkers[id];
+                    _map.Markers.Remove(pipMarker);
+                    _pipMarkers.Remove(id);
+;                    Debug.WriteLine($"count {_pipMarkers.Count()}");
+
+                    RemoveRoute(id);
+                    //Debug.WriteLine("5");
                     RedrawAll();
                 });
             });
@@ -205,11 +217,12 @@ namespace C2.ViewModels
             RemoveRoute(missileId);
 
             var missile = _mapService.GetMissiles().First(m => m.Id == missileId);
-
+            
             var pip = missile.PIP;
             if (pip == null)
                 return;
 
+            if (missile.State == MissileState.Abort) return;
             if (missile.TargetId == null)
                 return;
 
@@ -255,7 +268,7 @@ namespace C2.ViewModels
                 if (mk.Kind == "Missile")
                 {
                     var missile = _mapService.GetMissiles().First(x => x.Id == mk.Id);
-
+                    if (missile.State == MissileState.Abort) continue;
                     //if(missile.State == MissileState.InitialGuidance) continue; 
                     // 초기 유도일때는 미사일 상태 바꾸지않고, 마커만 따로 관리
                     // 초기 PIP를 따라가는걸로 처리하고싶음
@@ -313,12 +326,20 @@ namespace C2.ViewModels
                 {
                     var missileId = mk.Id.Replace("PIP::", "");
                     var missile = _mapService.GetMissiles().First(x => x.Id == missileId);
+
                     var pip = missile.PIP;
-                    if (pip == null) return;
+                    if (pip == null) continue;
                     var pipMarker = _pipMarkers.GetValueOrDefault(missileId);
+                    
                     if (pipMarker == null) continue;
+
                     if (pipMarker.Shape is PIPMarker2 pipShape)
                     {
+                        if (missile.State == MissileState.Abort)
+                        {
+                            pipShape.SetVisible(false);
+                            continue;
+                        }
                         pipShape.SetVisible(mk.Focused);
 
                         if (pipShape.AfterLaunch == false

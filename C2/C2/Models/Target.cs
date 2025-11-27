@@ -129,7 +129,7 @@ namespace C2.Models
         {
             targetInfos.Add('0', new TargetInfo('0', "UNKNOWN", "/Resources/target2.png"));
             targetInfos.Add('A', new TargetInfo('A', "MIG29", "/Resources/target5.png"));
-            targetInfos.Add('B', new TargetInfo('B', "MIG15", "/Resources/target6.png"));
+            targetInfos.Add('B', new TargetInfo('B', "MIG23", "/Resources/target6.png"));
             targetInfos.Add('C', new TargetInfo('C', "SU25", "/Resources/target7.png"));
         }
 
